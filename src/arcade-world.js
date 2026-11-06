@@ -51,19 +51,37 @@ export function jobChecklist(g){
  if(type===3)return [{icon:'spanner',label:'Spanner',have:hasItem(g,'spanner')},{icon:'battery',label:'Battery',have:hasItem(g,'battery')}];
  return [];
 }
-export function gameHint(g,now=Date.now()){
- const near=nearbyJob(g),where=['top left','top right','bottom left','bottom right'];
- if(g.delivery){const j=JOBS[g.delivery.to];return near===g.delivery.to?`Press DELIVER to give the brief to ${j.person}.`:`Take Sol’s brief to ${j.person} in ${j.name} (${where[g.delivery.to]}). Stand beside them and press DELIVER.`;}
- const area=areaAt(g.x,g.y),type=near>=0?near:area>=0?area:g.focus;
- if(type===null||type<0)return 'Walk into any room to choose a job. Walk over the small floating objects to collect them.';
- if(now<g.readyAt[type])return 'Job done! New items appear in a few seconds. You can try another room.';
- if(type===2)return near===2?'Press GET BRIEF. Sol will tell you who to take it to.':'Walk to Sol in CLIENT DESK (bottom left). Stand beside him and press GET BRIEF.';
- const j=JOBS[type],items=jobChecklist({...g,focus:type,x:j.x,y:j.y}),ready=items.every(item=>item.have);
- if(ready){const action=['RESEARCH','MAKE AD','','REPAIR'][type];return near===type?`You have everything. Press ${action} to help ${j.person}.`:`You have everything. Stand next to ${j.person} in ${j.name} (${where[type]}) and press ${action}.`;}
- if(type===0){const n=g.inventory.filter(id=>id.startsWith('clue-')).length;return `Walk over the green clue cards in RESEARCH (top left). Collect all 3: ${n}/3 found. Then take them to Rem.`;}
- if(type===1){const c=g.inventory.some(id=>id.startsWith('ink-')),w=g.inventory.some(id=>id.startsWith('word-'));return `In STUDIO (top right), walk over ${!c&&!w?'one colour tin and one word tile':!c?'one colour tin':'one word tile'}. Then take them to Nova.`;}
- return `In WORKSHOP (bottom right), walk over ${!hasItem(g,'spanner')&&!hasItem(g,'battery')?'the spanner and the battery':!hasItem(g,'spanner')?'the spanner':'the battery'}. Then take them to Patch.`;
+// A single small instruction, shared by solo and live play. Guidance never
+// chooses a first job: players pick a room, then get help with that job.
+export function nextInstruction(g,now=Date.now()){
+ const near=nearbyJob(g),area=areaAt(g.x,g.y),type=g.delivery?g.delivery.to:near>=0?near:area>=0?area:g.focus;
+ const personStep=(n,action,title)=>({type:n,kind:near===n?'act':'person',title:near===n?`Press ${action}.`:title,detail:near===n?'Use the round button, or press Space.':`Follow the dots. Stand beside ${JOBS[n].person[0]+JOBS[n].person.slice(1).toLowerCase()}.`,icon:'player-'+[0,1,3,2][n],target:{x:JOBS[n].x,y:JOBS[n].y,person:true}});
+ if(type===null||type===undefined||type<0)return {type:null,kind:'choose',title:'Choose any room.',detail:'Use the arrows to move through a doorway.',icon:'player-'+g.character,target:null};
+ if(g.delivery)return personStep(type,'DELIVER',`Take the brief to ${JOBS[type].person[0]+JOBS[type].person.slice(1).toLowerCase()}.`);
+ if(now<g.readyAt[type])return {type,kind:'wait',title:'Job done. Choose your next one.',detail:'Try another room, or wait for new items.',icon:'player-'+g.character,target:null};
+ if(type===2)return personStep(2,'GET BRIEF','Go to Sol.');
+ const missing=availablePickups(g,now).filter(p=>p.type===type).sort((a,b)=>(Math.abs(a.x-g.x)+Math.abs(a.y-g.y))-(Math.abs(b.x-g.x)+Math.abs(b.y-g.y)));
+ const target=missing[0];
+ if(target){
+  const n=g.inventory.filter(id=>id.startsWith('clue-')).length;
+  const titles={clue:'Collect 3 clues.',paint:'Collect a colour tin.',word:'Collect a word tile.',spanner:'Collect the spanner.',battery:'Collect the battery.'};
+  return {type,kind:'collect',title:titles[target.icon],detail:target.icon==='clue'?`Walk onto a flashing card. ${n} of 3 collected.`:'Walk onto the flashing object.',icon:target.icon,target};
+ }
+ const names=['Rem','Nova','Sol','Patch'],actions=['RESEARCH','MAKE AD','GET BRIEF','REPAIR'];
+ return personStep(type,actions[type],`Take your items to ${names[type]}.`);
 }
+export function gameHint(g,now=Date.now()){const step=nextInstruction(g,now);return step.title+' '+step.detail;}
+export function guidancePath(g,target){
+ if(!target)return [];
+ const queue=[{x:g.x,y:g.y,previous:-1}],seen=new Set([g.x+','+g.y]);
+ for(let at=0;at<queue.length;at++){
+  const p=queue[at],distance=Math.abs(p.x-target.x)+Math.abs(p.y-target.y);
+  if(target.person?distance<=1:distance===0){const route=[];for(let i=at;queue[i].previous>=0;i=queue[i].previous)route.push({x:queue[i].x,y:queue[i].y});return route.reverse();}
+  for(const [dx,dy] of [[0,-1],[-1,0],[1,0],[0,1]]){const x=p.x+dx,y=p.y+dy,key=x+','+y;if(!seen.has(key)&&canWalk(x,y)){seen.add(key);queue.push({x,y,previous:at});}}
+ }
+ return [];
+}
+
 function arcadeNote(g,text,events){g.lastNote=text;events.push({kind:'note',text});}
 function collectArcadeItem(g,p,now,events){
  g.inventory.push(p.id);g.focus=p.type;g.affinity[p.type]+=p.type===0?1/3:1/2;g.score+=p.type===0?10:15;g.firstType??=p.type;

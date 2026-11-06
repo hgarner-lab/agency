@@ -9,7 +9,7 @@ import {roles} from '../src/content.js';
 import {character,selector} from '../src/scenes.js';
 import {isClean} from '../src/filter.js';
 import {qr} from '../src/qr.js';
-import {ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,publicArcadeGame,canWalk} from '../src/arcade-world.js';
+import {ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,canWalk} from '../src/arcade-world.js';
 import {posterSVG} from '../src/arcade-renderer.js';
 function ui(){
  const ids=new Map(),listeners=new Map();let time=1800000000000;
@@ -27,7 +27,7 @@ function ui(){
  const app=new Element('app'),toast=new Element('toast');ids.set('app',app);ids.set('toast',toast);
  const store=()=>({data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,v)}});
  const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,
-  cast,roles,character,selector,isClean,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,publicArcadeGame,posterSVG,drawGameIcon(){},createArcadeRenderer:()=>({draw(){}}),
+  cast,roles,character,selector,isClean,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawGameIcon(){},createArcadeRenderer:()=>({draw(){}}),
   location:{origin:'https://game.test',search:'',href:'https://game.test/'},history:{pushState(){}},sessionStorage:store(),localStorage:store(),navigator:{},
   setTimeout(){return 0},setInterval(){return 0},clearInterval(){},requestAnimationFrame(){},
   FormData:class{constructor(form){this.fields=form.fields}get(k){return this.fields[k]}},
@@ -67,4 +67,13 @@ test('opening the object guide pauses solo time and movement, then resumes with 
  await h.click('close-modal');assert.equal(h.context.arcTest.read().solo.phase,'active');
  assert.equal(h.context.arcTest.read().solo.deadline-h.context.Date.now(),left);
  h.walkTo(22,8);h.walkTo(26,4,true);h.use();assert.equal(h.context.arcTest.read().game.jobs[1],1);
+});
+test('the live instruction and action button advance from collecting to completing a job',async()=>{
+ const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'FollowDots'});await h.click('begin-solo');
+ assert.equal(h.ids.get('arc-use').disabled,true);assert.equal(h.ids.get('arc-hint').textContent,'Choose any room.');
+ h.walkTo(22,3);h.walkTo(22,8);assert.equal(h.ids.get('arc-hint').textContent,'Take your items to Nova.');
+ h.walkTo(26,4,true);assert.equal(h.ids.get('arc-hint').textContent,'Press MAKE AD.');
+ assert.equal(h.ids.get('arc-use').disabled,false);assert.equal(h.ids.get('arc-use').textContent,'MAKE AD');h.use();
+ assert.equal(h.ids.get('arc-hint').textContent,'Job done. Choose your next one.');
+ assert.equal(h.ids.get('arc-bag').hidden,true);
 });

@@ -1,4 +1,4 @@
-import {MAP_W,MAP_H,TILE,JOBS,FURNITURE,areaAt,wallAt,availablePickups,nearbyJob,PICKUPS} from './arcade-world.js';
+import {MAP_W,MAP_H,TILE,JOBS,FURNITURE,areaAt,wallAt,availablePickups,nearbyJob,PICKUPS,nextInstruction,guidancePath} from './arcade-world.js';
 const PIXEL_FONT={A:'01110100011000111111100011000110001',B:'11110100011000111110100011000111110',C:'01111100001000010000100001000001111',D:'11110100011000110001100011000111110',E:'11111100001000011110100001000011111',F:'11111100001000011110100001000010000',G:'01111100001000010111100011000101111',H:'10001100011000111111100011000110001',I:'11111001000010000100001000010011111',J:'00111000100001000010000101001001100',K:'10001100101010011000101001001010001',L:'10000100001000010000100001000011111',M:'10001110111010110101100011000110001',N:'10001110011010110011100011000110001',O:'01110100011000110001100011000101110',P:'11110100011000111110100001000010000',Q:'01110100011000110001101011001001101',R:'11110100011000111110101001001010001',S:'01111100001000001110000010000111110',T:'11111001000010000100001000010000100',U:'10001100011000110001100011000101110',V:'10001100011000110001100010101000100',W:'10001100011000110101101011101110001',X:'10001100010101000100010101000110001',Y:'10001100010101000100001000010000100',Z:'11111000010001000100010001000011111','0':'01110100011001110101110011000101110','1':'00100011000010000100001000010001110','2':'01110100010000100010001000100011111','3':'11110000010000101110000010000111110','4':'00010001100101010010111110001000010','5':'11111100001000011110000010000111110','6':'01110100001000011110100011000101110','7':'11111000010001000100010000100001000','8':'01110100011000101110100011000101110','9':'01110100011000101111000010000101110','!':'00100001000010000100001000000000100','?':'01110100010000100010001000000000100','+':'00000001000010011111001000010000000','/':'00001000100001000100010000100010000','-':'00000000000000011111000000000000000','.':'00000000000000000000000000000000100',':':'00000001000010000000001000010000000',' ':'00000000000000000000000000000000000'};
 export function pixelText(ctx,text,x,y,colour='#f5f0d9',size=1,align='left'){
  text=String(text).toUpperCase();const width=text.length*6*size;if(align==='center')x-=Math.floor(width/2);if(align==='right')x-=width;ctx.fillStyle=colour;
@@ -58,7 +58,8 @@ export function createArcadeRenderer(canvas,fullMap=false){
  }
  // Public launch space in the centre of the floor.
  b.fillStyle='#445b53';b.fillRect(15*TILE+2,3*TILE,60,48);b.fillStyle='#e3d8b4';b.fillRect(15*TILE+5,3*TILE+3,54,41);pixelText(b,'UG',17*TILE,3*TILE+10,'#425849',2,'center');pixelText(b,'LAUNCH',17*TILE,3*TILE+30,'#425849',1,'center');
- let cx=0,cy=0,px=16*TILE,py=12*TILE,targetX=px,targetY=py,previousSteps=-1,previousCharacter=-1,particles=[],seenScore=0,seenInventory='';
+ const reduceMotion=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ let cx=0,cy=0,px=16*TILE,py=12*TILE,targetX=px,targetY=py,previousSteps=-1,previousCharacter=-1,particles=[],seenScore=0,seenInventory='',routeKey='',route=[];
  function draw(game,now,options={}){
   if(!game)return;const changedIdentity=previousCharacter!==game.character;if(changedIdentity){px=game.x*TILE;py=game.y*TILE;previousCharacter=game.character;}
   targetX=game.x*TILE;targetY=game.y*TILE;px+=(targetX-px)*.42;py+=(targetY-py)*.42;
@@ -66,9 +67,18 @@ export function createArcadeRenderer(canvas,fullMap=false){
   const desiredX=Math.max(0,Math.min(MAP_W*TILE-canvas.width,px-canvas.width/2+8)),desiredY=Math.max(0,Math.min(MAP_H*TILE-canvas.height,py-canvas.height/2+8));
   if(fullMap){cx=0;cy=0}else{cx+=(desiredX-cx)*.18;cy+=(desiredY-cy)*.18}
   const ox=Math.round(cx),oy=Math.round(cy);c.fillStyle='#243c3c';c.fillRect(0,0,canvas.width,canvas.height);c.drawImage(map,-ox,-oy);
+  const step=!fullMap?nextInstruction(game,now):null,target=step?.target;
+  if(target){
+   const key=`${game.x},${game.y}/${target.x},${target.y}/${!!target.person}`;
+   if(key!==routeKey){routeKey=key;route=guidancePath(game,target);}
+   for(const p of route){const x=p.x*TILE-ox+7,y=p.y*TILE-oy+7;c.fillStyle='#19343b';c.fillRect(x-1,y-1,4,4);c.fillStyle='#fff3a5';c.fillRect(x,y,2,2);}
+   const x=target.x*TILE-ox,y=target.y*TILE-oy-(target.person?7:0),height=target.person?25:20;
+   c.fillStyle='#19343b';c.fillRect(x-4,y-4,24,2);c.fillRect(x-4,y+height,24,2);c.fillRect(x-4,y-4,2,height+6);c.fillRect(x+18,y-4,2,height+6);
+   if(reduceMotion||Math.floor(now/400)%2===0){c.fillStyle='#fff3a5';for(const [dx,dy] of [[-3,-3],[14,-3],[-3,height-3],[14,height-3]]){c.fillRect(x+dx,y+dy,7,2);c.fillRect(x+dx,y+dy,2,5);}}
+  }
   const visible=availablePickups(game,now);for(const item of visible)drawPickup(c,item,item.x*TILE-ox,item.y*TILE-oy,now);
   if(!fullMap){
-   const item=visible.filter(p=>Math.abs(p.x-game.x)+Math.abs(p.y-game.y)<=3).sort((a,b)=>(Math.abs(a.x-game.x)+Math.abs(a.y-game.y))-(Math.abs(b.x-game.x)+Math.abs(b.y-game.y)))[0];
+   const item=target&&!target.person&&Math.abs(target.x-game.x)+Math.abs(target.y-game.y)<=5?target:visible.filter(p=>Math.abs(p.x-game.x)+Math.abs(p.y-game.y)<=3).sort((a,b)=>(Math.abs(a.x-game.x)+Math.abs(a.y-game.y))-(Math.abs(b.x-game.x)+Math.abs(b.y-game.y)))[0];
    if(item){const label={clue:'CLUE',paint:'COLOUR',word:'WORD',spanner:'SPANNER',battery:'BATTERY'}[item.icon],w=label.length*6+8,x=Math.max(2,Math.min(canvas.width-w-2,item.x*TILE-ox+8-w/2)),y=Math.max(23,Math.min(canvas.height-14,item.y*TILE-oy+17));c.fillStyle='#19343bf0';c.fillRect(x,y,w,12);pixelText(c,label,x+w/2+1,y+3,'#f5edcf',1,'center');}
   }
   for(const f of FURNITURE)arcadeFurniture({set fillStyle(v){c.fillStyle=v},fillRect(x,y,w,h){c.fillRect(x-ox,y-oy,w,h)}},f);
