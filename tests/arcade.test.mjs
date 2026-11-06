@@ -2,7 +2,7 @@ import {test,beforeEach,mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
-import {newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK} from '../src/arcade-world.js';
+import {newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK,gameHint,jobChecklist} from '../src/arcade-world.js';
 import {arcadeApi} from '../src/arcade-server.js';
 let now,sql,env;
 beforeEach(()=>{
@@ -58,6 +58,20 @@ test('collectibles are single-use, jobs consume them, and a poster uses the coll
 test('points and character choice do not decide a role; identical work yields the same classification',()=>{
  const one=newArcadeGame(0),two=newArcadeGame(2);performJob(one,0);performJob(two,0);one.score=99999;two.score=1;
  assert.equal(arcadeProfile(one).role,0);assert.equal(arcadeProfile(two).role,0);assert.equal(arcadeProfile(newArcadeGame()),null);
+});
+test('instructions follow the current room, missing items and the action needed beside a teammate',()=>{
+ const g=newArcadeGame();walk(g,22,3);
+ assert.deepEqual(jobChecklist(g).map(i=>i.have),[true,false]);assert.match(gameHint(g,now),/one word tile/);
+ walk(g,22,8);assert.ok(jobChecklist(g).every(i=>i.have));assert.match(gameHint(g,now),/Stand next to NOVA.*MAKE AD/);
+ walk(g,26,4,true);assert.match(gameHint(g,now),/Press MAKE AD/);act(g);assert.match(gameHint(g,now),/New items appear/);
+ walk(g,3,5);assert.deepEqual(jobChecklist(g),[{icon:'clue',label:'Clues 1/3',have:false}]);assert.match(gameHint(g,now),/1\/3 found/);
+ walk(g,30,22);assert.deepEqual(jobChecklist(g).map(i=>i.have),[false,true]);assert.match(gameHint(g,now),/the spanner/);
+});
+test('client brief instructions keep the named destination while crossing other rooms',()=>{
+ const g=newArcadeGame();walk(g,6,20,true);assert.match(gameHint(g,now),/Press GET BRIEF/);act(g);
+ assert.match(gameHint(g,now),/NOVA.*STUDIO \(top right\)/);assert.equal(jobChecklist(g)[0].icon,'brief');
+ walk(g,3,5);assert.match(gameHint(g,now),/Sol’s brief to NOVA/);
+ walk(g,26,4,true);assert.match(gameHint(g,now),/Press DELIVER/);act(g);assert.equal(g.jobs[2],1);assert.equal(g.delivery,null);
 });
 test('live input is replayed on the server; forged scores and duplicate batches cannot award points',async()=>{
  const {host,player}=await room(),model=newArcadeGame(1),route=performJob(model,0);let seq=0,last;

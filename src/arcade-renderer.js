@@ -25,6 +25,13 @@ export function drawPickup(c,p,x,y,now){
  else if(p.icon==='spanner'){c.fillStyle='#2b6170';c.fillRect(x+6,y+5,4,9);c.fillStyle='#bce9e9';c.fillRect(x+6,y+4,3,9);c.fillRect(x+3,y+2,3,4);c.fillRect(x+10,y+1,3,5);c.fillRect(x+4,y+5,7,3);}
  else if(p.icon==='battery'){c.fillStyle='#27363a';c.fillRect(x+2,y+3,12,9);c.fillRect(x+14,y+5,1,4);c.fillStyle='#e2ed85';c.fillRect(x+3,y+4,9,7);c.fillStyle='#68764c';c.fillRect(x+6,y+6,1,3);c.fillRect(x+5,y+7,3,1);}
 }
+// The help and bag use the exact same sprites as the map.
+export function drawGameIcon(canvas,kind){
+ const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,24,24);
+ if(kind.startsWith('player-')){drawPixelPerson(c,3,2,Number(kind.slice(7)));return;}
+ if(kind==='brief'){c.fillStyle='#ffb26e';c.fillRect(3,6,18,12);c.fillStyle='#724e36';for(let i=0;i<8;i++)c.fillRect(4+i,7+Math.min(i,7-i),1,1);return;}
+ const item=PICKUPS.find(p=>p.icon===kind);if(item)drawPickup(c,item,4,5,0);
+}
 function arcadeFurniture(c,f){const [tx,ty,kind]=f,x=tx*TILE,y=ty*TILE;const r=(dx,dy,w,h,col)=>{c.fillStyle=col;c.fillRect(x+dx,y+dy,w,h)};
  if(kind==='plant'){r(3,10,10,5,'#a06e4c');r(4,14,8,2,'#735741');r(6,1,4,12,'#51946d');r(2,4,6,6,'#71ad77');r(9,2,5,7,'#8bbb7c');}
  if(kind==='desk'||kind==='screen'){r(1,3,15,12,'#5f574b');r(0,1,16,10,'#bda580');r(0,1,16,2,'#dfc8a4');r(2,11,2,5,'#5c544a');r(12,11,2,5,'#5c544a');if(kind==='screen'){r(3,-3,10,8,'#293946');r(4,-2,8,5,'#91c3be');r(5,-1,5,1,'#d0e6cb');r(7,5,2,2,'#33434b');r(3,8,9,1,'#e0d3bd');}else{r(5,4,8,4,'#f0e7d2');r(6,5,4,1,'#a19a87');}}
@@ -60,10 +67,14 @@ export function createArcadeRenderer(canvas,fullMap=false){
   if(fullMap){cx=0;cy=0}else{cx+=(desiredX-cx)*.18;cy+=(desiredY-cy)*.18}
   const ox=Math.round(cx),oy=Math.round(cy);c.fillStyle='#243c3c';c.fillRect(0,0,canvas.width,canvas.height);c.drawImage(map,-ox,-oy);
   const visible=availablePickups(game,now);for(const item of visible)drawPickup(c,item,item.x*TILE-ox,item.y*TILE-oy,now);
+  if(!fullMap){
+   const item=visible.filter(p=>Math.abs(p.x-game.x)+Math.abs(p.y-game.y)<=3).sort((a,b)=>(Math.abs(a.x-game.x)+Math.abs(a.y-game.y))-(Math.abs(b.x-game.x)+Math.abs(b.y-game.y)))[0];
+   if(item){const label={clue:'CLUE',paint:'COLOUR',word:'WORD',spanner:'SPANNER',battery:'BATTERY'}[item.icon],w=label.length*6+8,x=Math.max(2,Math.min(canvas.width-w-2,item.x*TILE-ox+8-w/2)),y=Math.max(23,Math.min(canvas.height-14,item.y*TILE-oy+17));c.fillStyle='#19343bf0';c.fillRect(x,y,w,12);pixelText(c,label,x+w/2+1,y+3,'#f5edcf',1,'center');}
+  }
   for(const f of FURNITURE)arcadeFurniture({set fillStyle(v){c.fillStyle=v},fillRect(x,y,w,h){c.fillRect(x-ox,y-oy,w,h)}},f);
   const actors=JOBS.map((j,i)=>({x:j.x*TILE,y:j.y*TILE,character:[0,1,3,2][i],name:j.person,npc:true,index:i}));actors.push({x:px,y:py,character:game.character,name:options.label||'YOU',npc:false});actors.sort((a,b)=>a.y-b.y);
   for(const a of actors){const ax=Math.round(a.x-ox),ay=Math.round(a.y-oy);drawPixelPerson(c,ax,ay-7,a.character,a.npc?0:game.steps, a.npc?'down':game.face);
-   if(!a.npc){c.fillStyle='#f9f2d4';c.fillRect(ax+7,ay-15,3,3);c.fillRect(ax+8,ay-12,1,2);if(options.label){const text=String(a.name).slice(0,16),w=text.length*6+6;c.fillStyle='#22373be0';c.fillRect(ax+8-w/2,ay+16,w,11);pixelText(c,text,ax+9,ay+18,'#f7edcf',1,'center');}}
+   if(!a.npc){c.fillStyle='#f9f2d4';c.fillRect(ax+7,ay-15,3,3);c.fillRect(ax+8,ay-12,1,2);const text=String(a.name).slice(0,16),w=text.length*6+6;c.fillStyle='#22373be0';c.fillRect(ax+8-w/2,ay+16,w,11);pixelText(c,text,ax+9,ay+18,'#f7edcf',1,'center');}
    else {const w=a.name.length*6+6;c.fillStyle='#263a3ccc';c.fillRect(ax+8-w/2,ay-17,w,10);pixelText(c,a.name,ax+9,ay-15,JOBS[a.index].colour,1,'center');if(nearbyJob(game)===a.index){c.fillStyle='#f6e49a';c.fillRect(ax+6,ay-26,5,6);pixelText(c,'!',ax+9,ay-26,'#263b3d',1,'center');}}
   }
   const inv=game.inventory.join(',');if(inv!==seenInventory&&game.score>seenScore){particles.push({x:px+8,y:py-12,text:'+'+(game.score-seenScore),until:now+850,colour:'#f7e195'});}seenInventory=inv;seenScore=game.score;

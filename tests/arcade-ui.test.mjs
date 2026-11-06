@@ -9,7 +9,7 @@ import {roles} from '../src/content.js';
 import {character,selector} from '../src/scenes.js';
 import {isClean} from '../src/filter.js';
 import {qr} from '../src/qr.js';
-import {ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,publicArcadeGame,canWalk} from '../src/arcade-world.js';
+import {ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,publicArcadeGame,canWalk} from '../src/arcade-world.js';
 import {posterSVG} from '../src/arcade-renderer.js';
 function ui(){
  const ids=new Map(),listeners=new Map();let time=1800000000000;
@@ -27,7 +27,7 @@ function ui(){
  const app=new Element('app'),toast=new Element('toast');ids.set('app',app);ids.set('toast',toast);
  const store=()=>({data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,v)}});
  const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,
-  cast,roles,character,selector,isClean,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,publicArcadeGame,posterSVG,createArcadeRenderer:()=>({draw(){}}),
+  cast,roles,character,selector,isClean,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,publicArcadeGame,posterSVG,drawGameIcon(){},createArcadeRenderer:()=>({draw(){}}),
   location:{origin:'https://game.test',search:'',href:'https://game.test/'},history:{pushState(){}},sessionStorage:store(),localStorage:store(),navigator:{},
   setTimeout(){return 0},setInterval(){return 0},clearInterval(){},requestAnimationFrame(){},
   FormData:class{constructor(form){this.fields=form.fields}get(k){return this.fields[k]}},
@@ -58,4 +58,13 @@ test('solo pause keeps the remaining time, and the chosen character never presel
  const h=ui();await h.click('solo');await h.click('character','0');await h.submit({mode:'solo',alias:'RemPlayer'});await h.click('begin-solo');h.advance(10000);await h.click('pause-menu');
  const left=h.context.arcTest.read().solo.remaining;h.advance(60000);await h.click('close-modal');
  assert.equal(h.context.arcTest.read().solo.phase,'active');assert.equal(h.context.arcTest.read().solo.deadline-1800000070000,left);assert.equal(arcadeProfile(h.context.arcTest.read().game),null);
+});
+test('opening the object guide pauses solo time and movement, then resumes with the same time left',async()=>{
+ const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'GuideReader'});await h.click('begin-solo');
+ h.walkTo(22,3);const before=h.context.arcTest.read().game.x;h.advance(10000);await h.click('map');
+ const left=h.context.arcTest.read().solo.remaining;assert.equal(h.context.arcTest.read().solo.phase,'paused');
+ h.advance(60000);h.context.arcTest.step({d:'right'});assert.equal(h.context.arcTest.read().game.x,before);
+ await h.click('close-modal');assert.equal(h.context.arcTest.read().solo.phase,'active');
+ assert.equal(h.context.arcTest.read().solo.deadline-h.context.Date.now(),left);
+ h.walkTo(22,8);h.walkTo(26,4,true);h.use();assert.equal(h.context.arcTest.read().game.jobs[1],1);
 });

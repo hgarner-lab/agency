@@ -43,18 +43,33 @@ export function jobLabel(g){
  const near=nearbyJob(g);if(g.delivery&&near===g.delivery.to)return 'DELIVER';if(near===2)return g.delivery?'TALK':'GET BRIEF';
  if(near===0)return 'RESEARCH';if(near===1)return 'MAKE AD';if(near===3)return 'REPAIR';return 'TALK';
 }
-export function gameHint(g){
- if(g.delivery){const j=JOBS[g.delivery.to];return `Deliver Sol’s brief to ${j.person} in ${j.name}.`;}
- if(g.focus===0){const n=g.inventory.filter(id=>id.startsWith('clue-')).length;return n===3?'3 clues found. Take them to Rem in RESEARCH.':`Find customer clues in RESEARCH: ${n}/3.`;}
- if(g.focus===1){const c=g.inventory.some(id=>id.startsWith('ink-')),w=g.inventory.some(id=>id.startsWith('word-'));return c&&w?'Take your colour and word tile to Nova in STUDIO.':`STUDIO: find ${!c&&!w?'a colour and a word tile':!c?'a colour':'a word tile'}.`;}
- if(g.focus===3){const a=hasItem(g,'spanner'),b=hasItem(g,'battery');return a&&b?'Take your tools to Patch in WORKSHOP.':`WORKSHOP: find ${!a&&!b?'a spanner and a battery':!a?'a spanner':'a battery'}.`;}
- const n=nearbyJob(g);return n>=0?JOBS[n].need:'Choose a room. Walk over items to collect them.';
+export function jobChecklist(g){
+ if(g.delivery)return [{icon:'brief',label:'Client brief',have:true}];
+ const area=areaAt(g.x,g.y),type=area>=0?area:g.focus;
+ if(type===0){const n=g.inventory.filter(id=>id.startsWith('clue-')).length;return [{icon:'clue',label:`Clues ${n}/3`,have:n===3}];}
+ if(type===1)return [{icon:'paint',label:'Colour',have:g.inventory.some(id=>id.startsWith('ink-'))},{icon:'word',label:'Word',have:g.inventory.some(id=>id.startsWith('word-'))}];
+ if(type===3)return [{icon:'spanner',label:'Spanner',have:hasItem(g,'spanner')},{icon:'battery',label:'Battery',have:hasItem(g,'battery')}];
+ return [];
+}
+export function gameHint(g,now=Date.now()){
+ const near=nearbyJob(g),where=['top left','top right','bottom left','bottom right'];
+ if(g.delivery){const j=JOBS[g.delivery.to];return near===g.delivery.to?`Press DELIVER to give the brief to ${j.person}.`:`Take Sol’s brief to ${j.person} in ${j.name} (${where[g.delivery.to]}). Stand beside them and press DELIVER.`;}
+ const area=areaAt(g.x,g.y),type=near>=0?near:area>=0?area:g.focus;
+ if(type===null||type<0)return 'Walk into any room to choose a job. Walk over the small floating objects to collect them.';
+ if(now<g.readyAt[type])return 'Job done! New items appear in a few seconds. You can try another room.';
+ if(type===2)return near===2?'Press GET BRIEF. Sol will tell you who to take it to.':'Walk to Sol in CLIENT DESK (bottom left). Stand beside him and press GET BRIEF.';
+ const j=JOBS[type],items=jobChecklist({...g,focus:type,x:j.x,y:j.y}),ready=items.every(item=>item.have);
+ if(ready){const action=['RESEARCH','MAKE AD','','REPAIR'][type];return near===type?`You have everything. Press ${action} to help ${j.person}.`:`You have everything. Stand next to ${j.person} in ${j.name} (${where[type]}) and press ${action}.`;}
+ if(type===0){const n=g.inventory.filter(id=>id.startsWith('clue-')).length;return `Walk over the green clue cards in RESEARCH (top left). Collect all 3: ${n}/3 found. Then take them to Rem.`;}
+ if(type===1){const c=g.inventory.some(id=>id.startsWith('ink-')),w=g.inventory.some(id=>id.startsWith('word-'));return `In STUDIO (top right), walk over ${!c&&!w?'one colour tin and one word tile':!c?'one colour tin':'one word tile'}. Then take them to Nova.`;}
+ return `In WORKSHOP (bottom right), walk over ${!hasItem(g,'spanner')&&!hasItem(g,'battery')?'the spanner and the battery':!hasItem(g,'spanner')?'the spanner':'the battery'}. Then take them to Patch.`;
 }
 function arcadeNote(g,text,events){g.lastNote=text;events.push({kind:'note',text});}
 function collectArcadeItem(g,p,now,events){
  g.inventory.push(p.id);g.focus=p.type;g.affinity[p.type]+=p.type===0?1/3:1/2;g.score+=p.type===0?10:15;g.firstType??=p.type;
  events.push({kind:'pickup',name:p.name,type:p.type,points:p.type===0?10:15,x:p.x,y:p.y});
- if(p.text)arcadeNote(g,p.text,events);
+ if(p.text)arcadeNote(g,`Clue ${g.inventory.filter(id=>id.startsWith('clue-')).length}/3 collected: ${p.text}`,events);
+ else arcadeNote(g,p.kind==='word'?`Word tile collected: ${p.value}.`:`${p.name} collected. It’s in your bag.`,events);
 }
 function completeArcadeJob(g,type,now,events,detail,poster=null){
  const bonus=g.lastJobAt?Math.max(0,30-Math.floor((now-g.lastJobAt)/1000)):0;
