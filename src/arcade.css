@@ -681,3 +681,24 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 @media(max-height:820px) and (min-width:900px){.arc-client-brand{gap:8px}.arc-client-brand img{width:44px;height:25px}.arc-client-brief .arc-brief-doc header{gap:10px}}
 @media(max-width:480px){.arc-client-brand{gap:6px}.arc-client-brand img{width:40px;height:23px}.arc-client-brief .arc-brief-doc header{gap:8px;padding:10px 12px}.arc-client-brief .arc-brief-doc header>span{font-size:10px}.arc-client-brief .arc-brief-doc header .arc-client-brand b{font-size:17px}.arc-client-brief .arc-brief-doc header i{font-size:18px;padding:2px 7px}}
 @media(max-width:480px){.arc-client-brief .arc-brief-doc header{display:grid;grid-template-columns:1fr auto;gap:4px 10px}.arc-client-brief .arc-brief-doc header>span{grid-column:1;grid-row:1}.arc-client-brief .arc-client-brand{grid-column:1;grid-row:2}.arc-client-brief .arc-brief-doc header i{grid-column:2;grid-row:1/3;margin-left:0;align-self:center}}
+/* Presenting full screen: slides fill the screen, no host bar or logo row. */
+.arc-slide-nav .arc-present{margin-left:10px;background:#c6ff4018;border-color:#c6ff40;color:#c6ff40}
+html.is-presenting #arc-room-controls,html.is-presenting #app>.shell:first-child{display:none!important}
+.is-presenting .arc-room-finale{padding-top:2vh;padding-bottom:2vh}
+.is-presenting.arcade-host .shell{padding-bottom:0}
+.is-presenting .arc-slide-nav{opacity:.45}
+.is-presenting .arc-slide-nav:hover{opacity:1}
+.arc-slide-nav{flex-wrap:nowrap}
+.arc-slide-nav button{white-space:nowrap}
+@media(max-width:1400px){.arcade-stage .arc-slide-nav button{padding:9px 11px;font-size:14px}.arcade-stage .arc-room-finale .arc-room-heading .eyebrow{white-space:nowrap}}
+.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
+/* Decision pop-up hierarchy: question first, progress is a quiet line. */
+.arc-q-steps{gap:4px;margin:2px 0 14px}
+.arc-q-steps li{height:4px;border:0;background:#3a414c;border-radius:2px}
+.arc-q-steps li.now{background:color-mix(in srgb,var(--c) 45%,#3a414c)}
+.arc-q-steps li.done{background:var(--c)}
+.arc-work-modal #arc-modal-title{font-size:20px;line-height:1.2;margin:8px 0 4px;color:#d9dde3}
+.arc-work-modal .arc-work-context{font-size:15px!important;color:#b9c0ca!important;margin:0 0 10px!important}
+.arc-q small{font-size:11px;color:#8b93a0}
+.arc-q h3{font-size:25px;line-height:1.2;margin:2px 0 14px}
+#arc-modal .arc-work-modal h2#arc-modal-title{font-size:19px!important;line-height:1.2!important;margin:8px 0 4px!important;color:#d9dde3!important;letter-spacing:0}
