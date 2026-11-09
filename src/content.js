@@ -30,32 +30,51 @@ export const rounds = [
 export const roles = [
  {key:'strategy',name:'THE MASTERMIND',job:'STRATEGY',symbol:'◎',color:'#c6ff40',line:'YOU FIND OUT WHAT PEOPLE NEED.',description:'Your choices focused on understanding people and deciding what matters. In an agency, strategists research customers and help the team choose a clear direction for the campaign.',skill:'Understanding people',partner:'The Instigator'},
  {key:'creative',name:'THE INSTIGATOR',job:'CREATIVE',symbol:'✳',color:'#b7a1ff',line:'YOU CREATE IDEAS PEOPLE NOTICE.',description:'Your choices focused on ideas that get people’s attention. In an agency, creatives turn the plan into words, designs, films and experiences that people remember.',skill:'Coming up with ideas',partner:'The Fixer'},
- {key:'account',name:'THE BOSS',job:'ACCOUNT MANAGEMENT',symbol:'↗',color:'#ff8d69',line:'YOU BRING PEOPLE TOGETHER.',description:'Your choices focused on the client, the budget and getting people to agree. In an agency, account managers work with the client and the team to keep a campaign on track.',skill:'Working with people',partner:'The Mastermind'},
- {key:'production',name:'THE FIXER',job:'PRODUCTION',symbol:'⊞',color:'#68dce9',line:'YOU GET IDEAS MADE.',description:'Your choices focused on solving practical problems and getting things done. In an agency, producers organise the people, time, equipment and places needed to make a campaign happen.',skill:'Solving practical problems',partner:'The Boss'}
+ {key:'account',name:'THE CONNECTOR',job:'ACCOUNT MANAGEMENT',symbol:'↗',color:'#ff8d69',line:'YOU BRING PEOPLE TOGETHER.',description:'Your choices focused on the client, the budget and getting people to agree. In an agency, account managers work with the client and the team to keep a campaign on track.',skill:'Working with people',partner:'The Mastermind'},
+ {key:'production',name:'THE FIXER',job:'PRODUCTION',symbol:'⊞',color:'#68dce9',line:'YOU GET IDEAS MADE.',description:'Your choices focused on solving practical problems and getting things done. In an agency, producers organise the people, time, equipment and places needed to make a campaign happen.',skill:'Solving practical problems',partner:'The Connector'}
 ];
+
+// How people get into agency jobs, shown under the deeper role slide.
+export const waysIn='Ways in: apprenticeships, entry-level jobs and graduate schemes. Agencies hire people from lots of different backgrounds.';
 
 // Shared by the phone reveal and the facilitator's closing screen.
 export const roleLessons = {
  strategy: {
-  title:'Strategy',
+  title:'Strategy',crew:0,
+  oneLiner:'Works out what people actually want, so the campaign lands.',
+  day:['Digging through comments, data and trends.','Talking to real customers.','Writing the one-page plan the whole team follows.'],
+  into:['You always ask “but why?”','You notice what people mean, not just what they say.','You like spotting patterns.'],
+  titles:['Strategist','Planner','Insight executive'],
   does:'Find out what people want and help the team decide what the campaign should say.',
   example:'For a trainer launch: find out why people would choose these trainers, then give the team one clear direction.',
   habits:['Ask good questions and listen to the answers.','Use evidence to check your assumptions.','Turn what you learn into a clear plan.']
  },
  creative: {
-  title:'Creative',
+  title:'Creative',crew:1,
+  oneLiner:'Comes up with the idea, then makes it look and sound good.',
+  day:['Throwing ideas around with a partner.','Writing lines, sketching or editing video.','Getting feedback and making it better.'],
+  into:['You’re always making stuff: edits, drawings, memes.','You have loads of ideas, even the bad ones.','You can take feedback and keep going.'],
+  titles:['Copywriter','Art director','Designer','Video editor'],
   does:'Turn the plan into ideas people notice: the words, designs, films and experiences.',
   example:'For a trainer launch: come up with the ad, the headline and the look of the campaign.',
   habits:['Explore several ideas before choosing one.','Make the idea easy to understand.','Use feedback to make the work better.']
  },
  account: {
-  title:'Account management',
+  title:'Account management',crew:3,
+  oneLiner:'Keeps the client happy and the team on track.',
+  day:['Calls and meetings with the client.','Turning what the client wants into a clear brief.','Keeping an eye on money and deadlines.'],
+  into:['You’re the one who sorts out the group plans.','You can talk to anyone.','You stay calm when things go wrong.'],
+  titles:['Account executive','Account manager','Client services'],
   does:'Work with the client and the agency team so everyone knows what is needed, agreed and due.',
   example:'For a trainer launch: agree the work, budget and dates, then keep the client and team updated.',
   habits:['Listen carefully and ask when something is unclear.','Be clear about costs, decisions and deadlines.','Flag problems early and help agree a solution.']
  },
  production: {
-  title:'Production',
+  title:'Production',crew:2,
+  oneLiner:'Makes it actually happen, on time and on budget.',
+  day:['Booking shoots, crews and locations.','Building schedules and budgets.','Fixing problems on the day.'],
+  into:['You like sorting out the details.','You’re good in a crisis.','You like seeing a real thing get made.'],
+  titles:['Producer','Project manager','Production assistant'],
   does:'Organise the people, time, places and equipment that turn an idea into finished work.',
   example:'For a trainer launch: book the shoot, organise the crew and make sure the ad is ready on time.',
   habits:['Break a big job into clear steps.','Spot practical problems and make a backup plan.','Pay attention to details and follow through.']

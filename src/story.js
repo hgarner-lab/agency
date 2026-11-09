@@ -2,7 +2,7 @@ export const cast = [
  {name:'REM',color:'#c6ff40',tag:'CALM UNDER PRESSURE.',detail:'Reads the group chat before replying. Good at understanding a problem and keeping the team calm.',idle:'First day? We’ll explain as we go. Sol’s already calling.',playable:true},
  {name:'NOVA',color:'#b7a1ff',tag:'ALWAYS HAS AN IDEA.',detail:'Comes up with campaign ideas, sketches them out and gets the team excited. Always has a marker.',idle:'We need an idea that wins people back. Please don’t say “founder dance”.',playable:true},
  {name:'PATCH',color:'#68dce9',tag:'GETS THINGS BUILT.',detail:'Sorts venues, equipment and the practical jobs. Usually knows someone with a van.',idle:'I’ll sort the equipment. You help us decide what we’re making.',playable:true},
- {name:'SOL',color:'#ff985c',tag:'YOUR CLIENT. A BIT STRESSED.',detail:'Runs trainer brand UNDERGROUND. Hired your agency to promote the launch. His leaked video has made that harder.',idle:'That video wasn’t meant to go public. How bad are the comments?',playable:false}
+ {name:'SOL',color:'#ff985c',tag:'KEEPS THE CLIENT HAPPY.',detail:'Looks after the trainer brand UNDERGROUND for the agency. Makes sure the team knows exactly what the client needs.',idle:'That video wasn’t meant to go public. How bad are the comments?',playable:false}
 ];
 export const missions = [
  {location:'THE AGENCY',clock:'48 HRS TO LAUNCH',objective:'Choose how the team responds to the leaked video.',speaker:3,

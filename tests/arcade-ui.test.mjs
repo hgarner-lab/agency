@@ -6,9 +6,9 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {cast} from '../src/story.js';
-import {roles,roleLessons} from '../src/content.js';
+import {roles,roleLessons,waysIn} from '../src/content.js';
 import {character,selector} from '../src/scenes.js';
-import {isClean} from '../src/filter.js';
+import {isClean,isGameName,makeNickname} from '../src/filter.js';
 import {qr} from '../src/qr.js';
 import {ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,canWalk} from '../src/arcade-world.js';
 import {posterSVG} from '../src/arcade-renderer.js';
@@ -28,7 +28,7 @@ function ui(options={}){
  const app=new Element('app'),toast=new Element('toast');ids.set('app',app);ids.set('toast',toast);
  const store=()=>({data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,v)}});
  const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,
-  ...world,cast,roles,roleLessons,character,selector,isClean,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
+  ...world,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
   location:{origin:'https://game.test',search:options.search||'',href:'https://game.test/'},history:{pushState(){}},sessionStorage:store(),localStorage:store(),navigator:{},
   setTimeout(){return 0},setInterval(){return 0},clearInterval(){},requestAnimationFrame(){},
   FormData:class{constructor(form){this.fields=form.fields}get(k){return this.fields[k]}},
@@ -133,4 +133,13 @@ test('the shared closing screen teaches all four roles and keeps the final score
  for(let i=0;i<4;i++)assert.equal(h.ids.get('arc-role-count-'+i).textContent,'1 PLAYER IN THIS ROLE');
  assert.match(h.ids.get('arc-leaderboard-wrap').innerHTML,/FINAL LEADERBOARD/);assert.doesNotMatch(h.app.innerHTML,/id="arc-stage-canvas"/);
  await h.click('retry');await h.settle();assert.equal(h.context.arcTest.read().sceneKey,'room-result');
+ for(const name of ['REM','NOVA','SOL','PATCH'])assert.match(h.app.innerHTML,new RegExp('arc-crew-name">'+name));
+ assert.equal((h.app.innerHTML.match(/class="arc-deeper"/g)||[]).length,4);assert.match(h.app.innerHTML,/JOB TITLES TO SEARCH/);assert.match(h.app.innerHTML,/Ways in:/);
+ assert.match(h.app.innerHTML,/data-slide="0"/);
+});
+test('players learn more about each job on their phone, with the crew member who does it',async()=>{
+ const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'Swift Fox 21'});await h.start();
+ h.walkTo(22,3);h.walkTo(22,8);h.walkTo(26,4,true);h.use();await h.click('pause-menu');await h.click('finish-self');
+ assert.match(h.app.innerHTML,/GOOD START/);assert.match(h.app.innerHTML,/You worked in <b[^>]*>Creative/);assert.match(h.app.innerHTML,/YOUR JOB IN THE GAME/);
+ assert.match(h.app.innerHTML,/WITH NOVA/);assert.match(h.app.innerHTML,/A NORMAL DAY/);assert.match(h.app.innerHTML,/YOU’D BE INTO IT IF/);assert.match(h.app.innerHTML,/Copywriter/);
 });

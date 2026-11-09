@@ -33,7 +33,7 @@ test('Turso transport binds typed values, converts result rows and initializes i
 test('the actual game API creates, joins and controls a persistent room through the Turso adapter',async()=>{
  const {db}=databaseTransport();await db.initialize();
  async function call(path,body=null,auth=null){const headers={};if(auth?.token)headers.authorization='Bearer '+auth.token;if(auth?.id)headers['x-player']=auth.id;const r=await arcadeApi(new Request('https://example.vercel.app/api/arcade/'+path,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined}),{DB:db});assert.equal(r.status>=200&&r.status<300,true,await r.clone().text());return r.json()}
- const host=await call('create',{duration:300}),player=await call('join',{code:host.code,alias:'VercelPlayer',character:2});await call('ready',{code:host.code},player);await call('control',{code:host.code,action:'start'},host);
+ const host=await call('create',{duration:300}),player=await call('join',{code:host.code,alias:'Turbo Otter 25',character:2});await call('ready',{code:host.code},player);await call('control',{code:host.code,action:'start'},host);
  const moved=await call('input',{code:host.code,ops:[{n:1,d:'right'}]},player);assert.equal(moved.game.x,17);assert.equal(moved.seq,1);
  const state=await call('state?room='+host.code,null,player);assert.equal(state.game.character,2);assert.equal(state.count,1);assert.equal(state.launch.target,4);
  await call('control',{code:host.code,action:'finish'},host);assert.equal((await call('state?room='+host.code,null,player)).phase,'finished');

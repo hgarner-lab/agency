@@ -1,5 +1,5 @@
 import {newArcadeGame,applyArcadeInput,arcadeProfile,publicArcadeGame,ARCADE_TICK} from './arcade-world.js';
-import {isClean} from './filter.js';
+import {isClean,isGameName} from './filter.js';
 const arcJson=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
 const arcHash=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)))).map(v=>v.toString(16).padStart(2,'0')).join('');
 const arcFail=(message,status=400)=>{throw {message,status}};
@@ -24,10 +24,9 @@ export async function arcadeApi(req,env){
   if(path==='join'&&req.method==='POST'){
    if(phase==='finished')arcFail('This game has finished. Ask your host for a new room.');
    const alias=String(body.alias||'').trim(),character=body.character??0;
-   if(!/^[A-Za-z0-9_ -]{2,16}$/.test(alias))arcFail('Choose a nickname with 2–16 letters or numbers.');
-   if(!isClean(alias))arcFail('Choose a different nickname. Keep it clean.');
-   if(!Number.isInteger(character)||character<0||character>2)arcFail('Choose Rem, Nova or Patch.');
-   if(await db.prepare('SELECT id FROM arcade_players WHERE room=? AND lower(alias)=lower(?)').bind(code,alias).first())arcFail('That nickname is taken. Choose another.');
+   if(!isGameName(alias)||!isClean(alias))arcFail('Use the game name you were given. Tap shuffle for a new one.');
+   if(!Number.isInteger(character)||character<0||character>2)arcFail('Choose one of the three looks.');
+   if(await db.prepare('SELECT id FROM arcade_players WHERE room=? AND lower(alias)=lower(?)').bind(code,alias).first())arcFail('That game name is taken. Tap shuffle for a new one.',409);
    const id=crypto.randomUUID(),token=crypto.randomUUID()+crypto.randomUUID(),game=newArcadeGame(character);
    const added=await db.prepare('INSERT INTO arcade_players(id,room,alias,token_hash,character,game,updated_at,joined_at) SELECT ?,?,?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM arcade_players WHERE room=?)<50').bind(id,code,alias,await arcHash(token),character,JSON.stringify(game),now,now,code).run();
    if((added.meta?.changes??added.changes)===0)arcFail('This room has reached 50 players.');
