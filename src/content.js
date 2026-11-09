@@ -40,6 +40,7 @@ export const waysIn='Ways in: apprenticeships, entry-level jobs and graduate sch
 // Shared by the phone reveal and the facilitator's closing screen.
 export const roleLessons = {
  strategy: {
+  voice:'I find out what people actually think. I read the comments, talk to real customers, then tell the team the one thing the ad needs to say.',loveIf:'you’re always asking “but why?” and you notice what people mean, not just what they say.',skills:['Curious', 'Good listener', 'Spots patterns'],startAs:'Junior strategist',
   title:'Strategy',crew:0,
   oneLiner:'Works out what people actually want, so the campaign lands.',
   day:['Digging through comments, data and trends.','Talking to real customers.','Writing the one-page plan the whole team follows.'],
@@ -50,6 +51,7 @@ export const roleLessons = {
   habits:['Ask good questions and listen to the answers.','Use evidence to check your assumptions.','Turn what you learn into a clear plan.']
  },
  creative: {
+  voice:'I come up with the idea and make it real. Some days it’s writing lines, some days it’s designing or editing a film. Most ideas get binned. That’s normal.',loveIf:'you’re always making stuff: edits, drawings, memes, playlists.',skills:['Imaginative', 'Takes feedback', 'Keeps going'],startAs:'Junior copywriter or designer',
   title:'Creative',crew:1,
   oneLiner:'Comes up with the idea, then makes it look and sound good.',
   day:['Throwing ideas around with a partner.','Writing lines, sketching or editing video.','Getting feedback and making it better.'],
@@ -60,6 +62,7 @@ export const roleLessons = {
   habits:['Explore several ideas before choosing one.','Make the idea easy to understand.','Use feedback to make the work better.']
  },
  account: {
+  voice:'I’m the link between the client and the team. I make sure we know exactly what Jamie wants, what it costs and when it’s due, and I sort it when plans change.',loveIf:'you’re the one who sorts out the group plans and you can talk to anyone.',skills:['Calm', 'Organised', 'Good with people'],startAs:'Account executive',
   title:'Account management',crew:3,
   oneLiner:'Keeps the client happy and the team on track.',
   day:['Calls and meetings with the client.','Turning what the client wants into a clear brief.','Keeping an eye on money and deadlines.'],
@@ -70,6 +73,7 @@ export const roleLessons = {
   habits:['Listen carefully and ask when something is unclear.','Be clear about costs, decisions and deadlines.','Flag problems early and help agree a solution.']
  },
  production: {
+  voice:'I make the idea actually happen. I book the crew, the kit and the location, keep it on budget, and fix whatever breaks on the day.',loveIf:'you like sorting out details and you stay cool when things go wrong.',skills:['Practical', 'Quick thinker', 'Gets it done'],startAs:'Production assistant',
   title:'Production',crew:2,
   oneLiner:'Makes it actually happen, on time and on budget.',
   day:['Booking shoots, crews and locations.','Building schedules and budgets.','Fixing problems on the day.'],

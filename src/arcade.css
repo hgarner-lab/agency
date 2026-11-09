@@ -658,3 +658,18 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 .arc-q-sending{font-size:14px;color:#9aa3ae;margin:8px 0 0}
 .arc-work-research{font-size:15px}
 .arc-work-research summary{color:#c6ff40;cursor:pointer;padding:4px 0}
+
+/* Role stories: the crew member talking, not bullet lists. */
+.arc-role-voice{margin:6px 0 12px;padding:0 0 0 14px;border-left:4px solid var(--lesson-color);font-size:17px;line-height:1.45;color:#f2ecd3}
+.arc-role-voice cite{display:block;margin-top:6px;font:700 13px WarMono,monospace;letter-spacing:.12em;color:var(--lesson-color);font-style:normal}
+.arc-role-love{margin:0 0 10px;font-size:16px;line-height:1.4;color:#dfe7d6}
+.arc-role-love b{color:var(--lesson-color)}
+.arc-role-skills{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.arc-role-skills span{background:color-mix(in srgb,var(--lesson-color) 18%,transparent);color:var(--lesson-color);border:1px solid color-mix(in srgb,var(--lesson-color) 55%,transparent);padding:3px 9px;font-size:14px;border-radius:999px}
+.arc-role-start{margin:0;font-size:15px;color:#c9d6c2}
+.arc-role-start b{color:#f2ecd3}
+.arc-deeper header small{display:block;font-family:inherit;letter-spacing:0;font-size:15px;line-height:1.3;color:#cfd9c7;margin-top:4px}
+.arcade-stage .arc-deeper .arc-role-voice{font-size:19px}
+.arcade-stage .arc-deeper .arc-role-love{font-size:17px}
+@media(max-height:820px){.arcade-stage .arc-deeper .arc-role-voice{font-size:15.5px;margin-bottom:8px}.arcade-stage .arc-deeper .arc-role-love{font-size:15px;margin-bottom:7px}.arcade-stage .arc-deeper header small{font-size:14px}}
+@media(min-width:1600px) and (min-height:950px){.arcade-stage .arc-deeper .arc-role-voice{font-size:24px}.arcade-stage .arc-deeper .arc-role-love{font-size:21px}.arcade-stage .arc-role-skills span{font-size:17px}.arcade-stage .arc-role-start{font-size:19px}}
