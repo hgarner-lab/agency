@@ -805,3 +805,10 @@ html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
  .arcade-stage .arc-dept-bars span{font-size:14px}
  .arcade-stage .arc-dept-bars strong{font-size:22px}
 }
+/* Phone top bar: the sound button only shows during play, so the logos never collide */
+@media(max-width:720px){body:not(.arcade-playing) .arc-nav-right .sound-toggle{display:none}}
+/* Sound toggle lives in the game's bottom bar */
+.arc-play-footer .arc-sound{color:#9fb79a}
+.arc-play-footer .arc-sound[aria-pressed="true"]{color:#c6ff40;border-color:#c6ff40}
+.arc-play-footer #arc-role-progress{margin-left:auto;margin-right:auto;white-space:nowrap}
+@media(max-width:720px){.arcade-playing .arc-play-footer{gap:6px}.arcade-playing .arc-play-footer>button{padding:7px 8px}}
