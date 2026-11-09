@@ -105,8 +105,8 @@ test('the live instruction and action button advance from collecting to completi
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'FollowDots'});await h.start();
  assert.equal(h.ids.get('arc-use').disabled,true);assert.equal(h.ids.get('arc-hint').textContent,'Choose your first job.');
  h.walkTo(22,3);h.walkTo(22,8);assert.equal(h.ids.get('arc-hint').textContent,'Help NOVA make a campaign idea.');
- h.walkTo(26,4,true);assert.equal(h.ids.get('arc-hint').textContent,'Press MAKE AD.');
- assert.equal(h.ids.get('arc-use').disabled,false);assert.equal(h.ids.get('arc-use').textContent,'MAKE AD');h.use();
+ h.walkTo(26,4,true);assert.equal(h.ids.get('arc-hint').textContent,'Press START.');
+ assert.equal(h.ids.get('arc-use').disabled,false);assert.equal(h.ids.get('arc-use').textContent,'START');h.use();
  assert.equal(h.ids.get('arc-hint').textContent,'Job done. Choose your next one.');
  assert.equal(h.ids.get('arc-bag').hidden,false);
 });

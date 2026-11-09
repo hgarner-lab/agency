@@ -713,3 +713,25 @@ html.is-presenting #arc-room-controls{display:none!important}
 .arc-q small{font-size:11px;color:#8b93a0}
 .arc-q h3{font-size:25px;line-height:1.2;margin:2px 0 14px}
 #arc-modal .arc-work-modal h2#arc-modal-title{font-size:19px!important;line-height:1.2!important;margin:8px 0 4px!important;color:#d9dde3!important;letter-spacing:0}
+
+/* Final QA polish */
+.arc-stage-credit>small{font-size:12px}
+.arc-stage-credit .mccann-mark{width:130px}
+/* Phone: practice area fills the frame; header lockup never wraps */
+@media(max-width:720px){
+ .arc-practice .arc-canvas-frame>canvas{width:100%;height:auto;max-height:100%}
+ .mccann-endorsement>small{white-space:nowrap}
+ .arc-nav .brand-lockup{gap:10px}
+ .arc-nav .mccann-endorsement{padding-left:10px}
+ .arc-nav .mccann-endorsement .mccann-mark{width:80px}
+}
+/* 720p campaign slide: smaller tiles so every piece sits above the host bar */
+@media(max-height:820px){
+ .arcade-stage .arc-campaign-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+ .arcade-stage .arc-campaign-grid .arc-wall-tile figcaption{font-size:13px}
+ .arcade-stage .arc-campaign-grid .arc-wall-tile figcaption small{font-size:12px}
+ .arcade-stage .arc-campaign-brief{margin-bottom:4px}
+ .arcade-stage .arc-campaign-summary{margin-bottom:8px;font-size:17px}
+}
+@media(max-height:820px){.arcade-stage .arc-room-finale .arc-room-heading h1{font-size:44px;white-space:nowrap}}
+.arc-practice .arc-canvas-frame>canvas{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
