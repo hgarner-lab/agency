@@ -224,3 +224,72 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
  .arcade-stage .arc-room-lobby .qr-box{width:440px}
  .arcade-stage .arc-room-lobby .room-display{font-size:84px}
 }
+
+/* Host = big screen: controls live in a slim bar along the bottom. */
+.arcade-host #arc-room-controls{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#0e1b20f2;border-top:1px solid #36544a;padding:8px 3vw}
+.arcade-host #arc-room-controls:empty{display:none}
+.arcade-host .arc-host-controls{display:flex;gap:12px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin:0;padding:0;border:0}
+.arcade-host .arc-host-controls .btn{width:auto;min-height:40px;padding:10px 16px;font-size:13px;box-shadow:none}
+.arcade-host .arc-host-controls .text-button{font-size:13px}
+.arcade-host .shell{padding-bottom:64px}
+.arcade-roles .arc-host-controls{display:flex;gap:16px;align-items:center;justify-content:center;margin-top:18px}
+.arc-home-solo{display:block;margin-top:18px;font-size:14px}
+
+/* Live big screen: one shared map, department race, feed and leaderboard. */
+.arcade-stage .arc-live{max-width:min(96vw,1800px)}
+.arc-live-top{display:grid;grid-template-columns:auto 1fr auto;gap:28px;align-items:center;padding:10px 0 14px}
+.arc-live-top h1{font-size:44px;line-height:.95;margin:0}
+.arc-live .arc-room-clock>b{font-size:60px}
+.arc-dept-bars{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.arc-dept-bars>div{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center}
+.arc-dept-bars span{font-family:WarMono,monospace;font-size:14px;color:var(--c);letter-spacing:.06em}
+.arc-dept-bars strong{font-family:WarDisplay,sans-serif;font-size:26px;color:var(--c);grid-row:span 2;line-height:1}
+.arc-dept-bars i{display:block;height:10px;background:#0d1d22;border:1px solid #36544a}
+.arc-dept-bars i b{display:block;height:100%;background:var(--c);transition:width .6s}
+.arc-live-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,26%);gap:20px;align-items:start}
+.arc-live .arc-stage-canvas{display:block;border-width:2px}
+.arc-live .arc-stage-canvas>canvas{width:100%;height:auto;max-height:calc(100vh - 170px);object-fit:contain;display:block}
+.arc-live aside{display:grid;gap:14px;max-height:calc(100vh - 170px);overflow:hidden}
+.arc-live .arc-leaderboard{padding:12px 16px}
+.arc-live .arc-rank-row{padding:6px 0}
+.arc-live .arc-rank-row>div>b{font-size:17px}
+.arc-live .arc-rank-row small{font-size:12px}
+.arc-live .arc-rank-row>strong{font-size:20px}
+.arc-live .arc-highlight{padding:8px 10px;animation:arc-slide-in .4s ease-out}
+.arc-live .arc-highlight-poster{display:none}
+.arc-live .arc-highlight p{font-size:14px;line-height:1.35;margin:2px 0}
+.arcade-host .arc-live{padding-bottom:60px}
+.arcade-host .arc-live .arc-stage-canvas>canvas,.arcade-host .arc-live aside{max-height:calc(100vh - 230px)}
+@media(max-width:1000px){.arc-live-top{grid-template-columns:1fr auto}.arc-dept-bars{grid-column:1/-1;grid-row:2}.arc-live-grid{grid-template-columns:1fr}}
+.arc-dept-bars>div{grid-template-columns:1fr auto;gap:4px 8px}
+.arc-dept-bars strong{grid-row:auto}
+.arc-bar{grid-column:1/-1;height:10px;background:#0d1d22;border:1px solid #36544a}
+.arc-bar>div{height:100%;background:var(--c);transition:width .6s}
+.arc-live-top h1{white-space:nowrap;font-size:38px}
+.arc-feed .eyebrow{font-size:14px;color:#bed3a8;margin-bottom:8px}
+.arc-feed-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;padding:7px 0;border-top:1px solid #36544a;animation:arc-slide-in .4s ease-out}
+.arc-feed-row b{font-size:16px;color:var(--c);font-weight:600;white-space:nowrap}
+.arc-feed-row span{font-size:14px;color:#c9d8c2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arc-feed-row strong{font-family:WarMono,monospace;font-size:15px;color:#f2ecd3;font-weight:400}
+.arc-feed-empty{font-size:15px;color:#8fac91}
+.arc-live .arc-rank-row small{display:none}
+/* Phone game: instruction card without the label, more room for the map. */
+.arcade-playing .arc-task{align-content:center;row-gap:2px}
+.arcade-playing .arc-task p{margin:0}
+@media(max-width:720px){
+ .arcade-playing .arc-player-shell{grid-template-rows:40px 70px minmax(0,1fr) 30px 146px 38px}
+ .arcade-playing .arc-controls{height:146px;align-items:center}
+}
+@media(max-height:700px) and (max-width:720px){
+ .arcade-playing .arc-player-shell{grid-template-rows:34px 62px minmax(0,1fr) 26px 140px 32px}
+ .arcade-playing .arc-controls{height:140px}
+}
+.arcade-home .hero-desc{font-size:19px;line-height:1.5;max-width:440px;color:#cfd6c4}
+/* Live screen fits one projector screen: no logo row, map sized above the host bar. */
+.arcade-stage #app:has(.arc-live) .arc-nav{display:none}
+.arcade-stage .arc-live{margin-top:0;padding-top:0}
+.arcade-stage .arc-live-top{padding:14px 0 12px}
+.arcade-stage .arc-live .arc-stage-canvas>canvas,.arcade-stage .arc-live aside{max-height:calc(100vh - 110px)}
+.arcade-host .arc-live .arc-stage-canvas>canvas,.arcade-host .arc-live aside{max-height:calc(100vh - 172px)}
+.arcade-stage .arc-live .arc-stage-canvas{width:fit-content;max-width:100%;justify-self:center}
+.arcade-stage #app:has(.arc-live)>.shell:first-child{display:none}
