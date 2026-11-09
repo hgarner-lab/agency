@@ -123,17 +123,17 @@ export function createArcadeRenderer(canvas,fullMap=false){
  return {draw,canvas,resize,destroy(){observer?.disconnect();}};
 }
 export function drawPractice(canvas,g,now){
- if(canvas.width!==288||canvas.height!==192){canvas.width=288;canvas.height=192;}
+ if(canvas.width!==224||canvas.height!==188){canvas.width=224;canvas.height=188;}
  const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
- c.fillStyle='#203c3f';c.fillRect(0,0,288,192);
- const px=x=>36+x*24,py=y=>12+y*24;
+ c.fillStyle='#203c3f';c.fillRect(0,0,224,188);
+ const px=x=>4+x*24,py=y=>18+y*24;
  for(let y=0;y<7;y++)for(let x=0;x<9;x++){c.fillStyle=x===0||x===8||y===0||y===6?'#4b6760':(x+y)%2?'#c2c4a1':'#b8bfa0';c.fillRect(px(x),py(y),24,24);}
  const tx=g.collected?6:5,ty=4;c.fillStyle='#f9edac';
  if(g.moved){for(let x=Math.min(g.x,tx);x<=Math.max(g.x,tx);x++)c.fillRect(px(x)+11,py(g.y)+11,3,3);for(let y=Math.min(g.y,ty);y<=Math.max(g.y,ty);y++)c.fillRect(px(tx)+11,py(y)+11,3,3);}
  if(!g.collected){const x=px(5)+8,y=py(4)+6;c.fillStyle='#203b3a';c.fillRect(x-3,y-3,16,19);c.fillStyle='#fff2a2';c.fillRect(x+3,y,4,13);c.fillRect(x-1,y+4,12,4);c.fillRect(x+1,y+2,8,8);}
  drawPixelPerson(c,px(7)+3,py(4),3);pixelText(c,'TEAMMATE',px(7)+11,py(4)-11,'#203b3a',1,'center');
  drawPixelPerson(c,px(g.x)+3,py(g.y),g.character,g.steps,g.face);pixelText(c,'YOU',px(g.x)+12,py(g.y)-9,'#203b3a',1,'center');
- pixelText(c,'PRACTICE / NO POINTS',144,6,'#edf0d7',1,'center');
+ pixelText(c,'PRACTICE / NO POINTS',112,5,'#edf0d7',1,'center');
 }
 
 // Big screen: every player on one shared floor plan. Each phone has its own

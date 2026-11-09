@@ -62,7 +62,7 @@ export function jobAction(g,now=Date.now()){
  if(near<0)return talk;
  if(g.delivery)return g.delivery.to===near?{label:'DELIVER',enabled:true,ready:true}:talk;
  if(now<g.readyAt[near])return talk;
- if(g.taskVersion)return materialsReady(g,near)?{label:taskFor(g,near).action,enabled:true,ready:true}:talk;
+ if(g.taskVersion)return materialsReady(g,near)?{label:'START',enabled:true,ready:true}:talk;
  if(near===2)return {label:'GET MESSAGE',enabled:true,ready:true};
  const ready=near===0?['clue-a','clue-b','clue-c'].every(id=>hasItem(g,id)):near===1?g.inventory.some(id=>id.startsWith('ink-'))&&g.inventory.some(id=>id.startsWith('word-')):hasItem(g,'spanner')&&hasItem(g,'battery');
  return ready?{label:['MAKE PLAN','MAKE AD','','FIX KIT'][near],enabled:true,ready:true}:talk;
@@ -87,7 +87,7 @@ export function nextInstruction(g,now=Date.now()){
  if(type===null||type===undefined||type<0)return {type:null,kind:'choose',title:'Choose your first job.',detail:'Hold an arrow. Move into any room.',icon:'player-'+g.character,target:null};
  if(g.delivery)return personStep(type,'DELIVER',`Take Sol’s ${g.taskVersion?'agreement':'message'} to ${JOBS[type].person[0]+JOBS[type].person.slice(1).toLowerCase()}.`);
  if(now<g.readyAt[type])return {type,kind:'wait',title:'Job done. Choose your next one.',detail:'Try another room, or wait for new items.',icon:'player-'+g.character,target:null};
- if(g.taskVersion&&materialsReady(g,type))return personStep(type,taskFor(g,type).action,`Help ${JOBS[type].person} ${taskFor(g,type).title.toLowerCase()}.`);
+ if(g.taskVersion&&materialsReady(g,type))return personStep(type,'START',`Help ${JOBS[type].person} ${taskFor(g,type).title.toLowerCase()}.`);
  if(type===2)return personStep(2,'GET MESSAGE','Get the client’s message from Sol.');
  const missing=availablePickups(g,now).filter(p=>p.type===type).sort((a,b)=>(Math.abs(a.x-g.x)+Math.abs(a.y-g.y))-(Math.abs(b.x-g.x)+Math.abs(b.y-g.y)));
  const target=missing.find(p=>g.guide?.type===type&&g.guide.id===p.id)||missing[0];

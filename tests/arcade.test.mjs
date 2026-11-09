@@ -65,12 +65,12 @@ test('instructions follow the current room, missing items and the action needed 
  const g=newArcadeGame();walk(g,22,3);
  assert.deepEqual(jobChecklist(g).map(i=>i.have),[true,false]);assert.match(gameHint(g,now),/Collect a word tile/);
  walk(g,22,8);assert.ok(jobChecklist(g).every(i=>i.have));assert.match(gameHint(g,now),/make a campaign idea/);
- walk(g,26,4,true);assert.match(gameHint(g,now),/Press MAKE AD/);act(g);submit(g);assert.match(gameHint(g,now),/Job done/);
+ walk(g,26,4,true);assert.match(gameHint(g,now),/Press START/);act(g);submit(g);assert.match(gameHint(g,now),/Job done/);
  walk(g,3,5);assert.deepEqual(jobChecklist(g),[{icon:'clue',label:'Research 1/3',have:false}]);assert.match(gameHint(g,now),/1\/3 collected/);
  walk(g,30,22);assert.deepEqual(jobChecklist(g).map(i=>i.have),[false,true]);assert.match(gameHint(g,now),/the kit list/);
 });
 test('client brief instructions keep the named destination while crossing other rooms',()=>{
- const g=newArcadeGame();walk(g,6,20,true);assert.match(gameHint(g,now),/Press AGREE SCOPE/);act(g);submit(g);
+ const g=newArcadeGame();walk(g,6,20,true);assert.match(gameHint(g,now),/Press START/);act(g);submit(g);
  assert.match(gameHint(g,now),/Take Sol’s agreement to Nova/);assert.equal(jobChecklist(g)[0].icon,'brief');
  walk(g,3,5);assert.match(gameHint(g,now),/Take Sol’s agreement to Nova/);
  walk(g,26,4,true);assert.match(gameHint(g,now),/Press DELIVER/);act(g);assert.equal(g.jobs[2],1);assert.equal(g.delivery,null);
@@ -127,12 +127,12 @@ test('the marked object stays selected while moving, until collected or changing
  walk(g,3,5);assert.equal(nextInstruction(g,now).type,0);
 });
 test('TALK cannot complete an unrelated job while delivering a message',()=>{
- const g=newArcadeGame();walk(g,6,20,true);assert.equal(jobAction(g,now).label,'AGREE SCOPE');act(g);submit(g);
+ const g=newArcadeGame();walk(g,6,20,true);assert.equal(jobAction(g,now).label,'START');act(g);submit(g);
  walk(g,22,17);walk(g,30,22);walk(g,26,20,true);
  assert.equal(jobAction(g,now).label,'TALK');const before=g.score,events=act(g);
  assert.equal(g.score,before);assert.equal(g.jobs[3],0);assert.ok(events.every(e=>e.kind==='note'));
  walk(g,26,4,true);assert.equal(jobAction(g,now).label,'DELIVER');act(g);
- walk(g,26,20,true);assert.equal(jobAction(g,now).label,'LOCK PLAN');act(g);submit(g);assert.equal(g.jobs[3],1);
+ walk(g,26,20,true);assert.equal(jobAction(g,now).label,'START');act(g);submit(g);assert.equal(g.jobs[3],1);
  assert.equal(jobAction(g,now).label,'TALK');const score=g.score;act(g);assert.equal(g.score,score);
 });
 test('a role needs two completed jobs, even with many collected items',()=>{
