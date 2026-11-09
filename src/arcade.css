@@ -364,3 +364,111 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 .arc-wall-tile>button{display:block;width:100%;padding:0;background:transparent;cursor:pointer}.arc-wall-tile>button svg{width:100%;display:block}.arc-wall-tile>button:focus-visible{outline:3px solid #bbef66;outline-offset:3px}.arc-artifact-lines{padding-left:20px}.arc-artifact-lines li{margin:16px 0;line-height:1.5}
 
 .arc-work-modal{max-width:560px}.arc-work-modal>.close-modal{z-index:3;background:#111318;width:36px;height:36px;top:26px;right:24px}.arc-work-built li button{min-height:44px}.arc-work-modal .arc-work-built>p,.arc-work-modal .arc-work-choice>p{margin-bottom:10px}@media(max-width:480px){.arc-work-modal>.close-modal{top:20px;right:18px}}
+
+/* Opening screens: welcome, the brief, how it works. */
+.arc-intro{padding-top:2vh}
+.arc-intro h1{font-size:clamp(48px,6vw,96px);margin:6px 0 18px}
+.arc-intro-lead{font-size:clamp(19px,1.7vw,28px);line-height:1.4;color:#e7ecd8;max-width:1050px;margin:0 0 22px}
+.arc-team-explain>div{align-items:flex-start}
+.arc-team-explain p{margin:6px 0 0;font-size:clamp(15px,1.2vw,20px);line-height:1.35;color:#d9e2cf}
+.arc-gloss{font-size:clamp(14px,1.1vw,18px);color:#a9c19c;border-left:3px solid #56705f;padding-left:12px;margin:0 0 20px}
+.arc-gloss b{color:#f2ecd3}
+.arc-brief-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;margin:0 0 18px;background:#36544a;border:2px solid #36544a}
+.arc-brief-card>div{background:#1c3635;padding:14px 18px}
+.arc-brief-card>div:first-child{grid-column:1/-1}
+.arc-brief-card dt{font-family:WarMono,monospace;font-size:clamp(12px,1vw,16px);letter-spacing:.1em;color:#c6ff40;margin-bottom:6px}
+.arc-brief-card dd{margin:0;font-size:clamp(17px,1.5vw,26px);line-height:1.35;color:#f2ecd3}
+.arc-how-steps{list-style:none;padding:0;margin:0 0 22px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.arc-how-steps li{display:flex;gap:12px;background:#1c3635;border:1px solid #3f5b4a;padding:16px}
+.arc-how-steps li>b{font-family:WarDisplay,sans-serif;font-size:clamp(34px,3vw,52px);color:#c6ff40;line-height:.9}
+.arc-how-steps strong{display:block;font-size:clamp(18px,1.5vw,26px);color:#f2ecd3;margin-bottom:6px}
+.arc-how-steps span{font-size:clamp(15px,1.2vw,20px);line-height:1.35;color:#d9e2cf}
+.arc-intro-nav{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.arc-intro-nav .text-button{font-size:14px}
+.arc-intro-count{font-family:WarMono,monospace;font-size:15px;color:#8fac91;margin-left:auto}
+.arc-lobby-brief{border-left:3px solid #c6ff40;padding:8px 14px;background:#c6ff4012;max-width:620px}
+.arcade-stage .arc-room-lobby p.arc-lobby-brief{font-size:clamp(17px,1.5vw,24px);line-height:1.35}
+.arc-lobby-brief b,.arc-campaign-brief b{display:block;font-family:WarMono,monospace;font-size:13px;letter-spacing:.1em;color:#c6ff40;margin-bottom:3px}
+.arc-campaign-brief{font-size:clamp(16px,1.4vw,22px);color:#e7ecd8;margin:0 0 10px}
+.arc-campaign-brief strong{color:#c6ff40}
+@media(max-width:1000px){.arc-how-steps{grid-template-columns:1fr 1fr}.arc-brief-card{grid-template-columns:1fr}}
+.arcade-stage .arc-intro{display:block;padding-bottom:80px}
+@media(max-height:820px){
+ .arcade-stage .arc-intro{padding-top:0}
+ .arcade-stage .arc-intro>.eyebrow{font-size:14px}
+ .arcade-stage .arc-intro h1{font-size:46px;margin:2px 0 10px}
+ .arcade-stage .arc-intro h1 br{display:none}
+ .arcade-stage .arc-intro h1 .acid{margin-left:.25em}
+ .arcade-stage .arc-intro-lead{font-size:18px;margin-bottom:14px}
+ .arcade-stage .arc-team-explain{margin-bottom:12px}
+ .arcade-stage .arc-team-explain>div{padding:10px}
+ .arcade-stage .arc-team-explain p{font-size:15px}
+ .arcade-stage .arc-gloss{font-size:15px;margin-bottom:14px}
+ .arcade-stage .arc-brief-card{margin-bottom:12px}
+ .arcade-stage .arc-brief-card>div{padding:9px 14px}
+ .arcade-stage .arc-brief-card dt{font-size:12px;margin-bottom:3px}
+ .arcade-stage .arc-brief-card dd{font-size:17px;line-height:1.3}
+ .arcade-stage .arc-how-steps{margin-bottom:14px}
+ .arcade-stage .arc-how-steps li{padding:12px}
+ .arcade-stage .arc-how-steps strong{font-size:18px}
+ .arcade-stage .arc-how-steps span{font-size:15px}
+}
+
+/* Opening screens: imagery. */
+.arc-crew-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 16px}
+.arc-crew-cards article{display:flex;align-items:flex-end;gap:4px;border:1px solid #3f5b4a;border-top:4px solid var(--c);background:radial-gradient(ellipse at 25% 90%,color-mix(in srgb,var(--c) 30%,transparent),transparent 65%),#1c3635;overflow:hidden;min-height:0}
+.arc-crew-art{flex:0 0 42%;height:clamp(190px,26vh,330px);display:flex;justify-content:center;align-items:flex-end}
+.arc-crew-art .character{height:108%;width:auto;aspect-ratio:3/8;margin-bottom:-4%}
+.arc-crew-copy{padding:14px 12px 14px 0;align-self:center}
+.arc-crew-copy small{font-family:WarMono,monospace;font-size:13px;letter-spacing:.14em;color:var(--c)}
+.arc-crew-copy b{display:block;font-family:WarDisplay,sans-serif;font-size:clamp(20px,1.8vw,30px);line-height:1;color:var(--c);margin:4px 0 8px}
+.arc-crew-copy p{margin:0;font-size:clamp(14px,1.15vw,19px);line-height:1.35;color:#e2e9d6}
+.arc-brief-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:22px;align-items:start;margin:0 0 14px}
+.arc-brief-doc{background:#f4efe1;color:#1d2a2e;box-shadow:6px 6px 0 #0a1b23;transform:rotate(-.6deg)}
+.arc-brief-doc header{display:flex;align-items:center;gap:14px;background:#1d2a2e;color:#f4efe1;padding:10px 16px}
+.arc-brief-doc header span{font-family:WarMono,monospace;font-size:12px;letter-spacing:.14em;color:#c6ff40}
+.arc-brief-doc header b{font-family:WarDisplay,sans-serif;font-size:clamp(20px,1.8vw,30px);letter-spacing:.02em}
+.arc-brief-doc header i{margin-left:auto;font-style:normal;font-family:WarDisplay,sans-serif;font-size:clamp(18px,1.6vw,26px);background:#c6ff40;color:#14160f;padding:2px 10px;transform:rotate(3deg)}
+.arc-brief-doc dl{margin:0;padding:6px 16px 10px}
+.arc-brief-doc dl>div{display:grid;grid-template-columns:clamp(150px,13vw,230px) 1fr;gap:12px;padding:7px 0;border-bottom:1px dashed #b9b3a2}
+.arc-brief-doc dl>div:last-child{border-bottom:0}
+.arc-brief-doc dt{font-family:WarMono,monospace;font-size:clamp(11px,.9vw,15px);letter-spacing:.06em;color:#5a6b55;font-weight:700;padding-top:3px}
+.arc-brief-doc dd{margin:0;font-size:clamp(16px,1.4vw,24px);line-height:1.3}
+.arc-moodboard{margin:0;transform:rotate(1.2deg)}
+.arc-moodboard img{display:block;width:100%;height:auto;border:6px solid #f4efe1;box-shadow:6px 6px 0 #0a1b23}
+.arc-moodboard figcaption{font-size:clamp(14px,1.15vw,19px);line-height:1.35;color:#d9e2cf;margin-top:10px}
+.arc-moodboard figcaption b{color:#c6ff40}
+.arc-how-visual li{flex-direction:column;flex-wrap:wrap;gap:8px}
+.arc-how-visual li>b{display:none}
+.arc-how-visual figure{margin:0 0 4px;height:clamp(110px,16vh,190px);display:flex;align-items:center;justify-content:center;gap:8px;background:#13252a;border:1px solid #2f4a42;overflow:hidden}
+.arc-how-visual figure canvas#arc-intro-map{height:100%;width:auto;image-rendering:pixelated}
+.arc-how-items .arc-item-icon{width:clamp(40px,3.6vw,60px);height:auto;image-rendering:pixelated}
+.arc-how-pick{flex-direction:column;align-items:stretch!important;padding:10px;gap:6px!important}
+.arc-how-pick small{font-family:WarMono,monospace;font-size:11px;color:#a9c19c;letter-spacing:.1em}
+.arc-how-pick span{font-size:clamp(13px,1.1vw,18px);padding:6px 10px;border:2px solid}
+.arc-how-pick .ok{border-color:#c6ff40;color:#c6ff40;background:#c6ff4014}
+.arc-how-pick .no{border-color:#ff7a5c;color:#ffb3a1;text-decoration:line-through;opacity:.85}
+.arc-how-land svg{height:90%;width:auto;box-shadow:3px 3px 0 #0a1b23}
+.arc-how-land svg:first-child{transform:rotate(-4deg)}.arc-how-land svg:last-child{transform:rotate(3deg)}
+.arc-how-visual strong::before{content:attr(data-n)}
+@media(max-height:820px){
+ .arcade-stage .arc-crew-art{height:180px}
+ .arcade-stage .arc-crew-cards{margin-bottom:10px}
+ .arcade-stage .arc-crew-copy p{font-size:14px}
+ .arcade-stage .arc-intro h1{font-size:40px}
+ .arcade-stage .arc-intro-lead{font-size:17px;margin-bottom:10px}
+ .arcade-stage .arc-brief-doc dl>div{padding:4px 0}
+ .arcade-stage .arc-brief-doc dd{font-size:15px}
+ .arcade-stage .arc-brief-doc header{padding:7px 14px}
+ .arcade-stage .arc-moodboard figcaption{font-size:14px}
+ .arcade-stage .arc-how-visual figure{height:110px}
+}
+.arcade-host #app>.shell:first-child{padding-bottom:0}
+.arcade-stage .arc-intro{margin-top:12px}
+.arc-brief-layout{grid-template-rows:auto 1fr}
+.arc-brief-doc{grid-column:1;grid-row:1}
+.arc-brief-left-end{grid-column:1;grid-row:2;padding-top:14px}
+.arc-brief-left-end .arc-gloss{margin:0}
+.arc-moodboard{grid-column:2;grid-row:1/3}
+.arc-how-items .arc-item-icon{width:60px}
+@media(min-width:1600px) and (min-height:950px){.arc-how-items .arc-item-icon{width:84px}}
