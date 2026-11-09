@@ -218,5 +218,5 @@ test('the client brief preview works without a room or database and keeps the fu
  assert.equal(h.context.arcTest.read().sceneKey,'brief-preview');assert.equal(requests,0);
  assert.match(h.app.innerHTML,/MEET YOUR CLIENT/);assert.match(h.app.innerHTML,/Jamie, founder of UNDERGROUND/);assert.match(h.app.innerHTML,/Help us give students a reason to try them/);
  assert.match(h.app.innerHTML,/WHO WE’RE TALKING TO/);assert.match(h.app.innerHTML,/WHAT’S IN THE WAY/);assert.match(h.app.innerHTML,/A WIN LOOKS LIKE/);assert.match(h.app.innerHTML,/Saturday’s pop-up/);assert.match(h.app.innerHTML,/5 minutes/);
- assert.match(h.app.innerHTML,/<details class="arc-brief-extra">/);assert.match(h.app.innerHTML,/collage.webp/);assert.match(h.app.innerHTML,/href="\/\?view=host"/);assert.doesNotMatch(h.app.innerHTML,/data-action="intro"/);
+ assert.match(h.app.innerHTML,/arc-moodboard-tag/);assert.match(h.app.innerHTML,/<b>Colourway<\/b>/);assert.match(h.app.innerHTML,/href="\/\?view=host"/);assert.doesNotMatch(h.app.innerHTML,/data-action="intro"/);
 });

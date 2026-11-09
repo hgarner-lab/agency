@@ -628,3 +628,12 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
  .arc-client-brief .arc-brief-doc dl>div{grid-template-columns:minmax(170px,.8fr) minmax(0,1.7fr)}
  .arc-client-brief .arc-brief-doc dt{font-size:12.5px;letter-spacing:.04em}
 }
+/* Moodboard behind Jamie: shows the audience she wants to reach. */
+.arc-client-brief .arc-client-intro{position:relative;overflow:hidden;background:linear-gradient(90deg,#132a2be6 0%,#132a2bb8 30%,#132a2bf5 55%,#132a2bfa 100%),url('/assets/collage.webp') center/cover no-repeat,#1c3434}
+.arc-client-brief .arc-client-portrait,.arc-client-brief .arc-client-voice{position:relative;z-index:1}
+.arc-moodboard-tag{position:absolute;left:10px;top:10px;z-index:2;background:#0e1d20e6;border:1px solid #5d7466;color:#d7e3cc;font-size:13px;padding:4px 8px}
+.arc-moodboard-tag b{font-family:WarMono,monospace;font-size:12px;letter-spacing:.1em;color:#c6ff40;margin-right:6px}
+.arc-brief-words{display:flex;flex-wrap:wrap;gap:6px 22px;margin:12px 0 10px;font-size:16px;color:#c9d6c2;border-top:1px solid #4a6457;padding-top:10px}
+.arc-brief-words b{color:#f2ecd3}
+@media(max-height:820px) and (min-width:900px){.arc-brief-words{font-size:14px;margin:8px 0 6px;padding-top:6px}}
+@media(min-width:1600px) and (min-height:950px){.arc-brief-words{font-size:19px}.arc-moodboard-tag{font-size:16px}}
