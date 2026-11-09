@@ -604,3 +604,27 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 @media(max-height:820px) and (min-width:900px){.arc-client-brief .arc-client-portrait img{max-height:320px}.arc-client-brief .arc-client-intro{padding-top:8px}.arc-client-brief .arc-client-voice{padding:10px 0}.arc-client-brief .arc-client-role{margin-bottom:12px;font-size:16px}.arc-client-brief .arc-client-voice blockquote{font-size:17px}.arc-client-brief .arc-client-explain{margin-top:12px;font-size:14px}.arc-client-brief .arc-brief-extra{margin:10px 0 8px}.arc-client-brief .arc-brief-extra>summary{font-size:15px}}
 @media(max-width:899px){.arc-client-brief .arc-brief-layout{grid-template-columns:1fr;gap:18px}.arc-client-brief .arc-client-intro{grid-template-columns:minmax(0,.8fr) minmax(0,1fr);padding:12px 18px 0 6px}.arc-client-brief .arc-client-portrait img{max-height:340px}.arc-client-brief .arc-client-voice blockquote{font-size:18px}.arc-client-brief .arc-client-voice h2{font-size:48px}.arc-brief-extra>div{grid-template-columns:1fr}.arc-client-brief .arc-intro-nav{flex-wrap:wrap}.arc-client-brief .arc-brief-doc dl>div{grid-template-columns:minmax(0,1fr) minmax(0,1.8fr)}}
 @media(max-width:480px){.arc-client-brief .arc-client-intro{gap:4px;padding-right:12px}.arc-client-brief .arc-client-tag{font-size:11px}.arc-client-brief .arc-client-voice .arc-client-role{font-size:14px;margin-bottom:12px}.arc-client-brief .arc-client-voice blockquote{font-size:16px}.arc-client-brief .arc-client-explain{font-size:12px}.arc-client-brief .arc-client-portrait img{max-height:300px}.arc-client-brief .arc-product{grid-template-columns:1fr}.arc-client-brief .arc-product-hero{max-width:240px;margin:auto;width:100%}}
+/* Brief slide cleanup: Jamie left, the wider brief card right, everything above the host bar. */
+.arc-client-brief .arc-brief-layout{grid-template-rows:auto;margin-bottom:0}
+.arc-client-brief .arc-brief-doc,.arc-client-brief .arc-client-intro{grid-column:auto;grid-row:auto}
+.arc-client-brief .arc-brief-doc{display:flex;flex-direction:column}
+.arc-client-brief .arc-brief-doc dl{flex:1;display:flex;flex-direction:column;justify-content:space-evenly}
+.arc-client-brief .arc-colourways{grid-template-columns:repeat(4,minmax(0,1fr))}
+.arc-client-brief .arc-colourways span{min-width:0}
+.arc-client-brief .arc-brief-extra{margin:10px 0 6px;padding-top:6px}
+@media(max-height:820px) and (min-width:900px){
+ .arc-client-brief h1 br{display:none}
+ .arc-client-brief .arc-client-portrait img{max-height:270px}
+ .arc-client-brief .arc-client-voice h2{font-size:42px;margin:8px 0 2px}
+ .arc-client-brief .arc-client-voice .arc-client-role{margin-bottom:8px;font-size:15px}
+ .arc-client-brief .arc-client-voice blockquote{font-size:17px}
+ .arc-client-brief .arc-client-voice .arc-client-explain{margin-top:10px;padding-top:8px}
+ .arc-client-brief .arc-product-hero{max-width:190px}
+ .arc-client-brief .arc-brief-doc dl>div{padding:3px 0}
+ .arc-client-brief .arc-brief-extra>summary{padding:2px 0}
+}
+@media(max-height:820px) and (min-width:900px){
+ .arc-client-brief .arc-colourways small{font-size:11px;letter-spacing:0}
+ .arc-client-brief .arc-brief-doc dl>div{grid-template-columns:minmax(170px,.8fr) minmax(0,1.7fr)}
+ .arc-client-brief .arc-brief-doc dt{font-size:12.5px;letter-spacing:.04em}
+}
