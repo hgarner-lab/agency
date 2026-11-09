@@ -245,7 +245,8 @@ export const AD_STYLE={
  shoe:['Lime Rush','Lilac Wave','Steel Teal','Sunset'],
  layout:['Poster','Billboard','Social post'],
  sticker:['No sticker','NEW','£160','SAT 10AM'],
+ model:['Just the trainer','Rem','Nova','Patch','Sol'],
  tag:['MADE BY THE CREW','DESIGNED WITH LOCAL CREATORS','TRY A PAIR · SATURDAY 10AM','PROVE US WRONG. TRY A PAIR.','NO TWO PAIRS WORN THE SAME','TRAINERS FOR YOUR FEET','AVAILABLE NOW']
 };
 export function validAdStyle(st){if(!st||typeof st!=='object'||Array.isArray(st))return false;const keys=Object.keys(st);return ['bg','shoe','layout','sticker'].every(k=>keys.includes(k))&&keys.every(k=>k in AD_STYLE&&Number.isInteger(st[k])&&st[k]>=0&&st[k]<AD_STYLE[k].length);}
-export function adStyle(st){return {colour:AD_STYLE.bg[st.bg][1],shoe:st.shoe,pattern:st.layout,sticker:st.sticker?AD_STYLE.sticker[st.sticker]:null,tag:AD_STYLE.tag[st.tag||0]};}
+export function adStyle(st){return {colour:AD_STYLE.bg[st.bg][1],shoe:st.shoe,pattern:st.layout,sticker:st.sticker?AD_STYLE.sticker[st.sticker]:null,tag:AD_STYLE.tag[st.tag||0],model:st.model||0};}
