@@ -165,7 +165,7 @@ function updatePlayUI(){
  if(!game||!q('#arc-score'))return;
  if(game.work&&!modalType)openModal('work');else if(!game.work&&modalType==='work')closeModal();
  const workTime=q('#arc-work-time');if(workTime)workTime.textContent=prettyTime(secondsLeft());
- const workStatus=q('#arc-work-status');if(workStatus){const paused=phaseNow()==='paused';workStatus.textContent=paused?'GAME PAUSED · Wait for your host to resume.':!solo&&pending.length>=24?'Reconnecting. Keep this page open.':'';q('#arc-modal')?.querySelectorAll('[data-action]').forEach(b=>b.disabled=paused||secondsLeft()<=0||!solo&&pending.length>=24);}
+ const workStatus=q('#arc-work-status');if(workStatus){const paused=phaseNow()==='paused';workStatus.textContent=paused?'GAME PAUSED · Wait for your host to resume.':!solo&&pending.length>=24?'Reconnecting. Keep this page open.':'';q('#arc-modal')?.querySelectorAll('[data-action]').forEach(b=>b.disabled=paused||secondsLeft()<=0||!solo&&pending.length>=24||b.classList.contains('wrong'));}
 q('#arc-score').textContent=game.score+myBonus();updateRush();q('#arc-time').textContent=prettyTime(secondsLeft());q('#arc-time').classList.toggle('urgent',secondsLeft()<30);
  const step=nextInstruction(game,clock()),hint=q('#arc-hint'),detail=q('#arc-hint-detail');
  if(hint.textContent!==step.title)hint.textContent=step.title;if(detail.textContent!==step.detail)detail.textContent=step.detail;
