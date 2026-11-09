@@ -5,7 +5,7 @@ export const cast = [
  {name:'SOL',color:'#ff985c',tag:'YOUR CLIENT. A BIT STRESSED.',detail:'Runs trainer brand UNDERGROUND. Hired your agency to promote the launch. His leaked video has made that harder.',idle:'That video wasn’t meant to go public. How bad are the comments?',playable:false}
 ];
 export const missions = [
- {location:'THE WAR ROOM',clock:'48 HRS TO LAUNCH',objective:'Choose how the team responds to the leaked video.',speaker:3,
+ {location:'THE AGENCY',clock:'48 HRS TO LAUNCH',objective:'Choose how the team responds to the leaked video.',speaker:3,
   line:'That “walking wallets” clip is everywhere. People think I only care about their money. What should we do first?',
   context:'Sol runs trainer brand UNDERGROUND. His £160 trainers launch in 48 hours. A leaked video of him insulting customers is spreading online.',
   interrupt:'Someone’s turned the clip into a dance track. More people are seeing it now.',

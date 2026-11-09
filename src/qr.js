@@ -16,5 +16,5 @@ export function qr(text) {
  for(let i=0;i<15;i++){const b=(f>>>i)&1;if(i<6)set(i,8,b);else if(i<8)set(i+1,8,b);else set(n-15+i,8,b);if(i<8)set(8,n-i-1,b);else if(i<9)set(8,15-i,b);else set(8,15-i-1,b);}set(n-8,8,1);
  let index=0,up=true;for(let col=n-1;col>0;col-=2){if(col===6)col--;for(let i=0;i<n;i++){const row=up?n-1-i:i;for(let k=0;k<2;k++){const c=col-k;if(m[row][c]===null){let b=stream[index++]||0;if((row+c)%2===0)b^=1;m[row][c]=b;}}}up=!up;}
  let d='';for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(m[r][c])d+=`M${c+4} ${r+4}h1v1h-1z`;
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" role="img" aria-label="Scan to join this War Room"><rect width="45" height="45" fill="white"/><path d="${d}" fill="#10110e" shape-rendering="crispEdges"/></svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" role="img" aria-label="Scan to join The Agency"><rect width="45" height="45" fill="white"/><path d="${d}" fill="#10110e" shape-rendering="crispEdges"/></svg>`;
 }

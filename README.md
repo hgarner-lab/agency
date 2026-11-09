@@ -1,10 +1,10 @@
-# The War Room — Vercel source
+# The Agency — Vercel source
 
 This is the latest playable pixel game, prepared for GitHub and Vercel. It includes the phone game, original character artwork, solo play, live-room API, host controls, central screen, scoring and downloadable role cards. The older question-based prototype is not included in this export.
 
 ## 1. Put the files in GitHub
 
-Unzip the download. Upload the **contents of the `war-room-vercel` folder** to the root of your new GitHub repository.
+Unzip the download. Upload the **source files** to the root of your new GitHub repository.
 
 The repository’s top level should contain `package.json`, `vercel.json`, `src`, `assets`, `api`, `server`, `scripts`, `database` and `tests`. Do not upload the ZIP itself as the website. Do not put everything inside an extra nested folder.
 

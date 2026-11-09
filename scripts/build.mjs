@@ -10,7 +10,7 @@ for(let i=0;i<client.length;i++){
  await writeFile(new URL('assets/'+client[i],output),code);
 }
 let html=await readFile(new URL('index.html',source),'utf8');
-for(const name of ['arcade-app.js','style.css','arcade.css'])html=html.replaceAll('/assets/'+name,'/assets/'+name+'?v='+release);
+for(const name of ['arcade-app.js','style.css','arcade.css','icon.svg'])html=html.replaceAll('/assets/'+name,'/assets/'+name+'?v='+release);
 await writeFile(new URL('index.html',output),html);
 await cp(new URL('assets/',root),new URL('assets/',output),{recursive:true});
 console.log('Built Vercel frontend in public/. Live rooms use api/arcade/[action].js.');

@@ -10,7 +10,7 @@ export default {
    if(!DB)return Response.json({error:'Group play needs a database. Add TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in Vercel, then redeploy. Solo play works without them.'},{status:503,headers:{'cache-control':'no-store'}});
    return await arcadeApi(request,{DB});
   }catch(error){
-   console.error('War Room database connection failed:',error.message);
+   console.error('The Agency database connection failed:',error.message);
    return Response.json({error:'The game database could not connect. The host should check the Turso settings in Vercel.'},{status:503,headers:{'cache-control':'no-store'}});
   }
  }
