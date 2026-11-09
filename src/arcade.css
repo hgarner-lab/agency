@@ -496,3 +496,87 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 
 /* Generated product cutouts use natural detail, including inside campaign tiles. */
 .ug-trainer{image-rendering:auto}.arc-colourways .ug-trainer{aspect-ratio:3/2}.arc-product-hero svg:first-child{opacity:1}
+
+/* ===== Visual audit fixes: readable sizes, nothing hidden, stronger contrast ===== */
+/* Logo lockup */
+.mccann-endorsement>small{font-size:11px;letter-spacing:.08em}
+@media(max-width:720px){.mccann-endorsement>small{font-size:9px}}
+/* Home (laptop/projector) */
+@media(min-width:900px){.arcade-home .hero-desc{font-size:20px;line-height:1.45}.arcade-home .hero-actions .btn{font-size:15px;padding:17px 22px}.arcade-home .arc-home-solo{font-size:16px}.incoming-card small{font-size:13px}.incoming-card b{font-size:17px}}
+/* Big screen: labels, buttons and tabs */
+.arcade-stage .eyebrow{font-size:16px;letter-spacing:.12em}
+.arcade-stage .btn{font-size:15px}
+.arcade-stage .text-button{font-size:16px}
+.arcade-stage .arc-slide-nav button{font-size:15px;padding:10px 16px}
+.arcade-host .arc-host-controls .btn{font-size:15px}
+.arcade-host .arc-host-controls .text-button{font-size:15px}
+.arcade-stage .arc-intro-count{font-size:16px}
+.arcade-stage .arc-gloss{font-size:17px}
+/* Opening screens */
+.arcade-stage .arc-crew-copy small,.arcade-stage .arc-crew-name{font-size:15px}
+.arcade-stage .arc-crew-copy p{font-size:16px}
+.arcade-stage .arc-brief-doc header span{font-size:14px}
+.arcade-stage .arc-brief-doc dt,.arcade-stage .arc-product-copy dt{font-size:14px}
+.arcade-stage .arc-brief-doc dd,.arcade-stage .arc-product-copy dd{font-size:17px}
+.arcade-stage .arc-colourways small{font-size:13px}
+.arcade-stage .arc-how-pick small{font-size:14px}
+.arcade-stage .arc-how-pick span{font-size:16px}
+.arcade-stage .arc-how-steps span{font-size:16px}
+.arcade-stage .arc-moodboard figcaption{font-size:16px}
+/* Lobby */
+.arcade-stage .arc-lobby-brief b,.arcade-stage .arc-campaign-brief b{font-size:15px}
+.arcade-stage .arc-room-lobby .alias-chip{font-size:16px}
+.arcade-stage .arc-ready-tag{font-size:14px}
+/* Live screen */
+.arcade-stage .arc-dept-bars span{font-size:16px}
+.arcade-stage .arc-wall .eyebrow,.arcade-stage .arc-leaderboard>.eyebrow{font-size:16px}
+.arcade-stage .arc-live .arc-wall-tile figcaption{font-size:15px}
+.arcade-stage .arc-live .arc-wall-tile figcaption small{display:none}
+.arcade-stage .arc-rank-num{color:#b9cdb4}
+.arcade-stage .arc-rank-row small{font-size:15px;color:#a9c2a4}
+.arcade-stage .arc-highlight>div>span{font-size:15px;color:#a9c2a4}
+.arcade-stage .arc-campaign-summary i{color:#7d9a86}
+/* Campaign slide: bigger tiles when there are fewer pieces; captions wrap instead of cutting off */
+.arc-campaign-grid{grid-template-columns:repeat(auto-fill,minmax(clamp(120px,11vw,190px),1fr))}
+.arc-campaign-grid .arc-wall-tile figcaption{font-size:15px;white-space:normal;overflow:visible}
+.arc-campaign-grid .arc-wall-tile figcaption small{display:block;font-size:13px;color:#a9c2a4;white-space:normal;line-height:1.25}
+.arcade-stage .arc-room-finale .arc-room-heading{padding-bottom:4px}
+/* Team slide: keep the question above the host bar */
+@media(max-height:820px){.arcade-stage .arc-crew-portrait{height:168px}.arcade-stage .arc-crew-portrait .character{width:88px;height:235px}.arcade-stage .arc-finale-question{margin:10px 0}.arcade-stage .arc-room-finale .arc-stage-lesson{padding-top:12px}}
+/* Scores slide: fit above the host bar */
+.arc-slide-scores .arc-highlight{padding:8px 0}
+@media(max-height:820px){.arcade-stage .arc-slide-scores .arc-rank-row{padding:6px 0}.arcade-stage .arc-slide-scores .arc-highlight-poster{display:none}.arcade-stage .arc-slide-scores .arc-highlight p{font-size:15px;margin:2px 0}.arcade-stage .arc-room-finale[data-slide="scores"] .arc-room-heading{padding-top:0}.arcade-stage .arc-room-finale[data-slide="scores"] .arc-room-clock>b{font-size:44px}}
+/* Phone */
+@media(max-width:720px){
+ .sound-toggle,.arc-connection{font-size:12px}
+ .arc-hud span,.arcade-playing .bag-label,.arcade-playing .bag-empty,.arc-task small{font-size:12px}
+ .arc-work-header{padding-right:58px;font-size:12px}
+}
+/* Audit pass 2 */
+@media(min-width:900px){.arcade-home .character-home .hero-desc{font-size:20px;line-height:1.45;max-width:460px}}
+.arcade-stage .eyebrow,.arcade-stage .arc-intro>.eyebrow{font-size:16px}
+.arcade-stage .arc-deeper .arc-lesson-label{font-size:14px}
+.arcade-stage .arc-deeper header small{font-size:14px}
+.arcade-host .arc-room-lobby .player-cloud{max-height:calc(100vh - 470px)}
+@media(max-height:820px){
+ .arcade-stage .arc-intro h1{font-size:38px}
+ .arcade-stage .arc-product-hero{max-width:210px}
+ .arcade-stage .arc-brief-doc dd,.arcade-stage .arc-product-copy dd{font-size:16px}
+ .arcade-stage .arc-moodboard .arc-gloss{font-size:15px}
+ .arcade-stage .arc-live .arc-wall-tile:nth-child(n+4){display:none}
+ .arcade-stage .arc-campaign-grid{grid-template-columns:repeat(auto-fill,minmax(108px,1fr))}
+ .arcade-stage .arc-ways-in{font-size:15px;margin-top:6px}
+ .arcade-stage .arc-deeper li{font-size:14.5px}
+ .arcade-stage .arc-room-lobby h1{font-size:54px}
+}
+@media(max-width:720px){
+ .arcade-playing .arc-hud span,.arcade-playing .arc-task small,.arc-practice .arc-hud span{font-size:12px}
+ .arc-work-modal small,.arc-work-built b{font-size:12px}
+ .incoming-card small{font-size:12px}
+}
+.arcade-stage .arc-room-lobby .player-cloud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-height:none;overflow:visible}
+.arcade-stage .arc-room-lobby .alias-chip{margin:0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:clip;padding:3px 8px 3px 4px}
+.arcade-stage .arc-room-lobby .alias-chip .arc-ready-tag{margin-left:auto;font-size:15px;color:#c6ff40}
+.arcade-stage .arc-room-lobby .arc-more{justify-content:center;color:#c6ff40;border-style:dashed}
+.arcade-stage .arc-room-lobby .alias-chip:not(.is-ready){opacity:.7}
+@media(max-height:820px){.arcade-stage .arc-room-lobby .arc-join-count{padding:6px 0}.arcade-stage .arc-room-lobby .arc-join-count>b{font-size:56px}.arcade-stage .arc-lobby-brief{padding:6px 12px}.arcade-stage .arc-room-lobby p{margin:6px 0}}
