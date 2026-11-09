@@ -41,7 +41,8 @@ function arcadeFurniture(c,f){const [tx,ty,kind]=f,x=tx*TILE,y=ty*TILE;const r=(
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function wrap(text,max){const out=[];let line='';for(const w of String(text).split(' ')){if(line&&(line+' '+w).length>max){out.push(line);line=w}else line=line?line+' '+w:w}if(line)out.push(line);return out;}
 const lines=(list,x,y,size,gap,fill,anchor='middle',weight='bold')=>list.map((l,i)=>`<text x="${x}" y="${y+i*gap}" text-anchor="${anchor}" font-family="monospace" font-weight="${weight}" font-size="${size}" fill="${fill}">${esc(l)}</text>`).join('');
-const shoe=(x,y,s,fill,accent)=>`<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 16h8V0h12v6h9v6h10v5h13v5h22v6h14v14H0z" fill="${fill}"/><path d="M0 38h88v10H0z" fill="#f7f1d9"/><path d="M9 21h12v5H9zm20 0h12v5H29zm20 4h12v5H49z" fill="${accent}"/></g>`;
+// Ads show the real UNDERGROUND trainer, in a colourway that stands out from the background.
+function adShoe(p,bg,place){const lime=/^#(b|c)[0-9a-f]ef/i.test(bg)||bg==='#bbef66',pick=lime?['lilac','sunset','teal']:['lime','teal','sunset'],n=(String(p?.title||'').length+(p?.pattern||0))%3;return trainerSVG(COLOURWAYS.find(c=>c.id===pick[n]),'UNDERGROUND trainer',place);}
 // One square-ish tile for every campaign piece: ads, insights, approvals and go-lives.
 export function posterSVG(p){
  const kind=p?.kind||'ad',ink='#233139';
@@ -55,9 +56,9 @@ export function posterSVG(p){
  if(kind==='approval'){const t=wrap(p.text,14);return frame('#ffd9b8','Client approved: '+p.text,`<rect x="8" y="8" width="104" height="132" fill="#fff6ec" stroke="${ink}" stroke-width="2"/><text x="16" y="24" font-family="monospace" font-size="8" font-weight="bold" fill="#b5532a">CLIENT SIGN-OFF</text>${lines(t,60,52,11,14,ink)}<g transform="rotate(-12 60 106)"><rect x="18" y="88" width="84" height="34" rx="4" fill="none" stroke="#e1572d" stroke-width="3"/><text x="60" y="111" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="15" fill="#e1572d">APPROVED</text></g>`);}
  if(kind==='live'){const t=wrap(p.text,14);return frame('#1d3a3e','Now live: '+p.text,`<circle cx="20" cy="22" r="5" fill="#ff5b5b"/><text x="30" y="26" font-family="monospace" font-weight="bold" font-size="11" fill="#ff8a8a">LIVE</text>${lines(t,60,62,12,15,'#e9fbfb')}<path d="M16 110h88" stroke="#79d8d8" stroke-width="2" stroke-dasharray="4 3"/><text x="60" y="130" text-anchor="middle" font-family="monospace" font-size="7" fill="#79d8d8">PRODUCTION / LAUNCH DAY</text>`);}
  const bg=p?.colour||'#bbef66',title=p?.title||'YOUR WAY',t=wrap(title,9),layout=(p?.pattern||0)%3;
- if(layout===1)return frame(ink,'Billboard ad: '+title,`<rect x="6" y="20" width="108" height="78" fill="${bg}"/>${lines(t,60,44,t.length>1?13:16,15,ink)}${shoe(30,70,.62,ink,bg)}<path d="M30 98v34M90 98v34" stroke="#9aa7ab" stroke-width="4"/><text x="60" y="142" text-anchor="middle" font-family="monospace" font-size="6" fill="#cfd8da">BILLBOARD / UNDERGROUND</text>`);
- if(layout===2)return frame('#f7f1d9','Social post ad: '+title,`<rect x="8" y="8" width="104" height="132" rx="8" fill="#fff" stroke="${ink}" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="${bg}" stroke="${ink}"/><text x="30" y="23" font-family="monospace" font-size="7" font-weight="bold" fill="${ink}">underground</text><rect x="14" y="32" width="92" height="74" fill="${bg}"/>${shoe(26,56,.78,ink,'#fff')}${lines(t,60,48,t.length>1?10:12,11,ink)}<text x="16" y="120" font-family="monospace" font-size="9" fill="#e1572d">♥ 2.4k</text><text x="104" y="120" text-anchor="end" font-family="monospace" font-size="7" fill="#667">#stepin</text>`);
- return frame(bg,'Poster ad: '+title,`<path d="M0 14h120M0 134h120" stroke="${ink}" stroke-width="2"/><text x="9" y="10" font-family="monospace" font-size="7" font-weight="bold" fill="${ink}">UNDERGROUND</text>${lines(t,60,t.length>1?32:38,t.length>1?14:17,16,ink)}${shoe(16,64,1,'#273942',bg)}<text x="60" y="144" text-anchor="middle" font-family="monospace" font-size="6" fill="${ink}">MADE BY THE CREW</text>`);
+ if(layout===1)return frame(ink,'Billboard ad: '+title,`<rect x="6" y="20" width="108" height="78" fill="${bg}"/>${lines(t,60,44,t.length>1?13:16,15,ink)}${adShoe(p,bg,'x="30" y="62" width="60" height="35"')}<path d="M30 98v34M90 98v34" stroke="#9aa7ab" stroke-width="4"/><text x="60" y="142" text-anchor="middle" font-family="monospace" font-size="6" fill="#cfd8da">BILLBOARD / UNDERGROUND</text>`);
+ if(layout===2)return frame('#f7f1d9','Social post ad: '+title,`<rect x="8" y="8" width="104" height="132" rx="8" fill="#fff" stroke="${ink}" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="${bg}" stroke="${ink}"/><text x="30" y="23" font-family="monospace" font-size="7" font-weight="bold" fill="${ink}">underground</text><rect x="14" y="32" width="92" height="74" fill="${bg}"/>${adShoe(p,bg,'x="22" y="58" width="76" height="44"')}${lines(t,60,48,t.length>1?10:12,11,ink)}<text x="16" y="120" font-family="monospace" font-size="9" fill="#e1572d">♥ 2.4k</text><text x="104" y="120" text-anchor="end" font-family="monospace" font-size="7" fill="#667">#stepin</text>`);
+ return frame(bg,'Poster ad: '+title,`<path d="M0 14h120M0 134h120" stroke="${ink}" stroke-width="2"/><text x="9" y="10" font-family="monospace" font-size="7" font-weight="bold" fill="${ink}">UNDERGROUND</text>${lines(t,60,t.length>1?32:38,t.length>1?14:17,16,ink)}${adShoe(p,bg,'x="6" y="58" width="108" height="62"')}<text x="60" y="144" text-anchor="middle" font-family="monospace" font-size="6" fill="${ink}">MADE BY THE CREW</text>`);
 }
 // The shared floor plan: rooms, walls, signs and the launch stand. Drawn once.
 function buildBaseMap(){
@@ -168,3 +169,16 @@ export function createRoomRenderer(canvas){
  return {draw,canvas,destroy(){}};
 }
 
+
+// Product renders match the four crew members' trainers. Shared by the brief
+// and inline campaign SVGs; the browser caches each transparent WebP once.
+export const COLOURWAYS=[
+ {id:'lime',name:'Lime Rush',crew:'REM',image:'/assets/trainer-lime-v1.webp'},
+ {id:'lilac',name:'Lilac Wave',crew:'NOVA',image:'/assets/trainer-lilac-v1.webp'},
+ {id:'teal',name:'Steel Teal',crew:'PATCH',image:'/assets/trainer-teal-v1.webp'},
+ {id:'sunset',name:'Sunset',crew:'SOL',image:'/assets/trainer-sunset-v1.webp'}
+];
+export function trainerSVG(cw=COLOURWAYS[0],label='',place=''){
+ const product=COLOURWAYS.find(c=>c.id===cw?.id)||COLOURWAYS[0];
+ return `<svg class="ug-trainer" ${place} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" role="img" aria-label="${esc(label||'UNDERGROUND trainer in '+product.name)}"><image href="${product.image}" width="960" height="640" preserveAspectRatio="xMidYMid meet"/></svg>`;
+}
