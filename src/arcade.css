@@ -879,3 +879,9 @@ html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
 .arc-style-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .arc-style-buttons .arc-style-opt{min-height:46px;font-size:15px}
 .arc-style>.btn{position:static;box-shadow:none}
+
+/* Hidden urgent banners must actually hide (display:flex was overriding [hidden]) */
+.arc-rush[hidden]{display:none!important}
+
+.arc-style-buttons .arc-style-opt.wide{grid-column:1/-1}
+@media(max-height:760px){.arc-style-preview{width:128px;margin-bottom:8px}.arc-style-hint{display:none}.arc-style h3{margin:6px 0}.arc-style-buttons{gap:6px;margin-bottom:8px}.arc-style-buttons .arc-style-opt{min-height:40px}}
