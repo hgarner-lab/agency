@@ -2,7 +2,7 @@ import {test,beforeEach,mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
-import {newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK,gameHint,jobChecklist,nextInstruction,guidancePath,jobAction,newPracticeGame,applyPracticeInput,practiceInstruction} from '../src/arcade-world.js';
+import {PIECES,newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK,gameHint,jobChecklist,nextInstruction,guidancePath,jobAction,newPracticeGame,applyPracticeInput,practiceInstruction} from '../src/arcade-world.js';
 import {arcadeApi} from '../src/arcade-server.js';
 import {NAME_WORDS,NAME_ANIMALS} from '../src/filter.js';
 let now,sql,env;
@@ -54,7 +54,7 @@ test('movement respects walls, desks and NPCs; talking without ingredients canno
 test('collectibles are single-use, jobs consume them, and a poster uses the collected colour and word',()=>{
  const g=newArcadeGame();walk(g,22,3);assert.ok(g.inventory.includes('ink-green'));const score=g.score;
  applyArcadeInput(g,{a:1},now);assert.equal(g.score,score);walk(g,22,8);walk(g,26,4,true);const events=act(g);
- assert.equal(g.posters.length,1);assert.equal(g.posters[0].colour,'#bbef66');assert.equal(g.posters[0].title,'FOR EVERYONE');assert.ok(events.some(e=>e.kind==='job'&&e.poster));assert.equal(g.inventory.filter(i=>i.startsWith('ink-')||i.startsWith('word-')).length,0);
+ assert.equal(g.posters.length,1);assert.equal(g.posters[0].colour,'#bbef66');assert.ok(PIECES.headlines['word-us'].includes(g.posters[0].title));assert.ok(events.some(e=>e.kind==='job'&&e.poster));assert.equal(g.inventory.filter(i=>i.startsWith('ink-')||i.startsWith('word-')).length,0);
 });
 test('points and character choice do not decide a role; identical work yields the same classification',()=>{
  const one=newArcadeGame(0),two=newArcadeGame(2);performJob(one,0);performJob(two,0);now+=4000;performJob(one,0);performJob(two,0);one.score=99999;two.score=1;

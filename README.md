@@ -47,10 +47,10 @@ Keep these values in Vercel’s environment settings. Never add a real `.env` fi
 ## 4. Run a session
 
 1. Open the production URL on the laptop connected to the projector and choose **Host a game**.
-2. Pick five or ten minutes and choose **Create room**. This tab is now the big screen. Your controls sit in a bar along the bottom.
+2. Pick five or ten minutes and choose **Create room**. This tab is now the big screen, with your controls in a bar along the bottom (including **Full screen**). It opens on **The brief**: talk the room through it, then press → or **Show the QR code**. If you close the tab, **Back to your game** on the home page reopens it on the same laptop and browser.
 3. Players scan the QR code, pick a look and get a random game name (they can shuffle it). They then try the controls in a short practice. The big screen shows who has joined and who is ready.
-4. Choose **Start the game** (or **Start anyway** if some are still practising). The big screen shows everyone moving on one map, a race between the four departments, the leaderboard and a feed of finished jobs.
-5. Choose **End game + show job roles**, or let the clock run out. Use the arrow keys or a clicker to move through **Meet the team**, **Go deeper** and **Scores**. Each player sees their own role on their phone.
+4. Choose **Start the game** (or **Start anyway** if some are still practising). The big screen shows everyone moving on one map, a race between the four departments, the leaderboard and the campaign wall. Every finished job adds a piece: an insight, an ad, a client sign-off or a launch moment.
+5. Choose **End game + show job roles**, or let the clock run out. Use the arrow keys or a clicker to move through **The campaign**, **Meet the team**, **Go deeper** and **Scores**. Each player sees their own role on their phone.
 
 To show the job role slides without playing, choose **Skip to job roles** on the home page, or open `/?view=roles`. **Play solo** on the home page is useful for testing or for showing someone the game.
 
