@@ -3,7 +3,7 @@ import {test,beforeEach,mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
-import {PIECES,newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK,gameHint,jobChecklist,nextInstruction,guidancePath,jobAction,newPracticeGame,applyPracticeInput,practiceInstruction} from '../src/arcade-world.js';
+import {AD_STYLE,validArcadeInput,rushAt,RUSH_FIRST,TEAMUP_BONUS,PIECES,newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK,gameHint,jobChecklist,nextInstruction,guidancePath,jobAction,newPracticeGame,applyPracticeInput,practiceInstruction} from '../src/arcade-world.js';
 import {arcadeApi} from '../src/arcade-server.js';
 import {NAME_WORDS,NAME_ANIMALS} from '../src/filter.js';
 let now,sql,env;
@@ -215,4 +215,55 @@ test('new input validation rejects mixed actions, invalid tiles and work submitt
 });
 test('existing saved games retain their original job rules',()=>{
  const g=newArcadeGame();delete g.taskVersion;walk(g,22,3);walk(g,22,8);walk(g,26,4,true);act(g);assert.equal(g.jobs[1],1);assert.equal(g.work,null);
+});
+// Plays one job on the server for a player, in batches the rate limit allows.
+async function serverJob(code,player,model,type){
+ const route=performJob(model,type);let last;
+ for(let i=0;i<route.length;i+=16){const batch=route.slice(i,i+16).map(op=>({...op,n:++player.seq}));now+=batch.length*ARCADE_TICK+20;last=await request('input',{code,ops:batch},player);assert.equal(last.status,200,last.data.error);}
+ return last.data;
+}
+async function twoPlayerRoom(){
+ const host=(await request('create',{duration:300})).data;
+ const a=(await request('join',{code:host.code,alias:'Turbo Llama',character:0})).data,b=(await request('join',{code:host.code,alias:'Sneaky Taco',character:1})).data;
+ a.seq=0;b.seq=0;await request('control',{code:host.code,action:'start',allowUnready:true},host);return {host,a,b,code:host.code};
+}
+test('urgent jobs: the first player to finish in the asked-for team doubles their points, once',async()=>{
+ const {host,a,b,code}=await twoPlayerRoom();
+ now+=RUSH_FIRST+1000;const rush=rushAt(code,300000,RUSH_FIRST+1000);assert.ok(rush);
+ let state=(await request('state?room='+code)).data;assert.equal(state.rush.type,rush.type);assert.equal(state.rush.claimedBy,null);
+ const first=await serverJob(code,a,newArcadeGame(0),rush.type);
+ assert.equal(first.bonuses.length,1);assert.equal(first.bonuses[0].kind,'rush');
+ state=(await request('state?room='+code)).data;assert.equal(state.rush.claimedBy,'Turbo Llama');
+ const scoreA=state.players.find(p=>p.alias==='Turbo Llama');assert.equal(scoreA.score,first.game.score+first.bonuses[0].points);assert.ok(first.bonuses[0].points>=150);
+ const second=await serverJob(code,b,newArcadeGame(1),rush.type);assert.ok(second.bonuses.every(x=>x.kind!=='rush'));
+});
+test('team-ups: players in different teams finishing within 20 seconds both get a bonus',async()=>{
+ const {a,b,code}=await twoPlayerRoom();
+ await serverJob(code,a,newArcadeGame(0),1);
+ const second=await serverJob(code,b,newArcadeGame(1),3);
+ assert.deepEqual(second.bonuses.map(x=>x.kind).filter(k=>k==='teamup'),['teamup']);assert.equal(second.bonuses.find(x=>x.kind==='teamup').with,'Turbo Llama');
+ const state=(await request('state?room='+code)).data;
+ for(const p of state.players)assert.equal(p.bonus>=TEAMUP_BONUS,true);
+ assert.equal(state.moments.filter(m=>m.type===-2).length,1);
+ // the same finished job cannot be teamed up twice
+ const again=await serverJob(code,b,newArcadeGame(1),2);assert.ok(again.bonuses.every(x=>x.kind!=='teamup'||x.with!=='Turbo Llama'));
+});
+test('pitch vote: opens when the game ends, one vote each, not for your own ad',async()=>{
+ const {host,a,b,code}=await twoPlayerRoom();
+ await serverJob(code,a,newArcadeGame(0),1);
+ let state=(await request('state?room='+code,null,b)).data;assert.deepEqual(state.ads,[]);
+ assert.equal((await request('vote',{code,target:'x'},b)).status,409);
+ await request('control',{code,action:'finish'},host);
+ state=(await request('state?room='+code,null,b)).data;assert.equal(state.ads.length,1);const ad=state.ads[0];assert.equal(ad.alias,'Turbo Llama');
+ assert.equal((await request('vote',{code,target:ad.id},a)).status,400);
+ assert.equal((await request('vote',{code,target:ad.id},b)).status,200);assert.equal((await request('vote',{code,target:ad.id},b)).status,200);
+ state=(await request('state?room='+code,null,b)).data;assert.equal(state.ads[0].votes,1);assert.equal(state.myVote,ad.id);
+ assert.equal(state.players.find(p=>p.alias==='Sneaky Taco').bonus,0);
+});
+test('make it yours: the chosen ad style reaches the finished ad, and bad styles are rejected',()=>{
+ const g=newArcadeGame(0);walk(g,22,3);walk(g,22,8);walk(g,26,4,true);act(g);
+ const style={bg:5,shoe:2,layout:1,sticker:3};now+=ARCADE_TICK;applyArcadeInput(g,{b:{task:g.work.id,run:g.work.run,picks:[0,0,0],style}},now);
+ const ad=g.posters.at(-1);assert.equal(ad.colour,AD_STYLE.bg[5][1]);assert.equal(ad.shoe,2);assert.equal(ad.pattern,1);assert.equal(ad.sticker,'SAT 10AM');
+ assert.equal(validArcadeInput({n:1,b:{task:'x',run:0,picks:[0,0,0],style}}),true);
+ for(const bad of [{bg:9,shoe:0,layout:0,sticker:0},{bg:0,shoe:0,layout:0},{bg:0,shoe:0,layout:0,sticker:0,extra:1},'red'])assert.equal(validArcadeInput({n:1,b:{task:'x',run:0,picks:[0,0,0],style:bad}}),false);
 });
