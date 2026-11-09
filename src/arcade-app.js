@@ -24,6 +24,7 @@ try{creds=JSON.parse(localStorage.getItem((view==='host'?'wr-arc-host-':'wr-arc-
 if(view==='stage')creds=null;
 const clock=()=>Date.now()+clockOffset;
 const mccannMark=()=>`<span class="mccann-mark"><img src="${MCCANN_LOGO_URL}" alt="McCann" width="800" height="200" decoding="async"></span>`;
+const mccannStageCredit=()=>`<div class="arc-stage-credit" aria-label="A McCann experience"><small>A McCANN EXPERIENCE</small>${mccannMark()}</div>`;
 const brand=()=>`<div class="brand-lockup"><a class="brand" href="/" aria-label="The Agency home"><span class="brand-icon">A</span><span class="brand-name">THE<br>AGENCY<span class="acid">.</span></span></a><div class="mccann-endorsement"><small>AN EXPERIENCE BY</small>${mccannMark()}</div></div>`;
 const prettyTime=n=>{n=Math.max(0,Math.ceil(n));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
 const toView=(v,code='')=>{location.href='/?view='+v+(code?'&room='+code:'')};
@@ -221,7 +222,7 @@ const slideKeys=()=>view==='roles'?['team','deeper']:['campaign','team','deeper'
 let finaleSlide=0;
 const slideCount=()=>slideKeys().length;
 async function toggleFullscreen(){try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Press F11 (or Ctrl+Cmd+F on a Mac) for full screen.')}}
-// While presenting full screen, hide the host bar and logo row so slides fill the screen.
+// While presenting full screen, hide the host controls while keeping the experience credit visible.
 document.addEventListener('fullscreenchange',()=>{const on=!!document.fullscreenElement;document.documentElement.classList.toggle('is-presenting',on);document.querySelectorAll('[data-action=fullscreen]').forEach(b=>b.textContent=b.classList.contains('arc-present')?(on?'EXIT ⛶':'PRESENT ⛶'):(on?'Exit full screen':'Full screen ⛶'));});
 function renderRoles(){document.body.className='arcade-room arcade-stage arcade-roles';sceneKey='room-result';finaleSlide=0;root.innerHTML=header()+roomFinale(true);}
 function setSlide(n,share=true){
@@ -267,7 +268,7 @@ function renderRoom(){
   if(key.startsWith('intro')){root.innerHTML=header()+introScreen(introStep())+'<div id="arc-room-controls"></div>';paintIcons();const m=q('#arc-intro-map');if(m)createRoomRenderer(m).draw([],[],clock());}
   else if(key==='lobby'){root.innerHTML=header()+`<div class="shell"><section class="arc-room-lobby"><div><div class="eyebrow acid">GROUP GAME / ${Math.round(live.duration/60)} MINUTES</div><h1>GET THE<br><span class="acid">CREW IN.</span></h1><p>Scan the code to join, then try the controls.</p><p class="arc-lobby-brief"><b>THE BRIEF</b>${BRIEF_LINE}</p><div class="arc-join-count"><b id="arc-joined">0</b><span>PLAYERS IN<br><strong id="arc-ready">0 READY</strong></span></div><div class="player-cloud" id="arc-player-cloud"></div></div><div class="qr-box">${qr(playerLink())}<div class="mono" style="margin-top:14px">ROOM CODE</div><div class="room-display">${safe(roomCode)}</div></div></section><div id="arc-room-controls"></div></div>`;}
   else if(key==='room-result'){renderer?.destroy?.();renderer=null;root.innerHTML=header()+roomFinale();}
-  else root.innerHTML=header()+`<div class="shell arc-room-shell arc-live"><div class="arc-live-top"><h1>THE CREW’S ON IT.</h1><div class="arc-dept-bars" id="arc-dept-bars"></div><div class="arc-room-clock"><b id="arc-room-clock">0:00</b></div></div><div class="arc-live-grid"><div class="arc-canvas-frame arc-stage-canvas"><canvas id="arc-stage-canvas" role="img" aria-label="Every player on the shared agency map"></canvas></div><aside><div id="arc-leaderboard-wrap"></div><div id="arc-highlights-wrap"></div></aside></div><div id="arc-room-controls"></div></div>`;
+  else root.innerHTML=header()+`<div class="shell arc-room-shell arc-live"><div class="arc-live-top"><h1>THE CREW’S ON IT.</h1><div class="arc-dept-bars" id="arc-dept-bars"></div><div class="arc-live-meta">${mccannStageCredit()}<div class="arc-room-clock"><b id="arc-room-clock">0:00</b></div></div></div><div class="arc-live-grid"><div class="arc-canvas-frame arc-stage-canvas"><canvas id="arc-stage-canvas" role="img" aria-label="Every player on the shared agency map"></canvas></div><aside><div id="arc-leaderboard-wrap"></div><div id="arc-highlights-wrap"></div></aside></div><div id="arc-room-controls"></div></div>`;
   if(key==='room-playing'){renderer=createRoomRenderer(q('#arc-stage-canvas'));}
  }
  if(key==='lobby'){q('#arc-joined').textContent=live.count;q('#arc-ready').textContent=(live.readyCount||0)+' READY TO PLAY';{const cap=view==='host'||view==='stage'?((globalThis.innerHeight||900)<820?12:24):99,list=[...live.players].reverse(),shown=list.slice(0,cap);setHTML(q('#arc-player-cloud'),shown.map(p=>`<span class="alias-chip character-chip${p.ready?' is-ready':''}"><span class="mini-head">${character(p.character)}</span>${safe(p.alias)}${p.ready?'<small class="arc-ready-tag">✓</small>':''}</span>`).join('')+(list.length>cap?`<span class="alias-chip arc-more">+${list.length-cap} more</span>`:''));}}

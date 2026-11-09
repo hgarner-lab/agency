@@ -62,6 +62,15 @@ test('saving a role card loads the McCann artwork into the PNG and names the fil
  await h.click('download-role');assert.deepEqual(drawn,[MCCANN_LOGO_URL,'/assets/crew-reactions.png']);
  assert.equal(downloads[0].name,'McCann-The-Agency-BrandedFox.png');assert.match(h.ids.get('toast').textContent,/McCann role card/);URL.revokeObjectURL(downloads[0].url);
 });
+test('McCann stays visible in the active phone game and the live room screen',async()=>{
+ const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'VisibleBrand'});await h.start();
+ assert.equal(h.context.arcTest.read().sceneKey,'play');assert.match(h.app.innerHTML,/mccann-endorsement/);assert.match(h.app.innerHTML,/alt="McCann"/);
+ const source=readFileSync(new URL('../src/arcade-app.js',import.meta.url),'utf8');
+ assert.match(source,/arc-stage-credit/);
+ const css=readFileSync(new URL('../src/arcade.css',import.meta.url),'utf8');
+ assert.doesNotMatch(css,/\.arcade-playing \.mccann-endorsement\{display:none\}/);
+ assert.match(css,/\.arc-stage-credit \.mccann-mark/);
+});
 test('a missing logo reports a saving error instead of exporting an unbranded card',async()=>{
  const game=newArcadeGame();game.jobs[0]=2;game.affinity[0]=8;
  class MissingLogo{async decode(){if(this.src===MCCANN_LOGO_URL)throw Error('Image failed');}}

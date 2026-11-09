@@ -285,7 +285,7 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
  .arcade-playing .arc-controls{height:140px}
 }
 .arcade-home .hero-desc{font-size:19px;line-height:1.5;max-width:440px;color:#cfd6c4}
-/* Live screen fits one projector screen: no logo row, map sized above the host bar. */
+/* Live screen fits one projector screen, with a compact McCann ownership mark. */
 .arcade-stage #app:has(.arc-live) .arc-nav{display:none}
 .arcade-stage .arc-live{margin-top:0;padding-top:0}
 .arcade-stage .arc-live-top{padding:14px 0 12px}
@@ -293,6 +293,12 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 .arcade-host .arc-live .arc-stage-canvas>canvas,.arcade-host .arc-live aside{max-height:calc(100vh - 172px)}
 .arcade-stage .arc-live .arc-stage-canvas{width:fit-content;max-width:100%;justify-self:center}
 .arcade-stage #app:has(.arc-live)>.shell:first-child{display:none}
+.arc-live-meta{display:flex;align-items:center;gap:20px;justify-self:end}
+.arc-stage-credit{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.arc-stage-credit>small{font-family:WarMono,monospace;font-size:8px;line-height:1;color:#b8c9b2;letter-spacing:.08em}
+.arc-stage-credit .mccann-mark{width:112px}
+.arc-stage-credit .mccann-mark>img{filter:invert(1)}
+@media(max-width:1000px){.arc-live-meta{gap:12px}.arc-stage-credit .mccann-mark{width:92px}.arc-stage-credit>small{display:none}}
 
 /* Campaign wall (live) and campaign slide (end). */
 .arc-wall .eyebrow{font-size:14px;color:#bed3a8;margin-bottom:8px;display:flex;justify-content:space-between}
@@ -344,7 +350,12 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 /* McCann endorsement uses the supplied artwork at its original proportions. */
 .brand-lockup{display:flex;align-items:center;gap:25px;min-width:0}.mccann-endorsement{display:flex;flex-direction:column;align-items:flex-start;gap:5px;border-left:1px solid #657260;padding-left:20px}.mccann-endorsement>small{font-family:WarMono;font-size:8px;line-height:1.4;color:#c4ceb9;letter-spacing:.04em}.mccann-mark{display:block;width:124px;aspect-ratio:4/1;overflow:hidden;background:#000;flex-shrink:0}.mccann-mark>img{display:block;width:100%;max-width:none;height:auto}.arc-result-card{--card-pad:25px}.arc-card-brand{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 12px;background:#000;color:#fff;margin:calc(-1 * var(--card-pad)) calc(-1 * var(--card-pad)) 20px;padding:20px 22px 15px}.arc-card-brand .mccann-mark{width:210px;max-width:calc(100% - 74px)}.arc-card-project{font-family:WarDisplay;font-size:25px;line-height:.94;letter-spacing:.01em;flex-shrink:0}.arc-card-brand-caption{flex-basis:100%;font-family:WarMono;font-size:8px;line-height:1.6;color:#e3e3df;letter-spacing:.04em}.arc-card-endorsement{background:#000;color:#fff;text-align:center;font-family:WarMono;font-size:10px;line-height:1.6;padding:12px 20px;margin:20px calc(-1 * var(--card-pad)) calc(-1 * var(--card-pad));letter-spacing:.02em}
 @media(max-width:720px){.brand-lockup{gap:15px}.mccann-endorsement{padding-left:13px;gap:4px}.mccann-endorsement>small{font-size:6px}.mccann-endorsement .mccann-mark{width:94px}.arc-result-card{--card-pad:22px}.arc-card-brand{padding:18px 18px 13px}.arc-card-brand .mccann-mark{width:204px}.arc-card-project{font-size:23px}.arc-card-brand-caption{font-size:7px}.arc-card-endorsement{font-size:9px}}
-.arcade-playing .mccann-endorsement{display:none}
+.arcade-playing .brand-lockup{gap:10px}
+.arcade-playing .brand-name{display:none}
+.arcade-playing .mccann-endorsement{display:flex;border-left:0;padding-left:0}
+.arcade-playing .mccann-endorsement>small{display:none}
+.arcade-playing .mccann-endorsement .mccann-mark{width:76px}
+@media(max-width:380px){.arcade-playing .mccann-endorsement .mccann-mark{width:66px}.arcade-playing .sound-toggle{display:none}}
 
 /* Exact source lettering with transparent background, white on dark and black on role colours. */
 .mccann-mark{background:transparent}.mccann-mark>img{filter:invert(1)}.arc-card-brand{background:transparent;color:#172c35}.arc-card-brand .mccann-mark>img{filter:none}.arc-card-brand-caption{color:#233b35}
@@ -681,9 +692,9 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 @media(max-height:820px) and (min-width:900px){.arc-client-brand{gap:8px}.arc-client-brand img{width:44px;height:25px}.arc-client-brief .arc-brief-doc header{gap:10px}}
 @media(max-width:480px){.arc-client-brand{gap:6px}.arc-client-brand img{width:40px;height:23px}.arc-client-brief .arc-brief-doc header{gap:8px;padding:10px 12px}.arc-client-brief .arc-brief-doc header>span{font-size:10px}.arc-client-brief .arc-brief-doc header .arc-client-brand b{font-size:17px}.arc-client-brief .arc-brief-doc header i{font-size:18px;padding:2px 7px}}
 @media(max-width:480px){.arc-client-brief .arc-brief-doc header{display:grid;grid-template-columns:1fr auto;gap:4px 10px}.arc-client-brief .arc-brief-doc header>span{grid-column:1;grid-row:1}.arc-client-brief .arc-client-brand{grid-column:1;grid-row:2}.arc-client-brief .arc-brief-doc header i{grid-column:2;grid-row:1/3;margin-left:0;align-self:center}}
-/* Presenting full screen: slides fill the screen, no host bar or logo row. */
+/* Presenting full screen: slides fill the screen, no host controls. */
 .arc-slide-nav .arc-present{margin-left:10px;background:#c6ff4018;border-color:#c6ff40;color:#c6ff40}
-html.is-presenting #arc-room-controls,html.is-presenting #app>.shell:first-child{display:none!important}
+html.is-presenting #arc-room-controls{display:none!important}
 .is-presenting .arc-room-finale{padding-top:2vh;padding-bottom:2vh}
 .is-presenting.arcade-host .shell{padding-bottom:0}
 .is-presenting .arc-slide-nav{opacity:.45}
