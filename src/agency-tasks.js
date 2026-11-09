@@ -30,11 +30,11 @@ export const TASK_POOLS=[
  [
   {id:'creative-concept',title:'Make a campaign idea',output:'YOUR CAMPAIGN CONCEPT',action:'MAKE AD',resources:'creative',kind:'ad',label:'CONCEPT',
    context:'The brief: help students express their own style. Use local people and make one clear promise.',
-   slots:[slot('THE PROMISE',[yes('Wear it your way.'),no('The most expensive trainer wins.','The brief is about personal style, not who spent most.')]),slot('THE IDEA',[yes('Local creators style one pair three different ways.'),yes('A launch wall where people remix their own look.')]),slot('THE HEADLINE',[yes('YOUR WAY'),yes('MADE WITH YOU'),yes('ONE CREW')])],titleSlot:2,
+   slots:[slot('THE PROMISE',[yes('Wear it your way.'),no('The most expensive trainer wins.','The brief is about personal style, not who spent most.')]),slot('THE IDEA',[yes('Local creators style one pair three different ways.'),yes('A launch wall where people remix their own look.')]),slot('THE HEADLINE',[yes('YOUR WAY'),yes('COPY NOBODY',{say:'Ooh. Cheeky and on brief.'}),yes('MADE WITH YOU'),yes('BUY TRAINERS',{say:'Clear… but would anyone remember it?'}),yes('NICE SHOES',{say:'Short. Maybe too short? See if the room votes for it.'})])],titleSlot:2,
    result:'A campaign about expressing your own style.'},
   {id:'creative-feedback',title:'Improve an ad after feedback',output:'YOUR REVISED AD',action:'UPDATE AD',kind:'ad',label:'REVISED AD',
    context:'The draft says “Something big. Soon.” The client wants people to understand the product and know they can try it at Saturday’s pop-up.',
-   slots:[slot('THE MAIN MESSAGE',[yes('A new trainer, built with local creators.'),no('Something big is coming.','Jamie wants people to know what it actually is.')]),slot('USEFUL DETAIL',[yes('Try them at the pop-up this Saturday.'),no('Soon. Somewhere.','Give people a usable date and place.')]),slot('A CLEAR HEADLINE',[yes('BUILT WITH YOU'),yes('TRY YOUR WAY')])],titleSlot:2,
+   slots:[slot('THE MAIN MESSAGE',[yes('A new trainer, built with local creators.'),no('Something big is coming.','Jamie wants people to know what it actually is.')]),slot('USEFUL DETAIL',[yes('Try them at the pop-up this Saturday.'),no('Soon. Somewhere.','Give people a usable date and place.')]),slot('A CLEAR HEADLINE',[yes('BUILT WITH YOU'),yes('PROOF, NOT HYPE',{say:'Smart. Hits the trust problem head on.'}),yes('WORTH EVERY STEP',{say:'Nice. Answers the £160 worry.'}),yes('NEW TRAINERS OUT NOW',{say:'Clear, but a bit plain. Bold choice.'})])],titleSlot:2,
    result:'An ad with a clear product message and a useful invitation.'},
   {id:'creative-experience',title:'Plan a launch event',output:'YOUR LAUNCH IDEA',action:'BUILD IDEA',kind:'ad',label:'LAUNCH IDEA',
    context:'Make a launch experience that lets people show their own style. People should be able to take part easily.',
@@ -42,11 +42,11 @@ export const TASK_POOLS=[
    result:'An open launch experience people can make their own.'},
   {id:'creative-social',title:'Make a social video',output:'YOUR SOCIAL VIDEO',action:'START',kind:'ad',label:'SOCIAL VIDEO',
    context:'Make a short video for the launch. People scroll fast, so the first second matters.',
-   slots:[slot('THE FIRST SECOND',[yes('Close-up of the trainer hitting the pavement.'),no('Our logo on a white screen for five seconds.','People scroll past before anything happens.')]),slot('WHO’S IN IT',[yes('Local creators wearing them their way.'),no('A celebrity who’s never worn them.','Fake fans undo the trust you’re trying to build.')]),slot('THE CAPTION',[yes('STEP IN'),yes('WEAR IT YOUR WAY')])],titleSlot:2,
+   slots:[slot('THE FIRST SECOND',[yes('Close-up of the trainer hitting the pavement.'),no('Our logo on a white screen for five seconds.','People scroll past before anything happens.')]),slot('WHO’S IN IT',[yes('Local creators wearing them their way.'),no('A celebrity who’s never worn them.','Fake fans undo the trust you’re trying to build.')]),slot('THE CAPTION',[yes('STEP IN'),yes('FIT CHECK: PASSED',{say:'Ha. That’ll get comments.'}),yes('NO DUPES ALLOWED',{say:'Love it. All about your own style.'}),yes('CHECK OUT OUR SHOES',{say:'Says it… but would you stop scrolling?'})])],titleSlot:2,
    result:'A fast social video with real local creators.'},
   {id:'creative-poster',title:'Design the launch poster',output:'YOUR POSTER',action:'START',kind:'ad',label:'POSTER',
    context:'The poster goes up near colleges. It has to work for someone walking past.',
-   slots:[slot('THE PICTURE',[yes('One big shot of the trainer.'),no('Twelve small photos of every detail.','Too busy to take in while walking past.')]),slot('THE WORDS',[yes('A short headline and the pop-up date.'),no('A full paragraph about the materials.','Nobody reads a paragraph on a wall.')]),slot('THE HEADLINE',[yes('TRY THEM SATURDAY'),yes('YOUR WAY. SATURDAY.')])],titleSlot:2,
+   slots:[slot('THE PICTURE',[yes('One big shot of the trainer.'),no('Twelve small photos of every detail.','Too busy to take in while walking past.')]),slot('THE WORDS',[yes('A short headline and the pop-up date.'),no('A full paragraph about the materials.','Nobody reads a paragraph on a wall.')]),slot('THE HEADLINE',[yes('TRY THEM SATURDAY'),yes('WALK YOUR TALK',{say:'Punchy. Good one.'}),yes('LOCAL. LOUD. YOURS.',{say:'Love the rhythm.'}),yes('SHOES ON SALE SATURDAY',{say:'Clear date, but “on sale” makes £160 trainers sound cheap.'})])],titleSlot:2,
    result:'A clear poster: one big shot, one headline, the date.'}
  ],
  [

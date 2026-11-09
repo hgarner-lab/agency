@@ -265,5 +265,5 @@ test('make it yours: the chosen ad style reaches the finished ad, and bad styles
  const style={bg:5,shoe:2,layout:1,sticker:3};now+=ARCADE_TICK;applyArcadeInput(g,{b:{task:g.work.id,run:g.work.run,picks:[0,0,0],style}},now);
  const ad=g.posters.at(-1);assert.equal(ad.colour,AD_STYLE.bg[5][1]);assert.equal(ad.shoe,2);assert.equal(ad.pattern,1);assert.equal(ad.sticker,'SAT 10AM');
  assert.equal(validArcadeInput({n:1,b:{task:'x',run:0,picks:[0,0,0],style}}),true);
- for(const bad of [{bg:9,shoe:0,layout:0,sticker:0},{bg:0,shoe:0,layout:0},{bg:0,shoe:0,layout:0,sticker:0,extra:1},'red'])assert.equal(validArcadeInput({n:1,b:{task:'x',run:0,picks:[0,0,0],style:bad}}),false);
+ for(const bad of [{bg:9,shoe:0,layout:0,sticker:0},{bg:0,shoe:0,layout:0},{bg:0,shoe:0,layout:0,sticker:0,extra:1},{bg:0,shoe:0,layout:0,sticker:0,tag:99},'red'])assert.equal(validArcadeInput({n:1,b:{task:'x',run:0,picks:[0,0,0],style:bad}}),false);
 });

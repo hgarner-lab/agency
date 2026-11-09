@@ -60,7 +60,7 @@ function closeModal(){const was=modalType;q('#arc-modal')?.remove();modalType=nu
 function dismissModal(){if(modalType==='work'){if(phaseNow()==='active')processInput({c:1});else toast('Wait for the host to resume.');}else closeModal();}
 function workMarkup(){
  const w=game?.work,task=taskById(w?.id);if(!task)return '';
- const key=w.id+':'+w.run;if(workDraft?.key!==key)workDraft={key,picks:task.slots.map(()=>null),wrong:null,flash:null,style:{bg:Math.floor(Math.random()*AD_STYLE.bg.length),shoe:Math.floor(Math.random()*4),layout:Math.floor(Math.random()*3),sticker:Math.floor(Math.random()*AD_STYLE.sticker.length)}};
+ const key=w.id+':'+w.run;if(workDraft?.key!==key)workDraft={key,picks:task.slots.map(()=>null),wrong:null,flash:null,style:{bg:Math.floor(Math.random()*AD_STYLE.bg.length),shoe:Math.floor(Math.random()*4),layout:Math.floor(Math.random()*3),sticker:Math.floor(Math.random()*AD_STYLE.sticker.length),tag:0}};
  const copy=TASK_COPY[task.id]||{},picks=workDraft.picks,at=picks.findIndex(v=>v===null),n=task.slots.length;
  const total=picks.reduce((t,v,i)=>t+(v===null?0:task.slots[i].options[v]?.cost||0),0),colour=JOBS[w.type].colour;
  const steps=task.slots.map((sl,i)=>`<li class="${picks[i]!==null?'done':i===at?'now':''}"></li>`).join('');
@@ -81,7 +81,7 @@ function pickWork(slotIndex,option){
  const spent=workDraft.picks.reduce((t,v,i)=>t+(v===null?0:task.slots[i].options[v]?.cost||0),0);
  if(o.why){workDraft.wrong={slot:slotIndex,option,message:nudge(o.why)};workDraft.flash=null;playNote('miss');refreshWork();return;}
  if(task.budget&&spent+(o.cost||0)>task.budget-minRemaining(task,slotIndex)){workDraft.wrong={slot:slotIndex,option,message:`Not quite. That leaves too little for the rest. You have £${task.budget-spent} left. Try again.`};workDraft.flash=null;refreshWork();return;}
- workDraft.picks[slotIndex]=option;workDraft.wrong=null;workDraft.flash=copy.good?.[slotIndex]||'Good choice.';game.work.feedback=null;playNote('pickup');refreshWork();
+ workDraft.picks[slotIndex]=option;workDraft.wrong=null;workDraft.flash=o.say||copy.good?.[slotIndex]||'Good choice.';game.work.feedback=null;playNote('pickup');refreshWork();
  if(workDraft.picks.every(v=>v!==null)&&task.kind!=='ad')setTimeout(submitWork,700);
 }
 function submitWork(){if(!game?.work||!workDraft?.picks.every(v=>v!==null))return;const ad=taskById(game.work.id)?.kind==='ad';processInput({b:{task:game.work.id,run:game.work.run,picks:[...workDraft.picks],...(ad?{style:{...workDraft.style}}:{})}});}
@@ -95,6 +95,7 @@ function styleStep(task){
  ${row('shoe','TRAINER',AD_STYLE.shoe.map((n,i)=>pick('shoe',i,trainerSVG(COLOURWAYS[i],n),'shoe')).join(''))}
  ${row('layout','FORMAT',AD_STYLE.layout.map((n,i)=>pick('layout',i,safe(n))).join(''))}
  ${row('sticker','STICKER',AD_STYLE.sticker.map((n,i)=>pick('sticker',i,safe(i?n:'None'))).join(''))}
+ ${row('tag','TAGLINE',`<button class="arc-style-opt tagline on" data-action="work-style-next" data-key="tag">${safe(AD_STYLE.tag[st.tag||0])}<b>↻</b></button>`)}
  </div></div><button class="btn full" data-action="work-submit">SEND IT TO THE BIG SCREEN →</button></div>`;
 }
 function minRemaining(task,from){let n=0;for(let i=from+1;i<task.slots.length;i++)n+=Math.min(...task.slots[i].options.filter(o=>!o.why).map(o=>o.cost||0));return n;}
@@ -381,6 +382,7 @@ document.addEventListener('click',async e=>{
  if(action==='work-pick'&&game?.work)pickWork(Number(button.dataset.slot),Number(button.dataset.value));
  if(action==='work-edit'&&game?.work){workDraft.edit=Number(button.dataset.value);refreshWork();}
  if(action==='work-submit')submitWork();
+ if(action==='work-style-next'&&workDraft?.style){const k=button.dataset.key;workDraft.style[k]=((workDraft.style[k]||0)+1)%AD_STYLE[k].length;refreshWork();}
  if(action==='work-style'&&workDraft?.style){workDraft.style[button.dataset.key]=Number(button.dataset.value);refreshWork();}
  if(action==='use')actionQueued=true;if(action==='map')openModal('map');
  if(action==='pause-menu'){if(solo?.phase==='active'){solo.remaining=Math.max(0,solo.deadline-Date.now());solo.phase='paused';saveSolo();}openModal('pause');}

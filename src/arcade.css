@@ -867,3 +867,8 @@ html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
 .arc-work-modal:has(.arc-style) .arc-work-context,.arc-work-modal:has(.arc-style) .arc-q-steps,.arc-work-modal:has(.arc-style) .arc-work-research{display:none}
 .arc-style .arc-q-good{margin-top:4px}
 .arc-style h3{margin:10px 0 8px}
+.arc-style-opt.tagline{font-size:11px;text-align:left;line-height:1.2;padding:5px 7px}
+.arc-style-opt.tagline{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;font-size:12px}
+.arc-style-opt.tagline b{font-size:16px;color:#c6ff40}
+.arc-style>.btn{position:sticky;bottom:-24px;z-index:3;box-shadow:0 -12px 16px #111318}
+.arc-style-preview{position:sticky;top:4px}
