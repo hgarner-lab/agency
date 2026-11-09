@@ -30,7 +30,7 @@ function ui(options={}){
  const app=new Element('app'),toast=new Element('toast');ids.set('app',app);ids.set('toast',toast);
  const store=()=>({data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,v)}});
  const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,Image:options.Image,
-  ...world,...agencyTasks,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawRoleCard,MCCANN_LOGO_URL,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
+  ...world,...agencyTasks,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawRoleCard,MCCANN_LOGO_URL,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),createRoomRenderer:()=>({draw(){}}),
   location:{origin:'https://game.test',search:options.search||'',href:'https://game.test/'},history:{pushState(){}},sessionStorage:store(),localStorage:store(),navigator:{},
   setTimeout(){return 0},setInterval(){return 0},clearInterval(){},requestAnimationFrame(){},
   FormData:class{constructor(form){this.fields=form.fields}get(k){return this.fields[k]}},

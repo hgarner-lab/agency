@@ -413,3 +413,62 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
  .arcade-stage .arc-how-steps strong{font-size:18px}
  .arcade-stage .arc-how-steps span{font-size:15px}
 }
+
+/* Opening screens: imagery. */
+.arc-crew-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 16px}
+.arc-crew-cards article{display:flex;align-items:flex-end;gap:4px;border:1px solid #3f5b4a;border-top:4px solid var(--c);background:radial-gradient(ellipse at 25% 90%,color-mix(in srgb,var(--c) 30%,transparent),transparent 65%),#1c3635;overflow:hidden;min-height:0}
+.arc-crew-art{flex:0 0 42%;height:clamp(190px,26vh,330px);display:flex;justify-content:center;align-items:flex-end}
+.arc-crew-art .character{height:108%;width:auto;aspect-ratio:3/8;margin-bottom:-4%}
+.arc-crew-copy{padding:14px 12px 14px 0;align-self:center}
+.arc-crew-copy small{font-family:WarMono,monospace;font-size:13px;letter-spacing:.14em;color:var(--c)}
+.arc-crew-copy b{display:block;font-family:WarDisplay,sans-serif;font-size:clamp(20px,1.8vw,30px);line-height:1;color:var(--c);margin:4px 0 8px}
+.arc-crew-copy p{margin:0;font-size:clamp(14px,1.15vw,19px);line-height:1.35;color:#e2e9d6}
+.arc-brief-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:22px;align-items:start;margin:0 0 14px}
+.arc-brief-doc{background:#f4efe1;color:#1d2a2e;box-shadow:6px 6px 0 #0a1b23;transform:rotate(-.6deg)}
+.arc-brief-doc header{display:flex;align-items:center;gap:14px;background:#1d2a2e;color:#f4efe1;padding:10px 16px}
+.arc-brief-doc header span{font-family:WarMono,monospace;font-size:12px;letter-spacing:.14em;color:#c6ff40}
+.arc-brief-doc header b{font-family:WarDisplay,sans-serif;font-size:clamp(20px,1.8vw,30px);letter-spacing:.02em}
+.arc-brief-doc header i{margin-left:auto;font-style:normal;font-family:WarDisplay,sans-serif;font-size:clamp(18px,1.6vw,26px);background:#c6ff40;color:#14160f;padding:2px 10px;transform:rotate(3deg)}
+.arc-brief-doc dl{margin:0;padding:6px 16px 10px}
+.arc-brief-doc dl>div{display:grid;grid-template-columns:clamp(150px,13vw,230px) 1fr;gap:12px;padding:7px 0;border-bottom:1px dashed #b9b3a2}
+.arc-brief-doc dl>div:last-child{border-bottom:0}
+.arc-brief-doc dt{font-family:WarMono,monospace;font-size:clamp(11px,.9vw,15px);letter-spacing:.06em;color:#5a6b55;font-weight:700;padding-top:3px}
+.arc-brief-doc dd{margin:0;font-size:clamp(16px,1.4vw,24px);line-height:1.3}
+.arc-moodboard{margin:0;transform:rotate(1.2deg)}
+.arc-moodboard img{display:block;width:100%;height:auto;border:6px solid #f4efe1;box-shadow:6px 6px 0 #0a1b23}
+.arc-moodboard figcaption{font-size:clamp(14px,1.15vw,19px);line-height:1.35;color:#d9e2cf;margin-top:10px}
+.arc-moodboard figcaption b{color:#c6ff40}
+.arc-how-visual li{flex-direction:column;flex-wrap:wrap;gap:8px}
+.arc-how-visual li>b{display:none}
+.arc-how-visual figure{margin:0 0 4px;height:clamp(110px,16vh,190px);display:flex;align-items:center;justify-content:center;gap:8px;background:#13252a;border:1px solid #2f4a42;overflow:hidden}
+.arc-how-visual figure canvas#arc-intro-map{height:100%;width:auto;image-rendering:pixelated}
+.arc-how-items .arc-item-icon{width:clamp(40px,3.6vw,60px);height:auto;image-rendering:pixelated}
+.arc-how-pick{flex-direction:column;align-items:stretch!important;padding:10px;gap:6px!important}
+.arc-how-pick small{font-family:WarMono,monospace;font-size:11px;color:#a9c19c;letter-spacing:.1em}
+.arc-how-pick span{font-size:clamp(13px,1.1vw,18px);padding:6px 10px;border:2px solid}
+.arc-how-pick .ok{border-color:#c6ff40;color:#c6ff40;background:#c6ff4014}
+.arc-how-pick .no{border-color:#ff7a5c;color:#ffb3a1;text-decoration:line-through;opacity:.85}
+.arc-how-land svg{height:90%;width:auto;box-shadow:3px 3px 0 #0a1b23}
+.arc-how-land svg:first-child{transform:rotate(-4deg)}.arc-how-land svg:last-child{transform:rotate(3deg)}
+.arc-how-visual strong::before{content:attr(data-n)}
+@media(max-height:820px){
+ .arcade-stage .arc-crew-art{height:180px}
+ .arcade-stage .arc-crew-cards{margin-bottom:10px}
+ .arcade-stage .arc-crew-copy p{font-size:14px}
+ .arcade-stage .arc-intro h1{font-size:40px}
+ .arcade-stage .arc-intro-lead{font-size:17px;margin-bottom:10px}
+ .arcade-stage .arc-brief-doc dl>div{padding:4px 0}
+ .arcade-stage .arc-brief-doc dd{font-size:15px}
+ .arcade-stage .arc-brief-doc header{padding:7px 14px}
+ .arcade-stage .arc-moodboard figcaption{font-size:14px}
+ .arcade-stage .arc-how-visual figure{height:110px}
+}
+.arcade-host #app>.shell:first-child{padding-bottom:0}
+.arcade-stage .arc-intro{margin-top:12px}
+.arc-brief-layout{grid-template-rows:auto 1fr}
+.arc-brief-doc{grid-column:1;grid-row:1}
+.arc-brief-left-end{grid-column:1;grid-row:2;padding-top:14px}
+.arc-brief-left-end .arc-gloss{margin:0}
+.arc-moodboard{grid-column:2;grid-row:1/3}
+.arc-how-items .arc-item-icon{width:60px}
+@media(min-width:1600px) and (min-height:950px){.arc-how-items .arc-item-icon{width:84px}}
