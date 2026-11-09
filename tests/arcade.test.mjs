@@ -2,7 +2,7 @@ import {test,beforeEach,mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
-import {newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK,gameHint,jobChecklist,nextInstruction,guidancePath} from '../src/arcade-world.js';
+import {newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK,gameHint,jobChecklist,nextInstruction,guidancePath,jobAction,newPracticeGame,applyPracticeInput,practiceInstruction} from '../src/arcade-world.js';
 import {arcadeApi} from '../src/arcade-server.js';
 let now,sql,env;
 beforeEach(()=>{
@@ -41,10 +41,10 @@ async function request(route,body=null,auth=null){
  const headers={'content-type':'application/json'};if(auth?.token)headers.authorization='Bearer '+auth.token;if(auth?.id)headers['x-player']=auth.id;
  const response=await arcadeApi(new Request('https://game.test/api/arcade/'+route,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined}),env);return {status:response.status,data:await response.json()};
 }
-async function room(){const host=(await request('create',{duration:300})).data;const player=(await request('join',{code:host.code,alias:'CrewTester',character:1})).data;await request('control',{code:host.code,action:'start'},host);return {host,player};}
+async function room(){const host=(await request('create',{duration:300})).data;const player=(await request('join',{code:host.code,alias:'CrewTester',character:1})).data;await request('ready',{code:host.code},player);await request('control',{code:host.code,action:'start'},host);return {host,player};}
 
 test('all four jobs can be completed through actual walkable routes on the map',()=>{
- for(const type of [0,1,2,3]){const g=newArcadeGame(1);const inputs=performJob(g,type);assert.ok(inputs.length>10);assert.equal(g.jobs[type],1);assert.ok(g.score>=180);assert.equal(arcadeProfile(g).role,type);assert.ok(canWalk(g.x,g.y));}
+ for(const type of [0,1,2,3]){const g=newArcadeGame(1);const inputs=performJob(g,type);assert.ok(inputs.length>10);assert.equal(g.jobs[type],1);assert.ok(g.score>=180);assert.equal(arcadeProfile(g),null);now+=4000;performJob(g,type);assert.equal(arcadeProfile(g).role,type);assert.ok(canWalk(g.x,g.y));}
 });
 test('movement respects walls, desks and NPCs; talking without ingredients cannot award a job',()=>{
  const g=newArcadeGame();walk(g,6,4,true);const score=g.score;act(g);assert.equal(g.jobs[0],0);assert.equal(g.score,score);
@@ -56,21 +56,21 @@ test('collectibles are single-use, jobs consume them, and a poster uses the coll
  assert.equal(g.posters.length,1);assert.equal(g.posters[0].colour,'#bbef66');assert.equal(g.posters[0].title,'FOR EVERYONE');assert.ok(events.some(e=>e.kind==='job'&&e.poster));assert.equal(g.inventory.filter(i=>i.startsWith('ink-')||i.startsWith('word-')).length,0);
 });
 test('points and character choice do not decide a role; identical work yields the same classification',()=>{
- const one=newArcadeGame(0),two=newArcadeGame(2);performJob(one,0);performJob(two,0);one.score=99999;two.score=1;
+ const one=newArcadeGame(0),two=newArcadeGame(2);performJob(one,0);performJob(two,0);now+=4000;performJob(one,0);performJob(two,0);one.score=99999;two.score=1;
  assert.equal(arcadeProfile(one).role,0);assert.equal(arcadeProfile(two).role,0);assert.equal(arcadeProfile(newArcadeGame()),null);
 });
 test('instructions follow the current room, missing items and the action needed beside a teammate',()=>{
  const g=newArcadeGame();walk(g,22,3);
  assert.deepEqual(jobChecklist(g).map(i=>i.have),[true,false]);assert.match(gameHint(g,now),/Collect a word tile/);
- walk(g,22,8);assert.ok(jobChecklist(g).every(i=>i.have));assert.match(gameHint(g,now),/Take your items to Nova/);
+ walk(g,22,8);assert.ok(jobChecklist(g).every(i=>i.have));assert.match(gameHint(g,now),/Take colour \+ word to Nova/);
  walk(g,26,4,true);assert.match(gameHint(g,now),/Press MAKE AD/);act(g);assert.match(gameHint(g,now),/Job done/);
- walk(g,3,5);assert.deepEqual(jobChecklist(g),[{icon:'clue',label:'Clues 1/3',have:false}]);assert.match(gameHint(g,now),/1 of 3 collected/);
+ walk(g,3,5);assert.deepEqual(jobChecklist(g),[{icon:'clue',label:'Clues 1/3',have:false}]);assert.match(gameHint(g,now),/1\/3 collected/);
  walk(g,30,22);assert.deepEqual(jobChecklist(g).map(i=>i.have),[false,true]);assert.match(gameHint(g,now),/the spanner/);
 });
 test('client brief instructions keep the named destination while crossing other rooms',()=>{
- const g=newArcadeGame();walk(g,6,20,true);assert.match(gameHint(g,now),/Press GET BRIEF/);act(g);
- assert.match(gameHint(g,now),/Take the brief to Nova/);assert.equal(jobChecklist(g)[0].icon,'brief');
- walk(g,3,5);assert.match(gameHint(g,now),/Take the brief to Nova/);
+ const g=newArcadeGame();walk(g,6,20,true);assert.match(gameHint(g,now),/Press GET MESSAGE/);act(g);
+ assert.match(gameHint(g,now),/Take Sol’s message to Nova/);assert.equal(jobChecklist(g)[0].icon,'brief');
+ walk(g,3,5);assert.match(gameHint(g,now),/Take Sol’s message to Nova/);
  walk(g,26,4,true);assert.match(gameHint(g,now),/Press DELIVER/);act(g);assert.equal(g.jobs[2],1);assert.equal(g.delivery,null);
 });
 test('following the marked routes completes any chosen job without crossing walls or desks',()=>{
@@ -86,7 +86,7 @@ test('following the marked routes completes any chosen job without crossing wall
     const d=p.x>g.x?'right':p.x<g.x?'left':p.y>g.y?'down':'up';now+=ARCADE_TICK;applyArcadeInput(g,{d},now);
    }
   }
-  assert.equal(g.jobs[type],1);assert.equal(arcadeProfile(g).role,type);
+  assert.equal(g.jobs[type],1);assert.equal(arcadeProfile(g),null);
  }
 });
 test('live input is replayed on the server; forged scores and duplicate batches cannot award points',async()=>{
@@ -115,4 +115,54 @@ test('rooms allow 50 distinct players and reject a duplicate nickname or unsafe 
  const host=(await request('create',{})).data;for(let n=0;n<50;n++)assert.equal((await request('join',{code:host.code,alias:'Crew'+n,character:n%3})).status,201);
  assert.equal((await request('join',{code:host.code,alias:'Overflow'})).status,400);assert.equal((await request('join',{code:host.code,alias:'crew1'})).status,400);assert.equal((await request('join',{code:host.code,alias:'f u c k'})).status,400);
  assert.equal((await request('state?room='+host.code)).data.count,50);
+});
+test('the marked object stays selected while moving, until collected or changing rooms',()=>{
+ const g=newArcadeGame();g.x=20;g.y=5;
+ applyArcadeInput(g,{d:'left'},now);const selected=nextInstruction(g,now).target.id;
+ assert.equal(selected,'ink-green');applyArcadeInput(g,{d:'down'},now+ARCADE_TICK);
+ assert.equal(nextInstruction(g,now).target.id,selected);
+ walk(g,22,3);assert.ok(g.inventory.includes(selected));assert.notEqual(nextInstruction(g,now).target?.id,selected);
+ walk(g,3,5);assert.equal(nextInstruction(g,now).type,0);
+});
+test('TALK cannot complete an unrelated job while delivering a message',()=>{
+ const g=newArcadeGame();walk(g,6,20,true);assert.equal(jobAction(g,now).label,'GET MESSAGE');act(g);
+ walk(g,22,17);walk(g,30,22);walk(g,26,20,true);
+ assert.equal(jobAction(g,now).label,'TALK');const before=g.score,events=act(g);
+ assert.equal(g.score,before);assert.equal(g.jobs[3],0);assert.ok(events.every(e=>e.kind==='note'));
+ walk(g,26,4,true);assert.equal(jobAction(g,now).label,'DELIVER');act(g);
+ walk(g,26,20,true);assert.equal(jobAction(g,now).label,'FIX KIT');act(g);assert.equal(g.jobs[3],1);
+ assert.equal(jobAction(g,now).label,'TALK');const score=g.score;act(g);assert.equal(g.score,score);
+});
+test('a role needs two completed jobs, even with many collected items',()=>{
+ const g=newArcadeGame();walk(g,3,5);assert.equal(arcadeProfile(g),null);
+ performJob(g,0);assert.equal(arcadeProfile(g),null);now+=4000;performJob(g,0);
+ assert.equal(arcadeProfile(g).completed,2);assert.equal(arcadeProfile(g).role,0);
+});
+test('practice teaches movement, collection and the action button without affecting a game',()=>{
+ const p=newPracticeGame(2),g=newArcadeGame(2),before=structuredClone(g);
+ assert.equal(practiceInstruction(p).ready,false);applyPracticeInput(p,{a:1});assert.equal(p.complete,false);
+ applyPracticeInput(p,{d:'right'});assert.equal(practiceInstruction(p).title,'Walk over the star.');
+ applyPracticeInput(p,{d:'right'});applyPracticeInput(p,{d:'right'});assert.equal(p.collected,true);assert.equal(practiceInstruction(p).ready,false);
+ applyPracticeInput(p,{d:'right'});assert.equal(practiceInstruction(p).ready,true);applyPracticeInput(p,{a:1});assert.equal(p.complete,true);
+ assert.deepEqual(g,before);
+});
+test('the host sees readiness and ordinary start waits for everyone to practise',async()=>{
+ const host=(await request('create',{})).data;
+ const a=(await request('join',{code:host.code,alias:'ReadyOne',character:0})).data,b=(await request('join',{code:host.code,alias:'ReadyTwo',character:1})).data;
+ assert.equal((await request('ready',{code:host.code})).status,403);
+ assert.equal((await request('control',{code:host.code,action:'start'},host)).status,409);
+ await request('ready',{code:host.code},a);let state=(await request('state?room='+host.code,null,a)).data;
+ assert.equal(state.readyCount,1);assert.equal(state.ready,true);assert.equal(state.players[0].score,0);assert.equal(state.players[0].completed,0);
+ assert.equal((await request('control',{code:host.code,action:'start'},host)).status,409);
+ await request('ready',{code:host.code},b);await request('ready',{code:host.code},b);
+ state=(await request('state?room='+host.code,null,b)).data;assert.equal(state.readyCount,2);
+ assert.equal((await request('control',{code:host.code,action:'start'},host)).status,200);
+});
+test('an explicit host override starts the clock and late arrivals can finish practice safely',async()=>{
+ const host=(await request('create',{})).data,p=(await request('join',{code:host.code,alias:'LatePlayer',character:1})).data;
+ assert.equal((await request('control',{code:host.code,action:'start',allowUnready:true},p)).status,403);
+ assert.equal((await request('control',{code:host.code,action:'start',allowUnready:true},host)).status,200);
+ assert.equal((await request('ready',{code:host.code},p)).status,200);
+ const state=(await request('state?room='+host.code,null,p)).data;assert.equal(state.phase,'active');assert.equal(state.game.x,16);assert.equal(state.game.score,0);assert.equal(state.seq,0);assert.equal(state.ready,true);
+ await request('control',{code:host.code,action:'finish'},host);assert.equal((await request('ready',{code:host.code},p)).status,409);
 });

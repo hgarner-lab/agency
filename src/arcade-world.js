@@ -1,10 +1,11 @@
 // Deterministic tile game, shared by the phone and authoritative room server.
 export const ARCADE_TICK=150;
+export const MIN_ROLE_JOBS=2;
 export const MAP_W=34,MAP_H=26,TILE=16;
 export const JOBS=[
  {id:'strategy',name:'RESEARCH',role:'Strategy',person:'REM',colour:'#b4df65',x:6,y:4,need:'Find 3 customer clues, then bring them to Rem.'},
  {id:'creative',name:'STUDIO',role:'Creative',person:'NOVA',colour:'#bba2fa',x:26,y:4,need:'Find a colour and a word tile, then make an ad with Nova.'},
- {id:'account',name:'CLIENT DESK',role:'Accounts',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Get a brief from Sol, then deliver it to the named teammate.'},
+ {id:'account',name:'CLIENT DESK',role:'Accounts',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Get a message from Sol, then take it to the person he names.'},
  {id:'production',name:'WORKSHOP',role:'Production',person:'PATCH',colour:'#79d8d8',x:26,y:20,need:'Find a spanner and a battery, then help Patch fix the launch.'}
 ];
 export const PICKUPS=[
@@ -35,16 +36,23 @@ export function wallAt(x,y){
  return false;
 }
 export function canWalk(x,y){return !wallAt(x,y)&&!FURNITURE.some(f=>f[0]===x&&f[1]===y)&&!JOBS.some(j=>j.x===x&&j.y===y);}
-export function newArcadeGame(character=0){return {x:16,y:12,face:'down',steps:0,character,score:0,inventory:[],delivery:null,jobs:[0,0,0,0],affinity:[0,0,0,0],readyAt:[0,0,0,0],firstType:null,lastType:null,lastJobAt:0,focus:null,posters:[],lastNote:'Walk into any room. Collect items and take them to the character there.',seq:0};}
+export function newArcadeGame(character=0){return {x:16,y:12,face:'down',steps:0,character,score:0,inventory:[],delivery:null,jobs:[0,0,0,0],affinity:[0,0,0,0],readyAt:[0,0,0,0],firstType:null,lastType:null,lastJobAt:0,focus:null,posters:[],lastNote:'Move into a room to choose your first job.',guide:null,practiceReady:false,seq:0};}
 export function nearbyJob(g){return JOBS.findIndex(j=>Math.abs(j.x-g.x)+Math.abs(j.y-g.y)<=1);}
 export function hasItem(g,id){return g.inventory.includes(id);}
 export function availablePickups(g,now){return PICKUPS.filter(p=>!hasItem(g,p.id)&&now>=g.readyAt[p.type]&&!(p.kind==='colour'&&g.inventory.some(id=>PICKUPS.find(p=>p.id===id)?.kind==='colour'))&&!(p.kind==='word'&&g.inventory.some(id=>PICKUPS.find(p=>p.id===id)?.kind==='word')));}
-export function jobLabel(g){
- const near=nearbyJob(g);if(g.delivery&&near===g.delivery.to)return 'DELIVER';if(near===2)return g.delivery?'TALK':'GET BRIEF';
- if(near===0)return 'RESEARCH';if(near===1)return 'MAKE AD';if(near===3)return 'REPAIR';return 'TALK';
+export function jobAction(g,now=Date.now()){
+ const near=nearbyJob(g),talk={label:'TALK',enabled:near>=0,ready:false};
+ if(near<0)return talk;
+ if(g.delivery)return g.delivery.to===near?{label:'DELIVER',enabled:true,ready:true}:talk;
+ if(now<g.readyAt[near])return talk;
+ if(near===2)return {label:'GET MESSAGE',enabled:true,ready:true};
+ const ready=near===0?['clue-a','clue-b','clue-c'].every(id=>hasItem(g,id)):near===1?g.inventory.some(id=>id.startsWith('ink-'))&&g.inventory.some(id=>id.startsWith('word-')):hasItem(g,'spanner')&&hasItem(g,'battery');
+ return ready?{label:['MAKE PLAN','MAKE AD','','FIX KIT'][near],enabled:true,ready:true}:talk;
 }
+export function jobLabel(g,now=Date.now()){return jobAction(g,now).label;}
+
 export function jobChecklist(g){
- if(g.delivery)return [{icon:'brief',label:'Client brief',have:true}];
+ if(g.delivery)return [{icon:'brief',label:'Client message',have:true}];
  const area=areaAt(g.x,g.y),type=area>=0?area:g.focus;
  if(type===0){const n=g.inventory.filter(id=>id.startsWith('clue-')).length;return [{icon:'clue',label:`Clues ${n}/3`,have:n===3}];}
  if(type===1)return [{icon:'paint',label:'Colour',have:g.inventory.some(id=>id.startsWith('ink-'))},{icon:'word',label:'Word',have:g.inventory.some(id=>id.startsWith('word-'))}];
@@ -55,20 +63,21 @@ export function jobChecklist(g){
 // chooses a first job: players pick a room, then get help with that job.
 export function nextInstruction(g,now=Date.now()){
  const near=nearbyJob(g),area=areaAt(g.x,g.y),type=g.delivery?g.delivery.to:near>=0?near:area>=0?area:g.focus;
- const personStep=(n,action,title)=>({type:n,kind:near===n?'act':'person',title:near===n?`Press ${action}.`:title,detail:near===n?'Use the round button, or press Space.':`Follow the dots. Stand beside ${JOBS[n].person[0]+JOBS[n].person.slice(1).toLowerCase()}.`,icon:'player-'+[0,1,3,2][n],target:{x:JOBS[n].x,y:JOBS[n].y,person:true}});
- if(type===null||type===undefined||type<0)return {type:null,kind:'choose',title:'Choose any room.',detail:'Use the arrows to move through a doorway.',icon:'player-'+g.character,target:null};
- if(g.delivery)return personStep(type,'DELIVER',`Take the brief to ${JOBS[type].person[0]+JOBS[type].person.slice(1).toLowerCase()}.`);
+ const personStep=(n,action,title)=>({type:n,kind:near===n?'act':'person',title:near===n?`Press ${action}.`:title,detail:near===n?'Press the round button, or Space.':`Follow the dots. Stand beside ${JOBS[n].person[0]+JOBS[n].person.slice(1).toLowerCase()}.`,icon:'player-'+[0,1,3,2][n],target:{x:JOBS[n].x,y:JOBS[n].y,person:true}});
+ if(type===null||type===undefined||type<0)return {type:null,kind:'choose',title:'Choose your first job.',detail:'Hold an arrow. Move into any room.',icon:'player-'+g.character,target:null};
+ if(g.delivery)return personStep(type,'DELIVER',`Take Sol’s message to ${JOBS[type].person[0]+JOBS[type].person.slice(1).toLowerCase()}.`);
  if(now<g.readyAt[type])return {type,kind:'wait',title:'Job done. Choose your next one.',detail:'Try another room, or wait for new items.',icon:'player-'+g.character,target:null};
- if(type===2)return personStep(2,'GET BRIEF','Go to Sol.');
+ if(type===2)return personStep(2,'GET MESSAGE','Get a message from Sol.');
  const missing=availablePickups(g,now).filter(p=>p.type===type).sort((a,b)=>(Math.abs(a.x-g.x)+Math.abs(a.y-g.y))-(Math.abs(b.x-g.x)+Math.abs(b.y-g.y)));
- const target=missing[0];
+ const target=missing.find(p=>g.guide?.type===type&&g.guide.id===p.id)||missing[0];
  if(target){
   const n=g.inventory.filter(id=>id.startsWith('clue-')).length;
   const titles={clue:'Collect 3 clues.',paint:'Collect a colour tin.',word:'Collect a word tile.',spanner:'Collect the spanner.',battery:'Collect the battery.'};
-  return {type,kind:'collect',title:titles[target.icon],detail:target.icon==='clue'?`Walk onto a flashing card. ${n} of 3 collected.`:'Walk onto the flashing object.',icon:target.icon,target};
+  return {type,kind:'collect',title:titles[target.icon],detail:target.icon==='clue'?`Walk over the flashing card. ${n}/3 collected.`:`Walk over the flashing ${{paint:'tin',word:'word tile',spanner:'spanner',battery:'battery'}[target.icon]} to pick it up.`,icon:target.icon,target};
  }
- const names=['Rem','Nova','Sol','Patch'],actions=['RESEARCH','MAKE AD','GET BRIEF','REPAIR'];
- return personStep(type,actions[type],`Take your items to ${names[type]}.`);
+ const names=['Rem','Nova','Sol','Patch'],actions=['MAKE PLAN','MAKE AD','GET MESSAGE','FIX KIT'];
+ const titles=['Take 3 clues to Rem.','Take colour + word to Nova.','','Take the tools to Patch.'];
+ return personStep(type,actions[type],titles[type]);
 }
 export function gameHint(g,now=Date.now()){const step=nextInstruction(g,now);return step.title+' '+step.detail;}
 export function guidancePath(g,target){
@@ -96,7 +105,9 @@ function completeArcadeJob(g,type,now,events,detail,poster=null){
  events.push({kind:'job',type,points:150+bonus,total:g.score,detail,poster});
  arcadeNote(g,detail+' +'+(150+bonus)+' points. Choose your next job.',events);
 }
-export function applyArcadeInput(g,input,now){
+function keepGuide(g,now){const step=nextInstruction(g,now);g.guide=step.kind==='collect'?{type:step.type,id:step.target.id}:null;}
+export function applyArcadeInput(g,input,now){keepGuide(g,now);const events=applyArcadeStep(g,input,now);keepGuide(g,now);return events;}
+function applyArcadeStep(g,input,now){
  const events=[];
  if(input.d){
   const dir={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[input.d];if(!dir)return events;
@@ -108,8 +119,9 @@ export function applyArcadeInput(g,input,now){
   if(n<0){arcadeNote(g,'Stand next to Rem, Nova, Sol or Patch to do a job.',events);return events;}
   if(g.delivery&&g.delivery.to===n){
    const from=JOBS[n].person;g.delivery=null;g.inventory=g.inventory.filter(id=>id!=='brief');
-   completeArcadeJob(g,2,now,events,`Brief delivered to ${from}. The client’s plan is agreed.`);return events;
+   completeArcadeJob(g,2,now,events,`Message delivered to ${from}. The client’s plan is agreed.`);return events;
   }
+  if(g.delivery){arcadeNote(g,`Take Sol’s message to ${JOBS[g.delivery.to].person} first.`,events);return events;}
   g.focus=n;
   if(now<g.readyAt[n]){arcadeNote(g,'New supplies are arriving. Try another room for a moment.',events);return events;}
   if(n===0){
@@ -122,10 +134,10 @@ export function applyArcadeInput(g,input,now){
    const poster={title:word.value,colour:ink.value,pattern:g.jobs[1]%3};g.posters.push(poster);g.posters=g.posters.slice(-4);
    completeArcadeJob(g,1,now,events,'Ad made: UNDERGROUND / '+word.value,poster);
   }else if(n===2){
-   if(g.delivery){arcadeNote(g,`SOL: ${JOBS[g.delivery.to].person} is waiting for my brief. Take it to them.`,events);return events;}
+   if(g.delivery){arcadeNote(g,`SOL: ${JOBS[g.delivery.to].person} is waiting for my message. Take it to them.`,events);return events;}
    const to=[1,0,3][g.jobs[2]%3];g.delivery={to};g.inventory.push('brief');g.affinity[2]+=1;g.firstType??=2;g.score+=30;
-   events.push({kind:'pickup',name:'CLIENT BRIEF',type:2,points:30,x:g.x,y:g.y});
-   arcadeNote(g,`SOL: Take this brief to ${JOBS[to].person} in ${JOBS[to].name}. They need it to start work.`,events);
+   events.push({kind:'pickup',name:'CLIENT MESSAGE',type:2,points:30,x:g.x,y:g.y});
+   arcadeNote(g,`SOL: Take this message to ${JOBS[to].person} in ${JOBS[to].name}. They need it to start work.`,events);
   }else if(n===3){
    if(!hasItem(g,'spanner')||!hasItem(g,'battery')){arcadeNote(g,'PATCH: Bring me a spanner and a battery from this room. We need to fix the launch equipment.',events);return events;}
    completeArcadeJob(g,3,now,events,['Launch sign fixed. The brand’s name is back in lights.','Launch lights repaired. The set is ready.','Camera repaired. The crew can start filming.'][g.jobs[3]%3]);
@@ -134,9 +146,27 @@ export function applyArcadeInput(g,input,now){
  return events;
 }
 export function arcadeProfile(g){
- const high=Math.max(...g.affinity);if(high<.01)return null;
+ const completed=g.jobs.reduce((a,b)=>a+b,0);
+ const high=Math.max(...g.affinity);if(high<.01||completed<MIN_ROLE_JOBS)return null;
  const tied=g.affinity.map((v,i)=>Math.abs(v-high)<.001?i:-1).filter(i=>i>=0);
  const role=tied.includes(g.lastType)?g.lastType:tied.includes(g.firstType)?g.firstType:tied[0];
  return {role,score:g.score,jobs:[...g.jobs],collected:g.affinity.map((v,i)=>Math.max(0,Math.round((v-g.jobs[i]*3)*100)/100)),completed:g.jobs.reduce((a,b)=>a+b,0)};
 }
 export function publicArcadeGame(g){return {x:g.x,y:g.y,face:g.face,steps:g.steps,character:g.character,score:g.score,inventory:[...g.inventory],delivery:g.delivery,readyAt:g.readyAt,jobs:[...g.jobs],posters:g.posters,focus:g.focus};}
+
+// Neutral practice has its own state; it never awards points or role scores.
+export function newPracticeGame(character=0){return {x:2,y:4,face:'right',character,steps:0,moved:false,collected:false,complete:false};}
+export function practiceInstruction(g){
+ if(!g.moved)return {title:'Hold an arrow to move.',detail:'Try the arrow buttons below.',ready:false};
+ if(!g.collected)return {title:'Walk over the star.',detail:'Move onto it to pick it up.',ready:false};
+ const ready=Math.abs(g.x-7)+Math.abs(g.y-4)<=1;
+ return {title:ready?'Press READY.':'Stand beside your teammate.',detail:ready?'Use the round button below.':'Move next to the person on the right.',ready};
+}
+export function applyPracticeInput(g,input){
+ if(g.complete)return;
+ if(input.d){const dir={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[input.d];if(!dir)return;const x=g.x+dir[0],y=g.y+dir[1];g.face=input.d;
+  if(x>=1&&x<=7&&y>=1&&y<=5&&!(x===7&&y===4)){g.x=x;g.y=y;g.steps++;g.moved=true;}
+  if(g.moved&&g.x===5&&g.y===4)g.collected=true;
+ }
+ if(input.a&&g.collected&&practiceInstruction(g).ready)g.complete=true;
+}

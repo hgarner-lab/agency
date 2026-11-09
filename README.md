@@ -50,10 +50,11 @@ Keep these values in Vercel’s environment settings. Never add a real `.env` fi
 2. Create a five- or ten-minute room.
 3. Choose **Open big screen** and put that tab on the projector. Keep the host tab for controls.
 4. Players scan the QR code on their phones and choose a nickname and character.
-5. Start the game. The shared screen shows player spotlights, scores, completed jobs and posters.
-6. End the game to reveal the roles, or let the clock run out.
+5. Players finish a short, unscored practice on their phones: move, collect a star, stand beside a teammate and press Ready. The host sees who is practising and who is ready.
+6. Start the game when everyone is ready. If needed, the host can choose **Start anyway**. The shared screen shows player spotlights, scores, completed jobs and posters.
+7. End the game to reveal the roles, or let the clock run out.
 
-Each player gets their own map. The room cap is 50. Points and role classification are separate: the work and items a player chooses shape their role.
+Each player gets their own map. Complete at least two jobs to unlock a role; repeating a job is allowed. Practice does not affect points or roles. Late arrivals practise while the shared game clock continues. The room cap is 50. Points and role classification are separate: the work and items a player chooses shape their role.
 
 Use the production URL when testing student entry. Confirm that your Vercel deployment access settings allow your intended visitors.
 
@@ -81,7 +82,7 @@ npm run build
 npm test
 ```
 
-`npm test` also builds the frontend before running. The suite includes the game rules and solo controller, plus the Turso HTTP transport exercised against a local SQLite protocol emulator. The adapter and endpoint follow the current official Vercel/Turso contracts. This export has **not** been deployed to your Vercel or connected to your own Turso account. Browser/device QA and a simultaneous-phone load test are still needed before the event.
+`npm test` also builds the frontend before running. The suite includes the game rules and solo controller, plus the Turso HTTP transport exercised against a local SQLite protocol emulator. The adapter and endpoint follow the current official Vercel/Turso contracts. The source is configured for the linked Vercel project. Automated checks cover practice, readiness, two-thumb input, stable targets, scoring and the Turso adapter. Physical-phone QA and a simultaneous-phone load test are still needed before the event.
 
 ## Project files
 

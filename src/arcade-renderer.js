@@ -44,7 +44,11 @@ export function posterSVG(p){
 }
 export function createArcadeRenderer(canvas,fullMap=false){
  canvas.width=fullMap?MAP_W*TILE:288;canvas.height=fullMap?MAP_H*TILE:224;
+ function resize(){const bounds=canvas.parentElement?.getBoundingClientRect?.();if(!fullMap&&bounds?.width>0&&bounds.height>0)canvas.height=Math.max(80,Math.min(MAP_H*TILE,Math.round(288*bounds.height/bounds.width)));}
+ resize();
  const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;const map=document.createElement('canvas');map.width=MAP_W*TILE;map.height=MAP_H*TILE;const b=map.getContext('2d');b.imageSmoothingEnabled=false;
+ const observer=!fullMap&&canvas.parentElement&&typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>{resize();c.imageSmoothingEnabled=false;}):null;
+ observer?.observe(canvas.parentElement);
  for(let y=0;y<MAP_H;y++)for(let x=0;x<MAP_W;x++){
   const area=areaAt(x,y),colour=area>=0?['#c7c9a6','#c8bad0','#d0b99c','#afc4c1'][area]:'#b6bea7';
   b.fillStyle=colour;b.fillRect(x*TILE,y*TILE,TILE,TILE);b.fillStyle=area>=0?'#544c3e12':'#344f4215';b.fillRect(x*TILE,y*TILE,1,TILE);b.fillRect(x*TILE,y*TILE+15,TILE,1);
@@ -92,5 +96,18 @@ export function createArcadeRenderer(canvas,fullMap=false){
   if(!fullMap){const mx=canvas.width-59,my=7;c.fillStyle='#20353ee8';c.fillRect(mx-2,my-2,54,43);for(let i=0;i<4;i++){c.fillStyle=JOBS[i].colour;c.fillRect(mx+(i===1||i===3?29:2),my+(i>=2?23:2),18,13);}c.fillStyle='#eef3c9';c.fillRect(mx+game.x*1.42,my+game.y*1.42,3,3);c.fillStyle='#233941';c.fillRect(5,5,Math.max(72,(areaAt(game.x,game.y)>=0?JOBS[areaAt(game.x,game.y)].name.length*6+10:72)),13);pixelText(c,areaAt(game.x,game.y)>=0?JOBS[areaAt(game.x,game.y)].name:'MAIN HALL',10,8,'#eee7cc');}
   if(options.paused){c.fillStyle='#19343bb8';c.fillRect(0,0,canvas.width,canvas.height);pixelText(c,'PAUSED',canvas.width/2,canvas.height/2-8,'#f4e8c4',2,'center');}
  }
- return {draw,canvas};
+ return {draw,canvas,resize,destroy(){observer?.disconnect();}};
+}
+export function drawPractice(canvas,g,now){
+ if(canvas.width!==288||canvas.height!==192){canvas.width=288;canvas.height=192;}
+ const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
+ c.fillStyle='#203c3f';c.fillRect(0,0,288,192);
+ const px=x=>36+x*24,py=y=>12+y*24;
+ for(let y=0;y<7;y++)for(let x=0;x<9;x++){c.fillStyle=x===0||x===8||y===0||y===6?'#4b6760':(x+y)%2?'#c2c4a1':'#b8bfa0';c.fillRect(px(x),py(y),24,24);}
+ const tx=g.collected?6:5,ty=4;c.fillStyle='#f9edac';
+ if(g.moved){for(let x=Math.min(g.x,tx);x<=Math.max(g.x,tx);x++)c.fillRect(px(x)+11,py(g.y)+11,3,3);for(let y=Math.min(g.y,ty);y<=Math.max(g.y,ty);y++)c.fillRect(px(tx)+11,py(y)+11,3,3);}
+ if(!g.collected){const x=px(5)+8,y=py(4)+6;c.fillStyle='#203b3a';c.fillRect(x-3,y-3,16,19);c.fillStyle='#fff2a2';c.fillRect(x+3,y,4,13);c.fillRect(x-1,y+4,12,4);c.fillRect(x+1,y+2,8,8);}
+ drawPixelPerson(c,px(7)+3,py(4),3);pixelText(c,'TEAMMATE',px(7)+11,py(4)-11,'#203b3a',1,'center');
+ drawPixelPerson(c,px(g.x)+3,py(g.y),g.character,g.steps,g.face);pixelText(c,'YOU',px(g.x)+12,py(g.y)-9,'#203b3a',1,'center');
+ pixelText(c,'PRACTICE / NO POINTS',144,6,'#edf0d7',1,'center');
 }
