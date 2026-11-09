@@ -20,7 +20,7 @@ const loadJSON=key=>{try{return JSON.parse(sessionStorage.getItem(key)||'null')}
 try{creds=JSON.parse(localStorage.getItem((view==='host'?'wr-arc-host-':'wr-arc-player-')+roomCode)||'null')}catch{}
 if(view==='stage')creds=null;
 const clock=()=>Date.now()+clockOffset;
-const mccannMark=()=>`<span class="mccann-mark"><img src="${MCCANN_LOGO_URL}" alt="McCann" width="800" height="484" decoding="async"></span>`;
+const mccannMark=()=>`<span class="mccann-mark"><img src="${MCCANN_LOGO_URL}" alt="McCann" width="800" height="200" decoding="async"></span>`;
 const brand=()=>`<div class="brand-lockup"><a class="brand" href="/" aria-label="The Agency home"><span class="brand-icon">A</span><span class="brand-name">THE<br>AGENCY<span class="acid">.</span></span></a><div class="mccann-endorsement"><small>AN EXPERIENCE BY</small>${mccannMark()}</div></div>`;
 const prettyTime=n=>{n=Math.max(0,Math.ceil(n));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
 const toView=(v,code='')=>{location.href='/?view='+v+(code?'&room='+code:'')};

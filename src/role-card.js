@@ -1,7 +1,6 @@
-// The downloadable keepsake uses the supplied McCann artwork directly.
-// Its source has blank black space below the wordmark; the top 4:1 area is
-// drawn at the same ratio, preserving the original letter shapes.
-export const MCCANN_LOGO_URL='/assets/mccann-logo.png';
+// The SVG masks the supplied artwork's luminance into alpha, preserving its
+// original letter shapes and antialiased edges with a transparent background.
+export const MCCANN_LOGO_URL='/assets/mccann-wordmark.svg';
 export const ROLE_CARD_WIDTH=800,ROLE_CARD_HEIGHT=1100;
 
 function fitText(c,value,x,y,size,font,maxWidth=710,align='left'){
@@ -15,10 +14,9 @@ export function drawRoleCard(canvas,{role,profile,alias,characterIndex=0,charact
  canvas.width=ROLE_CARD_WIDTH;canvas.height=ROLE_CARD_HEIGHT;
  const c=canvas.getContext('2d');
  c.fillStyle=role.color;c.fillRect(0,0,800,1100);
- c.fillStyle='#000';c.fillRect(0,0,800,174);
  const logoWidth=brandImage.naturalWidth||brandImage.width,logoHeight=Math.min(brandImage.naturalHeight||brandImage.height,logoWidth/4);
  c.drawImage(brandImage,0,0,logoWidth,logoHeight,40,30,420,105);
- c.fillStyle='#fff';fitText(c,'THE',754,66,34,'WarDisplay',230,'right');fitText(c,'AGENCY.',754,105,48,'WarDisplay',230,'right');
+ c.fillStyle='#172c35';fitText(c,'THE',754,66,34,'WarDisplay',230,'right');fitText(c,'AGENCY.',754,105,48,'WarDisplay',230,'right');
  fitText(c,'YOUR AGENCY ROLE',44,154,15,'WarMono',500);fitText(c,String(year),754,154,15,'WarMono',100,'right');
 
  const imageWidth=characterImage.naturalWidth||characterImage.width,imageHeight=characterImage.naturalHeight||characterImage.height;

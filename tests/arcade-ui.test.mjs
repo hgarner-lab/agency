@@ -52,7 +52,7 @@ function ui(options={}){
 test('saving a role card loads the McCann artwork into the PNG and names the file for McCann',async()=>{
  const game=newArcadeGame(2);game.jobs[1]=2;game.affinity[1]=7;game.score=360;
  const drawn=[],downloads=[];
- class CardImage{constructor(){this.width=1536;this.height=1024;}async decode(){if(this.src===MCCANN_LOGO_URL){this.width=800;this.height=484;}}}
+ class CardImage{constructor(){this.width=1536;this.height=1024;}async decode(){if(this.src===MCCANN_LOGO_URL){this.width=800;this.height=200;}}}
  const c={fillRect(){},drawImage(image){drawn.push(image.src)},measureText(value){return {width:value.length*parseFloat(this.font)*.5}},fillText(){}};
  const h=ui({search:'?view=solo',session:{'wr-arcade-solo':{alias:'BrandedFox',character:2,phase:'finished',game}},Image:CardImage,canvasFactory:()=>({getContext:()=>c,toBlob(done,type){assert.equal(type,'image/png');done(new Blob(['mock-canvas'],{type}));}}),onDownload:a=>downloads.push({name:a.download,url:a.href})});
  assert.match(h.app.innerHTML,/arc-card-brand/);assert.match(h.app.innerHTML,/alt="McCann"/);

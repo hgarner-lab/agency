@@ -112,4 +112,4 @@ The 3D character sheets were generated for this project. In-game pixel art is co
 
 ## McCann branding
 
-The supplied white-on-black McCann wordmark is included unchanged as `assets/mccann-logo.png`. The app and role cards display its upper wordmark area at the original proportions. Downloaded cards include the McCann mark, game name, chosen character, role and score, and use a `McCann-The-Agency-` filename. `src/role-card.js` draws the PNG itself so the branding is embedded in the saved image.
+The supplied white-on-black McCann wordmark is included unchanged as `assets/mccann-logo.png`. A self-contained SVG uses the original image as a luminance mask to remove its background without redrawing the letters. It appears white on dark pages and black directly on the role-card colours. Downloaded cards include the McCann mark, game name, chosen character, role and score, and use a `McCann-The-Agency-` filename. `src/role-card.js` draws the PNG itself so the branding is embedded in the saved image.
