@@ -604,3 +604,72 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 @media(max-height:820px) and (min-width:900px){.arc-client-brief .arc-client-portrait img{max-height:320px}.arc-client-brief .arc-client-intro{padding-top:8px}.arc-client-brief .arc-client-voice{padding:10px 0}.arc-client-brief .arc-client-role{margin-bottom:12px;font-size:16px}.arc-client-brief .arc-client-voice blockquote{font-size:17px}.arc-client-brief .arc-client-explain{margin-top:12px;font-size:14px}.arc-client-brief .arc-brief-extra{margin:10px 0 8px}.arc-client-brief .arc-brief-extra>summary{font-size:15px}}
 @media(max-width:899px){.arc-client-brief .arc-brief-layout{grid-template-columns:1fr;gap:18px}.arc-client-brief .arc-client-intro{grid-template-columns:minmax(0,.8fr) minmax(0,1fr);padding:12px 18px 0 6px}.arc-client-brief .arc-client-portrait img{max-height:340px}.arc-client-brief .arc-client-voice blockquote{font-size:18px}.arc-client-brief .arc-client-voice h2{font-size:48px}.arc-brief-extra>div{grid-template-columns:1fr}.arc-client-brief .arc-intro-nav{flex-wrap:wrap}.arc-client-brief .arc-brief-doc dl>div{grid-template-columns:minmax(0,1fr) minmax(0,1.8fr)}}
 @media(max-width:480px){.arc-client-brief .arc-client-intro{gap:4px;padding-right:12px}.arc-client-brief .arc-client-tag{font-size:11px}.arc-client-brief .arc-client-voice .arc-client-role{font-size:14px;margin-bottom:12px}.arc-client-brief .arc-client-voice blockquote{font-size:16px}.arc-client-brief .arc-client-explain{font-size:12px}.arc-client-brief .arc-client-portrait img{max-height:300px}.arc-client-brief .arc-product{grid-template-columns:1fr}.arc-client-brief .arc-product-hero{max-width:240px;margin:auto;width:100%}}
+/* Brief slide cleanup: Jamie left, the wider brief card right, everything above the host bar. */
+.arc-client-brief .arc-brief-layout{grid-template-rows:auto;margin-bottom:0}
+.arc-client-brief .arc-brief-doc,.arc-client-brief .arc-client-intro{grid-column:auto;grid-row:auto}
+.arc-client-brief .arc-brief-doc{display:flex;flex-direction:column}
+.arc-client-brief .arc-brief-doc dl{flex:1;display:flex;flex-direction:column;justify-content:space-evenly}
+.arc-client-brief .arc-colourways{grid-template-columns:repeat(4,minmax(0,1fr))}
+.arc-client-brief .arc-colourways span{min-width:0}
+.arc-client-brief .arc-brief-extra{margin:10px 0 6px;padding-top:6px}
+@media(max-height:820px) and (min-width:900px){
+ .arc-client-brief h1 br{display:none}
+ .arc-client-brief .arc-client-portrait img{max-height:270px}
+ .arc-client-brief .arc-client-voice h2{font-size:42px;margin:8px 0 2px}
+ .arc-client-brief .arc-client-voice .arc-client-role{margin-bottom:8px;font-size:15px}
+ .arc-client-brief .arc-client-voice blockquote{font-size:17px}
+ .arc-client-brief .arc-client-voice .arc-client-explain{margin-top:10px;padding-top:8px}
+ .arc-client-brief .arc-product-hero{max-width:190px}
+ .arc-client-brief .arc-brief-doc dl>div{padding:3px 0}
+ .arc-client-brief .arc-brief-extra>summary{padding:2px 0}
+}
+@media(max-height:820px) and (min-width:900px){
+ .arc-client-brief .arc-colourways small{font-size:11px;letter-spacing:0}
+ .arc-client-brief .arc-brief-doc dl>div{grid-template-columns:minmax(170px,.8fr) minmax(0,1.7fr)}
+ .arc-client-brief .arc-brief-doc dt{font-size:12.5px;letter-spacing:.04em}
+}
+/* Moodboard behind Jamie: shows the audience she wants to reach. */
+.arc-client-brief .arc-client-intro{position:relative;overflow:hidden;background:linear-gradient(90deg,#132a2be6 0%,#132a2bb8 30%,#132a2bf5 55%,#132a2bfa 100%),url('/assets/collage.webp') center/cover no-repeat,#1c3434}
+.arc-client-brief .arc-client-portrait,.arc-client-brief .arc-client-voice{position:relative;z-index:1}
+.arc-moodboard-tag{position:absolute;left:10px;top:10px;z-index:2;background:#0e1d20e6;border:1px solid #5d7466;color:#d7e3cc;font-size:13px;padding:4px 8px}
+.arc-moodboard-tag b{font-family:WarMono,monospace;font-size:12px;letter-spacing:.1em;color:#c6ff40;margin-right:6px}
+.arc-brief-words{display:flex;flex-wrap:wrap;gap:6px 22px;margin:12px 0 10px;font-size:16px;color:#c9d6c2;border-top:1px solid #4a6457;padding-top:10px}
+.arc-brief-words b{color:#f2ecd3}
+@media(max-height:820px) and (min-width:900px){.arc-brief-words{font-size:14px;margin:8px 0 6px;padding-top:6px}}
+@media(min-width:1600px) and (min-height:950px){.arc-brief-words{font-size:19px}.arc-moodboard-tag{font-size:16px}}
+
+/* Decision tasks: one plain question at a time, instant feedback, big tap targets. */
+.arc-work-modal .arc-work-context{font-size:16px!important;margin:6px 0 10px!important}
+.arc-q-steps{list-style:none;display:flex;gap:6px;padding:0;margin:4px 0 14px}
+.arc-q-steps li{flex:1;height:30px;display:flex;align-items:center;justify-content:center;border:2px solid #3f4651;color:#8b93a0;font:700 13px WarMono,monospace}
+.arc-q-steps li.now{border-color:var(--c);color:var(--c)}
+.arc-q-steps li.done{background:var(--c);border-color:var(--c);color:#14160f}
+.arc-q small{font:700 12px WarMono,monospace;letter-spacing:.1em;color:#9aa3ae}
+.arc-q h3{font-size:22px;line-height:1.2;margin:4px 0 12px;color:#f4efe1}
+.arc-q-budget{font-size:15px;margin:-6px 0 10px;color:#79d8d8}
+.arc-q-options{display:grid;gap:10px}
+.arc-q-option{text-align:left;font-size:17px;line-height:1.35;color:#f2ecd3;background:#232832;border:2px solid #4a5160;padding:14px 16px;min-height:56px;border-radius:6px;cursor:pointer}
+.arc-q-option:active{transform:translateY(1px)}
+.arc-q-option.wrong{border-color:#ff7a5c;background:#3a2522;color:#ffc3b5;text-decoration:line-through;animation:arc-shake .3s}
+@keyframes arc-shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.arc-q-nudge{margin:12px 0 0;padding:10px 12px;border-left:4px solid #ff7a5c;background:#ff7a5c18;color:#ffd7cc;font-size:15px;line-height:1.4}
+.arc-q-good{margin:12px 0 0;padding:10px 12px;border-left:4px solid #c6ff40;background:#c6ff4014;color:#e6ffb0;font-size:15px;line-height:1.4}
+.arc-q-done .arc-q-good{font-size:18px;margin-top:0}
+.arc-q-sending{font-size:14px;color:#9aa3ae;margin:8px 0 0}
+.arc-work-research{font-size:15px}
+.arc-work-research summary{color:#c6ff40;cursor:pointer;padding:4px 0}
+
+/* Role stories: the crew member talking, not bullet lists. */
+.arc-role-voice{margin:6px 0 12px;padding:0 0 0 14px;border-left:4px solid var(--lesson-color);font-size:17px;line-height:1.45;color:#f2ecd3}
+.arc-role-voice cite{display:block;margin-top:6px;font:700 13px WarMono,monospace;letter-spacing:.12em;color:var(--lesson-color);font-style:normal}
+.arc-role-love{margin:0 0 10px;font-size:16px;line-height:1.4;color:#dfe7d6}
+.arc-role-love b{color:var(--lesson-color)}
+.arc-role-skills{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.arc-role-skills span{background:color-mix(in srgb,var(--lesson-color) 18%,transparent);color:var(--lesson-color);border:1px solid color-mix(in srgb,var(--lesson-color) 55%,transparent);padding:3px 9px;font-size:14px;border-radius:999px}
+.arc-role-start{margin:0;font-size:15px;color:#c9d6c2}
+.arc-role-start b{color:#f2ecd3}
+.arc-deeper header small{display:block;font-family:inherit;letter-spacing:0;font-size:15px;line-height:1.3;color:#cfd9c7;margin-top:4px}
+.arcade-stage .arc-deeper .arc-role-voice{font-size:19px}
+.arcade-stage .arc-deeper .arc-role-love{font-size:17px}
+@media(max-height:820px){.arcade-stage .arc-deeper .arc-role-voice{font-size:15.5px;margin-bottom:8px}.arcade-stage .arc-deeper .arc-role-love{font-size:15px;margin-bottom:7px}.arcade-stage .arc-deeper header small{font-size:14px}}
+@media(min-width:1600px) and (min-height:950px){.arcade-stage .arc-deeper .arc-role-voice{font-size:24px}.arcade-stage .arc-deeper .arc-role-love{font-size:21px}.arcade-stage .arc-role-skills span{font-size:17px}.arcade-stage .arc-role-start{font-size:19px}}

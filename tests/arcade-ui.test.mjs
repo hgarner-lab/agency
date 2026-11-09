@@ -14,6 +14,7 @@ import {qr} from '../src/qr.js';
 import {drawRoleCard,MCCANN_LOGO_URL} from '../src/role-card.js';
 import {ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,canWalk} from '../src/arcade-world.js';
 import {posterSVG,trainerSVG,COLOURWAYS} from '../src/arcade-renderer.js';
+import {TASK_COPY,nudge} from '../src/task-copy.js';
 function ui(options={}){
  const ids=new Map(),listeners=new Map();let time=1800000000000;
  class Element{
@@ -30,7 +31,7 @@ function ui(options={}){
  const app=new Element('app'),toast=new Element('toast');ids.set('app',app);ids.set('toast',toast);
  const store=()=>({data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,v)}});
  const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,Image:options.Image,
-  ...world,...agencyTasks,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,trainerSVG,COLOURWAYS,drawRoleCard,MCCANN_LOGO_URL,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),createRoomRenderer:()=>({draw(){}}),
+  ...world,...agencyTasks,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,trainerSVG,COLOURWAYS,TASK_COPY,nudge,drawRoleCard,MCCANN_LOGO_URL,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),createRoomRenderer:()=>({draw(){}}),
   location:{origin:'https://game.test',search:options.search||'',href:'https://game.test/'},history:{pushState(){}},sessionStorage:store(),localStorage:store(),navigator:{},
   setTimeout(){return 0},setInterval(){return 0},clearInterval(){},requestAnimationFrame(){},
   FormData:class{constructor(form){this.fields=form.fields}get(k){return this.fields[k]}},
@@ -153,14 +154,14 @@ test('the shared closing screen teaches all four roles and keeps the final score
  assert.match(h.ids.get('arc-leaderboard-wrap').innerHTML,/FINAL LEADERBOARD/);assert.doesNotMatch(h.app.innerHTML,/id="arc-stage-canvas"/);
  await h.click('retry');await h.settle();assert.equal(h.context.arcTest.read().sceneKey,'room-result');
  for(const name of ['REM','NOVA','SOL','PATCH'])assert.match(h.app.innerHTML,new RegExp('arc-crew-name">'+name));
- assert.equal((h.app.innerHTML.match(/class="arc-deeper"/g)||[]).length,4);assert.match(h.app.innerHTML,/JOB TITLES TO SEARCH/);assert.match(h.app.innerHTML,/Ways in:/);
+ assert.equal((h.app.innerHTML.match(/class="arc-deeper"/g)||[]).length,4);assert.match(h.app.innerHTML,/Start as:/);assert.doesNotMatch(h.app.innerHTML,/A NORMAL DAY/);assert.match(h.app.innerHTML,/Ways in:/);
  assert.match(h.app.innerHTML,/data-slide="campaign"/);assert.match(h.app.innerHTML,/YOUR CAMPAIGN/);
 });
 test('players learn more about each job on their phone, with the crew member who does it',async()=>{
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'Turbo Llama'});await h.start();
  h.walkTo(22,3);h.walkTo(22,8);h.walkTo(26,4,true);h.use();await h.click('pause-menu');await h.click('finish-self');
  assert.match(h.app.innerHTML,/GOOD START/);assert.match(h.app.innerHTML,/You worked in <b[^>]*>Creative/);assert.match(h.app.innerHTML,/YOUR JOB IN THE GAME/);
- assert.match(h.app.innerHTML,/WITH NOVA/);assert.match(h.app.innerHTML,/A NORMAL DAY/);assert.match(h.app.innerHTML,/YOU’D BE INTO IT IF/);assert.match(h.app.innerHTML,/Copywriter/);
+ assert.match(h.app.innerHTML,/WITH NOVA/);assert.match(h.app.innerHTML,/arc-role-voice/);assert.match(h.app.innerHTML,/You’d love it if/);assert.match(h.app.innerHTML,/Junior copywriter/);
 });
 test('the host can skip straight to the job roles slides without a game',async()=>{
  const h=ui({search:'?view=roles'});
@@ -184,26 +185,25 @@ test('the host sees the brief first, then the QR lobby, and can get back to the 
 
 test('the phone builds a plan one part at a time and submits the actual chosen tiles',async()=>{
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'PlanBuilder'});await h.start();h.walkTo(6,20,true);h.context.arcTest.step({a:1});
- assert.equal(h.context.arcTest.read().modalType,'work');assert.match(h.context.arcTest.workMarkup(),/BUILD PART 1 OF 3/);assert.match(h.context.arcTest.workMarkup(),/arc-work-time/);
+ assert.equal(h.context.arcTest.read().modalType,'work');assert.match(h.context.arcTest.workMarkup(),/QUESTION 1 OF 3/);assert.match(h.context.arcTest.workMarkup(),/What can the team deliver today\?/);assert.match(h.context.arcTest.workMarkup(),/arc-work-time/);
  const before=h.context.arcTest.read().game.score;
- await h.click('work-pick','1','0');await h.click('work-pick','0','1');await h.click('work-pick','0','2');
- assert.match(h.context.arcTest.workMarkup(),/USE THIS PLAN/);await h.click('work-submit');
- assert.equal(h.context.arcTest.read().game.score,before);assert.match(h.context.arcTest.workMarkup(),/One editor cannot/);
- await h.click('work-edit','0');assert.match(h.context.arcTest.workMarkup(),/BUILD PART 1/);await h.click('work-pick','0','0');await h.click('work-submit');
+ await h.click('work-pick','1','0');assert.match(h.context.arcTest.workMarkup(),/Not quite\. One editor cannot/);assert.match(h.context.arcTest.workMarkup(),/QUESTION 1 OF 3/);assert.equal(h.context.arcTest.read().game.score,before);
+ await h.click('work-pick','0','0');assert.match(h.context.arcTest.workMarkup(),/QUESTION 2 OF 3/);assert.match(h.context.arcTest.workMarkup(),/Realistic/);
+ await h.click('work-pick','0','1');await h.click('work-pick','0','2');assert.match(h.context.arcTest.workMarkup(),/SEND IT/);await h.click('work-submit');
  const state=h.context.arcTest.read();assert.equal(state.modalType,null);assert.equal(state.game.delivery.to,1);assert.equal(state.game.jobs[2],0);h.walkTo(26,4,true);h.context.arcTest.step({a:1});assert.equal(h.context.arcTest.read().game.jobs[2],1);
 });
 test('work can be abandoned safely, and no plan can be submitted after the clock expires',async()=>{
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'ClockBuilder'});await h.start();h.walkTo(6,20,true);h.context.arcTest.step({a:1});
  await h.click('close-modal');assert.equal(h.context.arcTest.read().game.work,null);assert.equal(h.context.arcTest.read().modalType,null);
- h.context.arcTest.step({a:1});for(let i=0;i<3;i++)await h.click('work-pick','0',String(i));h.advance(300000);await h.click('work-submit');assert.equal(h.context.arcTest.read().game.delivery,null);assert.equal(h.context.arcTest.read().game.score,0);
+ h.context.arcTest.step({a:1});await h.click('work-pick','0','0');await h.click('work-pick','0','1');await h.click('work-pick','0','2');h.advance(300000);await h.click('work-submit');assert.equal(h.context.arcTest.read().game.delivery,null);assert.equal(h.context.arcTest.read().game.score,0);
 });
 test('live work survives polling and host pause, then completes after resuming',async()=>{
  const game=newArcadeGame();game.x=6;game.y=19;game.practiceReady=true;
  const player={id:'work-player',token:'token',alias:'LiveBuilder',character:0};
  let state={code:'ROOM28',phase:'active',serverNow:1800000000000,deadline:1800000300000,game,seq:0,count:1,ready:true,readyCount:1,players:[],finished:false};
- const h=ui({search:'?view=player&room=ROOM28',storage:{'wr-arc-player-ROOM28':player},fetchImpl:async()=>Response.json(state)});await h.settle();h.context.arcTest.step({a:1});for(let i=0;i<3;i++)await h.click('work-pick','0',String(i));
+ const h=ui({search:'?view=player&room=ROOM28',storage:{'wr-arc-player-ROOM28':player},fetchImpl:async()=>Response.json(state)});await h.settle();h.context.arcTest.step({a:1});await h.click('work-pick','0','0');await h.click('work-pick','0','1');await h.click('work-pick','0','2');
  state={...state,game:structuredClone(h.context.arcTest.read().game),seq:h.context.arcTest.read().game.seq,phase:'paused',remaining:280000};await h.click('retry');await h.settle();assert.equal(h.context.arcTest.read().modalType,'work');assert.match(h.ids.get('arc-work-status').textContent,/PAUSED/);await h.click('work-submit');assert.equal(h.context.arcTest.read().game.delivery,null);
- state={...state,phase:'active'};await h.click('retry');await h.settle();assert.match(h.context.arcTest.workMarkup(),/USE THIS PLAN/);await h.click('work-submit');assert.equal(h.context.arcTest.read().game.delivery.to,1);
+ state={...state,phase:'active'};await h.click('retry');await h.settle();assert.match(h.context.arcTest.workMarkup(),/SEND IT/);await h.click('work-submit');assert.equal(h.context.arcTest.read().game.delivery.to,1);
 });
 
 test('the shared campaign wall opens the actual plan a player built',async()=>{
@@ -218,5 +218,5 @@ test('the client brief preview works without a room or database and keeps the fu
  assert.equal(h.context.arcTest.read().sceneKey,'brief-preview');assert.equal(requests,0);
  assert.match(h.app.innerHTML,/MEET YOUR CLIENT/);assert.match(h.app.innerHTML,/Jamie, founder of UNDERGROUND/);assert.match(h.app.innerHTML,/Help us give students a reason to try them/);
  assert.match(h.app.innerHTML,/WHO WE’RE TALKING TO/);assert.match(h.app.innerHTML,/WHAT’S IN THE WAY/);assert.match(h.app.innerHTML,/A WIN LOOKS LIKE/);assert.match(h.app.innerHTML,/Saturday’s pop-up/);assert.match(h.app.innerHTML,/5 minutes/);
- assert.match(h.app.innerHTML,/<details class="arc-brief-extra">/);assert.match(h.app.innerHTML,/collage.webp/);assert.match(h.app.innerHTML,/href="\/\?view=host"/);assert.doesNotMatch(h.app.innerHTML,/data-action="intro"/);
+ assert.match(h.app.innerHTML,/arc-moodboard-tag/);assert.match(h.app.innerHTML,/<b>Colourway<\/b>/);assert.match(h.app.innerHTML,/href="\/\?view=host"/);assert.doesNotMatch(h.app.innerHTML,/data-action="intro"/);
 });
