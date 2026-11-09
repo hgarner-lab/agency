@@ -273,3 +273,15 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 .arc-feed-row strong{font-family:WarMono,monospace;font-size:15px;color:#f2ecd3;font-weight:400}
 .arc-feed-empty{font-size:15px;color:#8fac91}
 .arc-live .arc-rank-row small{display:none}
+/* Phone game: instruction card without the label, more room for the map. */
+.arcade-playing .arc-task{align-content:center;row-gap:2px}
+.arcade-playing .arc-task p{margin:0}
+@media(max-width:720px){
+ .arcade-playing .arc-player-shell{grid-template-rows:40px 70px minmax(0,1fr) 30px 146px 38px}
+ .arcade-playing .arc-controls{height:146px;align-items:center}
+}
+@media(max-height:700px) and (max-width:720px){
+ .arcade-playing .arc-player-shell{grid-template-rows:34px 62px minmax(0,1fr) 26px 140px 32px}
+ .arcade-playing .arc-controls{height:140px}
+}
+.arcade-home .hero-desc{font-size:19px;line-height:1.5;max-width:440px;color:#cfd6c4}
