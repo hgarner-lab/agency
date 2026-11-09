@@ -1,6 +1,7 @@
 import {taskById} from './agency-tasks.js';
 import {cast} from './story.js';
 import {roles,roleLessons,waysIn} from './content.js';
+import {TASK_COPY,nudge} from './task-copy.js';
 import {character,selector} from './scenes.js';
 import {isClean,isGameName,makeNickname} from './filter.js';
 import {qr} from './qr.js';
@@ -29,7 +30,7 @@ const playerLink=()=>location.origin+'/?view=player&room='+roomCode;
 function toast(text){const el=q('#toast');el.textContent=text;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3200)}
 // The message moves to whichever half of the map your next target is not in.
 function note(text,ms=2500){const n=q('#game-message');if(n){const target=game&&nextInstruction(game,clock()).target;n.textContent=text;n.classList.add('visible');toastUntil=Date.now()+ms}}
-function playNote(type){if(!sound)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume();const frequencies=type==='job'?[392,523,659]:type==='pickup'?[740,988]:[440];frequencies.forEach((f,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.07;o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.0001,t+.10);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.11)})}catch{}}
+function playNote(type){if(!sound)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume();const frequencies=type==='job'?[392,523,659]:type==='pickup'?[740,988]:type==='miss'?[220,196]:[440];frequencies.forEach((f,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.07;o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.0001,t+.10);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.11)})}catch{}}
 function header(){return `<div class="shell"><header class="nav arc-nav">${brand()}<div class="arc-nav-right"><span class="arc-mode mono">${view==='solo'?'':view==='host'||view==='stage'||view==='roles'||view==='brief'?'':roomCode?'ROOM '+safe(roomCode):'THE PIXEL GAME'}</span>${['solo','player'].includes(view)?`<button class="sound-toggle mono" data-action="sound" aria-pressed="${sound}">${sound?'SOUND ON':'SOUND OFF'}</button>`:''}${view==='player'?`<span class="arc-connection mono${connected?'':' offline'}" id="arc-connection">${connected?'CONNECTED':'CONNECTING…'}</span>`:''}</div></header></div>`}
 function itemIcon(kind,label){return `<canvas class="arc-item-icon" width="24" height="24" data-game-icon="${safe(kind)}" role="img" aria-label="${safe(label)}"></canvas>`;}
 function paintIcons(){document.querySelectorAll('[data-game-icon]').forEach(el=>drawGameIcon(el,el.dataset.gameIcon));}
@@ -57,14 +58,32 @@ function closeModal(){const was=modalType;q('#arc-modal')?.remove();modalType=nu
 function dismissModal(){if(modalType==='work'){if(phaseNow()==='active')processInput({c:1});else toast('Wait for the host to resume.');}else closeModal();}
 function workMarkup(){
  const w=game?.work,task=taskById(w?.id);if(!task)return '';
- const key=w.id+':'+w.run;if(workDraft?.key!==key)workDraft={key,picks:task.slots.map(()=>null),edit:null};
- const picks=workDraft.picks,missing=picks.findIndex(v=>v===null),at=workDraft.edit??missing;
- const total=picks.reduce((n,v,i)=>n+(task.slots[i].options[v]?.cost||0),0);
- const summary=task.slots.map((slot,i)=>picks[i]===null?'':`<li><small>${safe(slot.label)}</small><span>${safe(slot.options[picks[i]].text)}</span><button data-action="work-edit" data-value="${i}" aria-label="Change ${safe(slot.label)}">Change</button></li>`).join('');
- let tiles='';if(at>=0){const slot=task.slots[at];const order=slot.options.map((v,i)=>i);if((task.id.length+at+w.run)%2)order.reverse();tiles=`<div class="arc-work-choice"><small>BUILD PART ${at+1} OF ${task.slots.length}</small><h3>${safe(slot.label)}</h3><p>Tap a tile to add it to your work.</p><div>${order.map(i=>`<button data-action="work-pick" data-slot="${at}" data-value="${i}">${safe(slot.options[i].text)}<span aria-hidden="true">+</span></button>`).join('')}</div></div>`;}
- return `<div class="arc-work-header" style="--c:${JOBS[w.type].colour}"><span>${safe(JOBS[w.type].role.toUpperCase())} / ${safe(JOBS[w.type].person)}</span><b id="arc-work-time">${prettyTime(secondsLeft())}</b></div><h2 id="arc-modal-title">${safe(task.title)}</h2><p class="arc-work-context">${safe(task.context)}</p>${task.sources?`<details class="arc-work-research"><summary>Read your research · 3 notes</summary>${task.sources.map(v=>`<p>${safe(v)}</p>`).join('')}</details>`:''}<div id="arc-work-status" role="status"></div>${task.budget?`<div class="arc-work-budget${total>task.budget?' over':''}">YOUR BUDGET <b>£${total} / £${task.budget}</b></div>`:''}<div class="arc-work-built"><b>${safe(task.output)}</b>${summary?`<ol>${summary}</ol>`:'<p>Your chosen tiles will appear here.</p>'}</div>${tiles}<p class="arc-work-feedback" role="alert">${safe(w.feedback||'')}</p>${missing<0&&at<0?'<button class="btn full" data-action="work-submit">USE THIS PLAN →</button>':''}<button class="text-button arc-work-back" data-action="close-modal">Back to map · keep your items</button>`;
+ const key=w.id+':'+w.run;if(workDraft?.key!==key)workDraft={key,picks:task.slots.map(()=>null),wrong:null,flash:null};
+ const copy=TASK_COPY[task.id]||{},picks=workDraft.picks,at=picks.findIndex(v=>v===null),n=task.slots.length;
+ const total=picks.reduce((t,v,i)=>t+(v===null?0:task.slots[i].options[v]?.cost||0),0),colour=JOBS[w.type].colour;
+ const steps=task.slots.map((sl,i)=>`<li class="${picks[i]!==null?'done':i===at?'now':''}"><span>${picks[i]!==null?'✓':i+1}</span></li>`).join('');
+ let body='';
+ if(at>=0){
+  const slot=task.slots[at],order=slot.options.map((v,i)=>i);if((task.id.length+at+w.run)%2)order.reverse();
+  const left=task.budget?task.budget-total:null;
+  body=`<div class="arc-q"><small>QUESTION ${at+1} OF ${n}</small><h3>${safe(copy.ask?.[at]||slot.label)}</h3>${task.budget?`<p class="arc-q-budget">Left to spend: <b>£${left}</b></p>`:''}<div class="arc-q-options">${order.map(i=>{const o=slot.options[i],bad=workDraft.wrong?.slot===at&&workDraft.wrong.option===i;return `<button class="arc-q-option${bad?' wrong':''}" data-action="work-pick" data-slot="${at}" data-value="${i}"${bad?' disabled':''}>${safe(o.text)}</button>`}).join('')}</div>${workDraft.wrong?.slot===at?`<p class="arc-q-nudge" role="alert">${safe(workDraft.wrong.message)}</p>`:workDraft.flash?`<p class="arc-q-good" role="status">✓ ${safe(workDraft.flash)}</p>`:''}</div>`;
+ }else body=`<div class="arc-q arc-q-done"><p class="arc-q-good" role="status">✓ ${safe(workDraft.flash||'Plan done.')}</p><p class="arc-q-sending">Sending your work to the big screen…</p><button class="btn full" data-action="work-submit">SEND IT →</button></div>`;
+ return `<div class="arc-work-header" style="--c:${colour}"><span>${safe(JOBS[w.type].role.toUpperCase())} · ${safe(JOBS[w.type].person)}</span><b id="arc-work-time">${prettyTime(secondsLeft())}</b></div><h2 id="arc-modal-title">${safe(task.title)}</h2><p class="arc-work-context">${safe(copy.scene||task.context)}</p>${task.sources?`<details class="arc-work-research"><summary>Your research (3 notes)</summary>${task.sources.map(v=>`<p>${safe(v)}</p>`).join('')}</details>`:''}<div id="arc-work-status" role="status"></div><ol class="arc-q-steps" style="--c:${colour}" aria-label="Progress">${steps}</ol>${body}<p class="arc-work-feedback" role="alert">${safe(w.feedback||'')}</p><button class="text-button arc-work-back" data-action="close-modal">Back to map · keep your items</button>`;
 }
-function refreshWork(){const modal=q('#arc-modal .arc-work-modal');if(!modal)return;modal.innerHTML='<button class="close-modal" data-action="close-modal" aria-label="Back to map">×</button>'+workMarkup();modal.querySelector('[data-action="work-pick"], [data-action="work-submit"]')?.focus();}
+// One tap per question. Wrong picks get a nudge and can be retried at once; the
+// last good pick sends the plan, which the game (and server) still checks.
+function pickWork(slotIndex,option){
+ const w=game?.work,task=taskById(w?.id);if(!task||workDraft.picks[slotIndex]!==null)return;
+ const o=task.slots[slotIndex].options[option],copy=TASK_COPY[task.id]||{};
+ const spent=workDraft.picks.reduce((t,v,i)=>t+(v===null?0:task.slots[i].options[v]?.cost||0),0);
+ if(o.why){workDraft.wrong={slot:slotIndex,option,message:nudge(o.why)};workDraft.flash=null;playNote('miss');refreshWork();return;}
+ if(task.budget&&spent+(o.cost||0)>task.budget-minRemaining(task,slotIndex)){workDraft.wrong={slot:slotIndex,option,message:`Not quite. That leaves too little for the rest. You have £${task.budget-spent} left. Try again.`};workDraft.flash=null;refreshWork();return;}
+ workDraft.picks[slotIndex]=option;workDraft.wrong=null;workDraft.flash=copy.good?.[slotIndex]||'Good choice.';game.work.feedback=null;playNote('pickup');refreshWork();
+ if(workDraft.picks.every(v=>v!==null))setTimeout(submitWork,700);
+}
+function submitWork(){if(game?.work&&workDraft?.picks.every(v=>v!==null))processInput({b:{task:game.work.id,run:game.work.run,picks:[...workDraft.picks]}});}
+function minRemaining(task,from){let n=0;for(let i=from+1;i<task.slots.length;i++)n+=Math.min(...task.slots[i].options.filter(o=>!o.why).map(o=>o.cost||0));return n;}
+function refreshWork(){const modal=q('#arc-modal .arc-work-modal');if(!modal)return;modal.innerHTML='<button class="close-modal" data-action="close-modal" aria-label="Back to map">×</button>'+workMarkup();modal.querySelector('.arc-q-option:not([disabled])')?.focus();}
 function setNickname(name){nickname=name;const d=q('#arc-name-display'),i=q('#arc-alias');if(d)d.textContent=name;if(i)i.value=name;}
 function showError(message){const el=q('#arc-error');if(el)el.textContent=message;else toast(message)}
 async function api(path,body){
@@ -290,9 +309,9 @@ document.addEventListener('click',async e=>{
  if(action==='shuffle-name'){setNickname(makeNickname());q('#arc-error')&&(q('#arc-error').textContent='');}
  if(action==='resume-solo'){solo=loadJSON(gameStore);if(!solo)return;game=solo.game;selected=solo.character;view='solo';clockOffset=0;history.pushState(null,'','/?view=solo');if(solo.phase==='paused'){solo.phase='active';solo.deadline=Date.now()+solo.remaining;renderPlay();}else if(solo.phase==='active'&&solo.deadline>Date.now())renderPlay();else{solo.phase='finished';renderResult(arcadeProfile(game))}}
  if(action==='view-work'){viewedWork=pieceOf(live.events[Number(button.dataset.value)]);openModal('artifact');}
- if(action==='work-pick'&&game?.work){workDraft.picks[Number(button.dataset.slot)]=Number(button.dataset.value);workDraft.edit=null;game.work.feedback=null;refreshWork();}
+ if(action==='work-pick'&&game?.work)pickWork(Number(button.dataset.slot),Number(button.dataset.value));
  if(action==='work-edit'&&game?.work){workDraft.edit=Number(button.dataset.value);refreshWork();}
- if(action==='work-submit'&&game?.work)processInput({b:{task:game.work.id,run:game.work.run,picks:[...workDraft.picks]}});
+ if(action==='work-submit')submitWork();
  if(action==='use')actionQueued=true;if(action==='map')openModal('map');
  if(action==='pause-menu'){if(solo?.phase==='active'){solo.remaining=Math.max(0,solo.deadline-Date.now());solo.phase='paused';saveSolo();}openModal('pause');}
  if(action==='slide'){const v=button.dataset.value;setSlide(v==='next'?finaleSlide+1:v==='prev'?finaleSlide-1:Number(v));}

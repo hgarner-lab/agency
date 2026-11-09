@@ -637,3 +637,24 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 .arc-brief-words b{color:#f2ecd3}
 @media(max-height:820px) and (min-width:900px){.arc-brief-words{font-size:14px;margin:8px 0 6px;padding-top:6px}}
 @media(min-width:1600px) and (min-height:950px){.arc-brief-words{font-size:19px}.arc-moodboard-tag{font-size:16px}}
+
+/* Decision tasks: one plain question at a time, instant feedback, big tap targets. */
+.arc-work-modal .arc-work-context{font-size:16px!important;margin:6px 0 10px!important}
+.arc-q-steps{list-style:none;display:flex;gap:6px;padding:0;margin:4px 0 14px}
+.arc-q-steps li{flex:1;height:30px;display:flex;align-items:center;justify-content:center;border:2px solid #3f4651;color:#8b93a0;font:700 13px WarMono,monospace}
+.arc-q-steps li.now{border-color:var(--c);color:var(--c)}
+.arc-q-steps li.done{background:var(--c);border-color:var(--c);color:#14160f}
+.arc-q small{font:700 12px WarMono,monospace;letter-spacing:.1em;color:#9aa3ae}
+.arc-q h3{font-size:22px;line-height:1.2;margin:4px 0 12px;color:#f4efe1}
+.arc-q-budget{font-size:15px;margin:-6px 0 10px;color:#79d8d8}
+.arc-q-options{display:grid;gap:10px}
+.arc-q-option{text-align:left;font-size:17px;line-height:1.35;color:#f2ecd3;background:#232832;border:2px solid #4a5160;padding:14px 16px;min-height:56px;border-radius:6px;cursor:pointer}
+.arc-q-option:active{transform:translateY(1px)}
+.arc-q-option.wrong{border-color:#ff7a5c;background:#3a2522;color:#ffc3b5;text-decoration:line-through;animation:arc-shake .3s}
+@keyframes arc-shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.arc-q-nudge{margin:12px 0 0;padding:10px 12px;border-left:4px solid #ff7a5c;background:#ff7a5c18;color:#ffd7cc;font-size:15px;line-height:1.4}
+.arc-q-good{margin:12px 0 0;padding:10px 12px;border-left:4px solid #c6ff40;background:#c6ff4014;color:#e6ffb0;font-size:15px;line-height:1.4}
+.arc-q-done .arc-q-good{font-size:18px;margin-top:0}
+.arc-q-sending{font-size:14px;color:#9aa3ae;margin:8px 0 0}
+.arc-work-research{font-size:15px}
+.arc-work-research summary{color:#c6ff40;cursor:pointer;padding:4px 0}
