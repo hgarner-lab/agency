@@ -5,7 +5,7 @@
 export const TASK_COPY={
  'strategy-insight':{
   scene:'Jamie’s trainers cost £160. Your research shows what’s stopping people buying their first pair.',
-  ask:['What’s actually stopping people?','What do they need to feel?','So what should the campaign do?'],
+  ask:['What’s actually stopping people?','What do they need to feel before buying?','So what should the campaign do?'],
   good:['That’s it. It’s a trust problem.','Yes. They need proof it’s worth it.','Nailed it. Show the quality.']},
  'strategy-brief':{
   scene:'Creative need a brief before they can start. Tell them who it’s for, what the problem is and what should change.',
@@ -24,7 +24,7 @@ export const TASK_COPY={
   ask:['What should the ad actually say?','What detail do people need?','Pick a clearer headline.'],
   good:['Clear. Now people know what it is.','Useful. They know when and where.','Better. Clear and short.']},
  'creative-experience':{
-  scene:'Plan something fun at the pop-up that lets people show their own style.',
+  scene:'Plan something fun at Saturday’s pop-up that lets people show their own style.',
   ask:['What’s the activity?','Why would people bother?','How do you make it better?'],
   good:['Fun, and on brief.','Yes. Start with what’s in it for them.','Good. Easier to join means more people.']},
  'account-scope':{

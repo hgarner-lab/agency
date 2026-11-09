@@ -28,10 +28,10 @@ export const rounds = [
     ]}
 ];
 export const roles = [
- {key:'strategy',name:'THE MASTERMIND',job:'STRATEGY',symbol:'◎',color:'#c6ff40',line:'YOU FIND OUT WHAT PEOPLE NEED.',description:'Your choices focused on understanding people and deciding what matters. In an agency, strategists research customers and help the team choose a clear direction for the campaign.',skill:'Understanding people',partner:'The Instigator'},
- {key:'creative',name:'THE INSTIGATOR',job:'CREATIVE',symbol:'✳',color:'#b7a1ff',line:'YOU CREATE IDEAS PEOPLE NOTICE.',description:'Your choices focused on ideas that get people’s attention. In an agency, creatives turn the plan into words, designs, films and experiences that people remember.',skill:'Coming up with ideas',partner:'The Fixer'},
- {key:'account',name:'THE CONNECTOR',job:'ACCOUNT MANAGEMENT',symbol:'↗',color:'#ff8d69',line:'YOU BRING PEOPLE TOGETHER.',description:'Your choices focused on the client, the budget and getting people to agree. In an agency, account managers work with the client and the team to keep a campaign on track.',skill:'Working with people',partner:'The Mastermind'},
- {key:'production',name:'THE FIXER',job:'PRODUCTION',symbol:'⊞',color:'#68dce9',line:'YOU GET IDEAS MADE.',description:'Your choices focused on solving practical problems and getting things done. In an agency, producers organise the people, time, equipment and places needed to make a campaign happen.',skill:'Solving practical problems',partner:'The Connector'}
+ {key:'strategy',name:'THE MASTERMIND',job:'STRATEGY',symbol:'◎',color:'#c6ff40',line:'YOU FIND OUT WHAT PEOPLE NEED.',description:'You went for the thinking jobs: working out what people want and what really matters. In an agency, that’s strategy.',skill:'Understanding people',partner:'The Instigator'},
+ {key:'creative',name:'THE INSTIGATOR',job:'CREATIVE',symbol:'✳',color:'#b7a1ff',line:'YOU CREATE IDEAS PEOPLE NOTICE.',description:'You went for the ideas: the ads, the words and the stuff people notice. In an agency, that’s creative.',skill:'Coming up with ideas',partner:'The Fixer'},
+ {key:'account',name:'THE CONNECTOR',job:'ACCOUNT MANAGEMENT',symbol:'↗',color:'#ff8d69',line:'YOU BRING PEOPLE TOGETHER.',description:'You went for the people jobs: sorting deals with the client and keeping everyone on track. In an agency, that’s account management.',skill:'Working with people',partner:'The Mastermind'},
+ {key:'production',name:'THE FIXER',job:'PRODUCTION',symbol:'⊞',color:'#68dce9',line:'YOU GET IDEAS MADE.',description:'You went for the practical jobs: budgets, plans and fixing problems. In an agency, that’s production.',skill:'Solving practical problems',partner:'The Connector'}
 ];
 
 // How people get into agency jobs, shown under the deeper role slide.

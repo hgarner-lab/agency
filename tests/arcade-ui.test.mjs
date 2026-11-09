@@ -150,7 +150,7 @@ test('late arrivals finish neutral practice while the shared clock keeps running
 });
 test('players without a role card can still explore all four real agency jobs',async()=>{
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'RoleExplorer'});await h.start();await h.click('pause-menu');await h.click('finish-self');
- assert.match(h.app.innerHTML,/GOOD START/);assert.match(h.app.innerHTML,/Explore the roles/);
+ assert.match(h.app.innerHTML,/TIME’S UP/);assert.match(h.app.innerHTML,/didn’t finish a job/);assert.match(h.app.innerHTML,/Explore the roles/);
  assert.equal((h.app.innerHTML.match(/class="arc-role-lesson"/g)||[]).length,4);
  assert.doesNotMatch(h.app.innerHTML,/YOUR GAME ROLE/);assert.doesNotMatch(h.app.innerHTML,/SAVE ROLE CARD/);
 });
@@ -197,7 +197,7 @@ test('the phone builds a plan one part at a time and submits the actual chosen t
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'PlanBuilder'});await h.start();h.walkTo(6,20,true);h.context.arcTest.step({a:1});
  assert.equal(h.context.arcTest.read().modalType,'work');assert.match(h.context.arcTest.workMarkup(),/QUESTION 1 OF 3/);assert.match(h.context.arcTest.workMarkup(),/What can the team deliver today\?/);assert.match(h.context.arcTest.workMarkup(),/arc-work-time/);
  const before=h.context.arcTest.read().game.score;
- await h.click('work-pick','1','0');assert.match(h.context.arcTest.workMarkup(),/Not quite\. One editor cannot/);assert.match(h.context.arcTest.workMarkup(),/QUESTION 1 OF 3/);assert.equal(h.context.arcTest.read().game.score,before);
+ await h.click('work-pick','1','0');assert.match(h.context.arcTest.workMarkup(),/Not quite\. One editor can’t make six films/);assert.match(h.context.arcTest.workMarkup(),/QUESTION 1 OF 3/);assert.equal(h.context.arcTest.read().game.score,before);
  await h.click('work-pick','0','0');assert.match(h.context.arcTest.workMarkup(),/QUESTION 2 OF 3/);assert.match(h.context.arcTest.workMarkup(),/Realistic/);
  await h.click('work-pick','0','1');await h.click('work-pick','0','2');assert.match(h.context.arcTest.workMarkup(),/SEND IT/);await h.click('work-submit');
  const state=h.context.arcTest.read();assert.equal(state.modalType,null);assert.equal(state.game.delivery.to,1);assert.equal(state.game.jobs[2],0);h.walkTo(26,4,true);h.context.arcTest.step({a:1});assert.equal(h.context.arcTest.read().game.jobs[2],1);

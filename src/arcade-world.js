@@ -6,7 +6,7 @@ export const MAP_W=34,MAP_H=26,TILE=16;
 export const JOBS=[
  {id:'strategy',name:'STRATEGY',role:'Strategy',person:'REM',colour:'#b4df65',x:6,y:4,need:'Research the problem, build a brief and choose a direction with Rem.',real:'Strategists do this for real: they research the problem, write briefs and help teams choose a direction.'},
  {id:'creative',name:'CREATIVE',role:'Creative',person:'NOVA',colour:'#bba2fa',x:26,y:4,need:'Build ideas, improve ads and plan a launch experience with Nova.',real:'Creatives do this for real: they turn the plan into ads, words and designs people notice.'},
- {id:'account',name:'ACCOUNTS',role:'Account management',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Agree the scope, handle changes and give the team clear instructions with Sol.',real:'Account managers do this for real: they agree what can be delivered, manage changes and keep client and team aligned.'},
+ {id:'account',name:'ACCOUNTS',role:'Account management',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Agree the scope, handle changes and give the team clear instructions with Sol.',real:'Account managers do this for real: they agree what can be done, handle changes and keep the client and team on the same page.'},
  {id:'production',name:'PRODUCTION',role:'Production',person:'PATCH',colour:'#79d8d8',x:26,y:20,need:'Plan budgets, schedule the work and solve practical problems with Patch.',real:'Producers do this for real: they sort the kit, people and places to get the work made.'}
 ];
 export const PICKUPS=[
