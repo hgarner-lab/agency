@@ -50,7 +50,39 @@ export const TASK_COPY={
  'production-backup':{
   scene:'Rain has flooded the outdoor spot. Doors open in an hour. There’s a booked indoor room five minutes away.',
   ask:['Where does the launch go?','Who needs to know?','What do you check before doors open?'],
-  good:['Quick thinking. Use the backup.','Yes. Nobody turns up at the wrong place.','Good. No nasty surprises.']}
+  good:['Quick thinking. Use the backup.','Yes. Nobody turns up at the wrong place.','Good. No nasty surprises.']},
+ 'strategy-audience':{
+  scene:'Three groups liked the teaser post. You can only go after one first.',
+  ask:['Who do you target first?','Why them?','Where do you reach them?'],
+  good:['Smart. They already care about creators.','Yes. They’re more likely to buy.','Good. Meet them where they already are.']},
+ 'strategy-comments':{
+  scene:'The teaser video got 400 comments. Work out what people are really saying.',
+  ask:['What comes up most?','What does that tell you?','What do you tell the team?'],
+  good:['That’s the one that matters.','Exactly. They like it but doubt the price.','Clear direction. Prove the value.']},
+ 'creative-social':{
+  scene:'Make a short video for the launch. People scroll fast, so the first second matters.',
+  ask:['How does it open?','Who’s in it?','Pick the caption.'],
+  good:['Stops the scroll.','Real people, real trust.','Short and punchy.']},
+ 'creative-poster':{
+  scene:'The poster goes up near colleges. It has to work for someone walking past.',
+  ask:['What’s the picture?','What words go on it?','Pick the headline.'],
+  good:['Bold and simple.','Short enough to read on the move.','Clear. People know when to come.']},
+ 'account-feedback':{
+  scene:'Jamie hates the first ad: “It doesn’t feel like us.” Nova needs useful notes, not just “Jamie hates it”.',
+  ask:['What do you ask Jamie?','How do you pass it on to Nova?','How do you keep it fair?'],
+  good:['Good. Get the detail.','Useful notes Nova can work with.','Nice. Good news helps the bad news land.']},
+ 'account-budget':{
+  scene:'Jamie has cut the budget from £10,000 to £7,000. The plan has to change.',
+  ask:['What do you do first?','What do you suggest cutting?','How do you lock it in?'],
+  good:['Smart. Protect what matters to the client.','Honest and realistic.','Sorted. Jamie approves the money.']},
+ 'production-popup':{
+  scene:'The pop-up opens Saturday at 10am. Get the shop ready.',
+  ask:['What sizes do you stock?','How do you handle the queue?','How do people pay?'],
+  good:['Everyone can try a pair.','Safe and organised.','Sorted. Nobody gets turned away at the till.']},
+ 'production-crew':{
+  scene:'Your camera operator is ill on shoot day. Filming starts in two hours.',
+  ask:['What do you do first?','How do you get them ready?','Who else needs to know?'],
+  good:['Quick thinking. Always have a backup.','Good. They know exactly what to film.','Right. No surprises for anyone.']}
 };
 // Short, friendly nudges for wrong picks. The full reason stays in agency-tasks.js.
 export function nudge(why){return why?'Not quite. '+why+' Try again.':'';}

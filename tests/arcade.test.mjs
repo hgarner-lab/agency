@@ -175,10 +175,10 @@ test('generated game names always pass the server name check and fit on screen',
 });
 
 
-test('all twelve job types create the selected work and cycle without needing old floor items',()=>{
+test('all twenty job types create the selected work and cycle without needing old floor items',()=>{
  for(const type of [0,1,2,3]){
   const g=newArcadeGame(type%3);
-  for(let variant=0;variant<3;variant++){
+  for(let variant=0;variant<TASK_POOLS[type].length;variant++){
    now+=4000;const expected=TASK_POOLS[type][variant];performJob(g,type);
    assert.equal(g.jobs[type],variant+1);const product=g.workProducts.at(-1);
    assert.equal(product.taskTitle,expected.title);assert.deepEqual(product.lines,expected.slots.map(s=>s.options[0].text));assert.equal(product.kind,expected.kind);assert.equal(g.work,null);assert.equal(g.delivery,null);
