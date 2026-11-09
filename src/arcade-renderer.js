@@ -57,7 +57,7 @@ export function createArcadeRenderer(canvas,fullMap=false){
  }
  for(const [i,x,y] of [[0,6,8],[1,26,9],[2,6,16],[3,26,16]]){const label=JOBS[i].name,w=label.length*6+10;b.fillStyle='#243b3c';b.fillRect(x*TILE-w/2,y*TILE,w,13);pixelText(b,label,x*TILE+1,y*TILE+3,JOBS[i].colour,1,'center');}
  // Corridor signs stay visible in the opening phone view.
- for(const [label,x,y,colour,up] of [['RESEARCH',11.5,11.25,JOBS[0].colour,true],['STUDIO',22,11.25,JOBS[1].colour,true],['CLIENT DESK',11.5,14,JOBS[2].colour,false],['WORKSHOP',22,14,JOBS[3].colour,false]]){
+ for(const [label,x,y,colour,up] of [[JOBS[0].name,11.5,11.25,JOBS[0].colour,true],[JOBS[1].name,22,11.25,JOBS[1].colour,true],[JOBS[2].name,11.5,14,JOBS[2].colour,false],[JOBS[3].name,22,14,JOBS[3].colour,false]]){
   const w=label.length*6+16,px=Math.round(x*TILE),py=Math.round(y*TILE);b.fillStyle='#334c48';b.fillRect(px-w/2,py,w,12);pixelText(b,label,px-3,py+3,colour,1,'center');b.fillStyle=colour;const ax=px+w/2-8;b.fillRect(ax,py+(up?3:7),1,1);b.fillRect(ax-1,py+(up?4:6),3,1);b.fillRect(ax-2,py+5,5,1);
  }
  // Public launch space in the centre of the floor.
@@ -88,7 +88,7 @@ export function createArcadeRenderer(canvas,fullMap=false){
   for(const f of FURNITURE)arcadeFurniture({set fillStyle(v){c.fillStyle=v},fillRect(x,y,w,h){c.fillRect(x-ox,y-oy,w,h)}},f);
   const actors=JOBS.map((j,i)=>({x:j.x*TILE,y:j.y*TILE,character:[0,1,3,2][i],name:j.person,npc:true,index:i}));actors.push({x:px,y:py,character:game.character,name:options.label||'YOU',npc:false});actors.sort((a,b)=>a.y-b.y);
   for(const a of actors){const ax=Math.round(a.x-ox),ay=Math.round(a.y-oy);drawPixelPerson(c,ax,ay-7,a.character,a.npc?0:game.steps, a.npc?'down':game.face);
-   if(!a.npc){c.fillStyle='#f9f2d4';c.fillRect(ax+7,ay-15,3,3);c.fillRect(ax+8,ay-12,1,2);const text=String(a.name).slice(0,16),w=text.length*6+6;c.fillStyle='#22373be0';c.fillRect(ax+8-w/2,ay+16,w,11);pixelText(c,text,ax+9,ay+18,'#f7edcf',1,'center');}
+   if(!a.npc){c.fillStyle='#f9f2d4';if(nearbyJob(game)<0){c.fillRect(ax+7,ay-15,3,3);c.fillRect(ax+8,ay-12,1,2);}const text=String(a.name).slice(0,16),w=text.length*6+6;c.fillStyle='#22373be0';c.fillRect(ax+8-w/2,ay+16,w,11);pixelText(c,text,ax+9,ay+18,'#f7edcf',1,'center');}
    else {const w=a.name.length*6+6;c.fillStyle='#263a3ccc';c.fillRect(ax+8-w/2,ay-17,w,10);pixelText(c,a.name,ax+9,ay-15,JOBS[a.index].colour,1,'center');if(nearbyJob(game)===a.index){c.fillStyle='#f6e49a';c.fillRect(ax+6,ay-26,5,6);pixelText(c,'!',ax+9,ay-26,'#263b3d',1,'center');}}
   }
   const inv=game.inventory.join(',');if(inv!==seenInventory&&game.score>seenScore){particles.push({x:px+8,y:py-12,text:'+'+(game.score-seenScore),until:now+850,colour:'#f7e195'});}seenInventory=inv;seenScore=game.score;

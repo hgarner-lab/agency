@@ -3,10 +3,10 @@ export const ARCADE_TICK=150;
 export const MIN_ROLE_JOBS=2;
 export const MAP_W=34,MAP_H=26,TILE=16;
 export const JOBS=[
- {id:'strategy',name:'RESEARCH',role:'Strategy',person:'REM',colour:'#b4df65',x:6,y:4,need:'Find 3 customer clues, then bring them to Rem.'},
- {id:'creative',name:'STUDIO',role:'Creative',person:'NOVA',colour:'#bba2fa',x:26,y:4,need:'Find a colour and a word tile, then make an ad with Nova.'},
- {id:'account',name:'CLIENT DESK',role:'Accounts',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Get a message from Sol, then take it to the person he names.'},
- {id:'production',name:'WORKSHOP',role:'Production',person:'PATCH',colour:'#79d8d8',x:26,y:20,need:'Find a spanner and a battery, then help Patch fix the launch.'}
+ {id:'strategy',name:'STRATEGY',role:'Strategy',person:'REM',colour:'#b4df65',x:6,y:4,need:'Find 3 customer clues, then bring them to Rem.',real:'Strategists do this for real: they learn what customers think, then turn it into a plan.'},
+ {id:'creative',name:'CREATIVE',role:'Creative',person:'NOVA',colour:'#bba2fa',x:26,y:4,need:'Find a colour and a word tile, then make an ad with Nova.',real:'Creatives do this for real: they turn the plan into ads, words and designs people notice.'},
+ {id:'account',name:'ACCOUNTS',role:'Account management',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Get the client’s message from Sol, then take it to the person he names.',real:'Account managers do this for real: they make sure the team knows what the client needs.'},
+ {id:'production',name:'PRODUCTION',role:'Production',person:'PATCH',colour:'#79d8d8',x:26,y:20,need:'Find a spanner and a battery, then help Patch fix the launch.',real:'Producers do this for real: they sort the kit, people and places to get the work made.'}
 ];
 export const PICKUPS=[
  {id:'clue-a',name:'CUSTOMER CLUE',kind:'clue',type:0,x:3,y:5,icon:'clue',text:'Customers want to feel included.'},
@@ -67,7 +67,7 @@ export function nextInstruction(g,now=Date.now()){
  if(type===null||type===undefined||type<0)return {type:null,kind:'choose',title:'Choose your first job.',detail:'Hold an arrow. Move into any room.',icon:'player-'+g.character,target:null};
  if(g.delivery)return personStep(type,'DELIVER',`Take Sol’s message to ${JOBS[type].person[0]+JOBS[type].person.slice(1).toLowerCase()}.`);
  if(now<g.readyAt[type])return {type,kind:'wait',title:'Job done. Choose your next one.',detail:'Try another room, or wait for new items.',icon:'player-'+g.character,target:null};
- if(type===2)return personStep(2,'GET MESSAGE','Get a message from Sol.');
+ if(type===2)return personStep(2,'GET MESSAGE','Get the client’s message from Sol.');
  const missing=availablePickups(g,now).filter(p=>p.type===type).sort((a,b)=>(Math.abs(a.x-g.x)+Math.abs(a.y-g.y))-(Math.abs(b.x-g.x)+Math.abs(b.y-g.y)));
  const target=missing.find(p=>g.guide?.type===type&&g.guide.id===p.id)||missing[0];
  if(target){
