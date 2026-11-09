@@ -763,3 +763,45 @@ html.is-presenting #arc-room-controls{display:none!important}
  .arc-result-stats{gap:40px}
  .arc-no-role p{font-size:16px}
 }
+
+/* Visual QA: spacing */
+/* Phone top bar in a group game: room code hidden, connection becomes a dot, nothing overlaps the logo */
+@media(max-width:720px){
+ .arc-nav-right .arc-mode{display:none!important}
+ .arc-nav-right{gap:8px;flex-shrink:0}
+ .arc-connection{font-size:0!important;width:12px;height:12px;border-radius:50%;background:#9be05a;padding:0;border:0;flex-shrink:0}
+ .arc-connection.offline{background:#ff7a5c}
+ .arc-nav .brand-lockup{min-width:0;flex-shrink:1}
+ .sound-toggle{padding:6px 8px}
+}
+/* Join screen: room code gets its own breathing space */
+.arc-room-joined{margin:16px 0 18px}
+/* Big screen: labels clear of the divider under the logo */
+.arcade-stage .arc-intro{margin-top:18px}
+.arcade-stage .arc-room-finale .arc-room-heading{padding-top:16px}
+html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
+/* Live screen: give the McCann credit its own space */
+.arc-live-top{grid-template-columns:auto minmax(0,1fr) auto;gap:32px}
+.arc-live-meta{display:flex;align-items:center;gap:26px}
+.arc-live-meta .arc-stage-credit{padding-right:26px;border-right:1px solid #36544a}
+.arc-dept-bars{gap:16px}
+/* Laptop solo play: the whole game fits the screen */
+@media(min-width:721px){
+ .arcade-playing .arc-player-shell{margin-top:8px;margin-bottom:12px}
+ .arcade-playing .arc-canvas-frame{height:clamp(220px,calc(100vh - 470px),520px)}
+ .arcade-playing .arc-canvas-frame>canvas{width:100%;height:100%;object-fit:contain}
+}
+@media(min-width:721px){.arcade-playing .arc-canvas-frame{height:clamp(220px,calc(100vh - 510px),520px)}}
+@media(max-height:820px){.arcade-stage .arc-intro.arc-client-brief{margin-top:12px}}
+/* Live header at 720p: smaller title and clock so the department scores have room */
+@media(max-width:1400px){
+ .arcade-stage .arc-live-top{gap:24px}
+ .arcade-stage .arc-live-top h1{font-size:30px}
+ .arcade-stage .arc-live .arc-room-clock>b{font-size:44px}
+ .arcade-stage .arc-live-meta{gap:18px}
+ .arcade-stage .arc-live-meta .arc-stage-credit{padding-right:18px}
+ .arcade-stage .arc-live-meta .arc-stage-credit .mccann-mark{width:100px}
+ .arcade-stage .arc-dept-bars{gap:12px}
+ .arcade-stage .arc-dept-bars span{font-size:14px}
+ .arcade-stage .arc-dept-bars strong{font-size:22px}
+}

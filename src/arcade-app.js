@@ -188,7 +188,7 @@ function acceptLive(data,force=false){
  if(previous==='active'&&data.phase==='paused'){pending=[];if(data.game)rebase(data.game,data.seq);clearMovement();}
  if(view==='host'||view==='stage'){renderRoom();return}
  if(data.finished||data.phase==='finished'){practice=null;clearMovement();pending=[];if(data.game){game=structuredClone(data.game);ackSeq=data.seq;nextSeq=data.seq;}if(modalType)closeModal();if(sceneKey!=='result'){sceneKey='result';renderResult(data.profile)}return}
- if(data.phase==='lobby'){if(!data.ready){if(sceneKey!=='practice')renderPractice();return;}practice=null;if(sceneKey!=='waiting'){sceneKey='waiting';renderWaiting()}else q('#arc-wait-count')&&(q('#arc-wait-count').textContent=data.count);return}
+ if(data.phase==='lobby'){if(!data.ready){if(sceneKey!=='practice')renderPractice();return;}practice=null;if(sceneKey!=='waiting'){sceneKey='waiting';renderWaiting()}else q('#arc-wait-count')&&(q('#arc-wait-count').textContent=data.count,q('#arc-wait-word').textContent=data.count===1?'PLAYER':'PLAYERS');return}
  if(!data.ready&&data.seq===0){if(sceneKey!=='practice')renderPractice();else updatePracticeUI();return;}
  practice=null;
  if(game&&sceneKey!=='play')renderPlay();updatePlayUI();
@@ -198,7 +198,7 @@ function connectRoom(){
  fetchState(true);clearInterval(poller);
  poller=setInterval(()=>fetchState(),1500);
 }
-function renderWaiting(){document.body.className='arcade-waiting';root.innerHTML=header()+`<div class="shell"><section class="arc-learn arc-wait-learn"><div class="eyebrow acid">PLAYING AS ${safe(creds.alias)}</div><h1>YOU’RE IN.</h1><p class="arc-wait-instruction">Wait for the game to start. Keep this page open.</p><div class="label-pill"><span id="arc-wait-count">${live.count}</span> PLAYERS IN</div><button class="text-button arc-guide-link" data-action="map">How to play</button></section></div>`;}
+function renderWaiting(){document.body.className='arcade-waiting';root.innerHTML=header()+`<div class="shell"><section class="arc-learn arc-wait-learn"><div class="eyebrow acid">PLAYING AS ${safe(creds.alias)}</div><h1>YOU’RE IN.</h1><p class="arc-wait-instruction">Wait for the game to start. Keep this page open.</p><div class="label-pill"><span id="arc-wait-count">${live.count}</span> <span id="arc-wait-word">${live.count===1?'PLAYER':'PLAYERS'}</span> IN</div><button class="text-button arc-guide-link" data-action="map">How to play</button></section></div>`;}
 
 
 function roomControls(){
