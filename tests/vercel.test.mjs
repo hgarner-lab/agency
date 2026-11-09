@@ -46,8 +46,9 @@ test('Vercel health and missing-database responses never expose environment valu
 });
 test('the Vercel build serves all required browser modules and excludes server code',async()=>{
  const root=new URL('../',import.meta.url),html=await readFile(new URL('public/index.html',root),'utf8');assert.match(html,/\/assets\/arcade-app\.js\?v=/);
- for(const name of ['arcade-app.js','arcade-world.js','arcade-renderer.js','style.css','arcade.css','crew.png','crew-reactions.png','display.woff'])await access(new URL('public/assets/'+name,root));
+ for(const name of ['arcade-app.js','arcade-world.js','arcade-renderer.js','role-card.js','mccann-logo.png','style.css','arcade.css','crew.png','crew-reactions.png','display.woff'])await access(new URL('public/assets/'+name,root));
  await assert.rejects(access(new URL('public/assets/arcade-server.js',root)));await assert.rejects(access(new URL('public/server/turso.js',root)));
  const app=await readFile(new URL('public/assets/arcade-app.js',root),'utf8');assert.doesNotMatch(app,/new WebSocket/);assert.match(app,/setInterval\(\(\)=>fetchState\(\),1500\)/);
  const config=JSON.parse(await readFile(new URL('vercel.json',root),'utf8'));assert.equal(config.outputDirectory,'public');assert.equal(config.framework,null);
 });
+

@@ -10,6 +10,7 @@ import {roles,roleLessons,waysIn} from '../src/content.js';
 import {character,selector} from '../src/scenes.js';
 import {isClean,isGameName,makeNickname} from '../src/filter.js';
 import {qr} from '../src/qr.js';
+import {drawRoleCard,MCCANN_LOGO_URL} from '../src/role-card.js';
 import {ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,canWalk} from '../src/arcade-world.js';
 import {posterSVG} from '../src/arcade-renderer.js';
 function ui(options={}){
@@ -27,14 +28,15 @@ function ui(options={}){
  }
  const app=new Element('app'),toast=new Element('toast');ids.set('app',app);ids.set('toast',toast);
  const store=()=>({data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,v)}});
- const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,
-  ...world,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
+ const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,Image:options.Image,
+  ...world,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawRoleCard,MCCANN_LOGO_URL,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
   location:{origin:'https://game.test',search:options.search||'',href:'https://game.test/'},history:{pushState(){}},sessionStorage:store(),localStorage:store(),navigator:{},
   setTimeout(){return 0},setInterval(){return 0},clearInterval(){},requestAnimationFrame(){},
   FormData:class{constructor(form){this.fields=form.fields}get(k){return this.fields[k]}},
   fetch:options.fetchImpl,window:{addEventListener(){},confirm(){return true}},
-  document:{hidden:false,body:{className:'',append(el){ids.set(el.id,el)}},querySelector(s){return s.startsWith('#')?ids.get(s.slice(1))||null:new Element()},querySelectorAll(){return []},createElement(){return new Element()},addEventListener(name,fn){if(!listeners.has(name))listeners.set(name,[]);listeners.get(name).push(fn)}}
+  document:{fonts:{ready:Promise.resolve()},hidden:false,body:{className:'',append(el){ids.set(el.id,el)}},querySelector(s){return s.startsWith('#')?ids.get(s.slice(1))||null:new Element()},querySelectorAll(){return []},createElement(tag){if(tag==='canvas'&&options.canvasFactory)return options.canvasFactory();const el=new Element();if(tag==='a')el.click=()=>options.onDownload?.(el);return el;},addEventListener(name,fn){if(!listeners.has(name))listeners.set(name,[]);listeners.get(name).push(fn)}}
  };
+ for(const [k,v] of Object.entries(options.session||{}))context.sessionStorage.setItem(k,JSON.stringify(v));
  for(const [k,v] of Object.entries(options.storage||{}))context.localStorage.setItem(k,JSON.stringify(v));
  const source=readFileSync(new URL('../src/arcade-app.js',import.meta.url),'utf8').replace(/^import .*?;\n/gm,'');
  vm.createContext(context);vm.runInContext(source+'\nglobalThis.arcTest={read:()=>({game,solo,view,sceneKey,practice,held,movementPointer}),step:processInput};',context);
@@ -47,6 +49,22 @@ function ui(options={}){
  };
  return {context,app,ids,click,walkTo,dispatch,async settle(){await new Promise(setImmediate)},async start(){await click('begin-practice');for(let i=0;i<4;i++){time+=ARCADE_TICK;context.arcTest.step({d:'right'})}time+=ARCADE_TICK;await context.arcTest.step({a:1});},advance(ms){time+=ms},use(){time+=ARCADE_TICK;return context.arcTest.step({a:1})},submit(fields){return dispatch('submit',{id:'arc-entry',fields})}};
 }
+test('saving a role card loads the McCann artwork into the PNG and names the file for McCann',async()=>{
+ const game=newArcadeGame(2);game.jobs[1]=2;game.affinity[1]=7;game.score=360;
+ const drawn=[],downloads=[];
+ class CardImage{constructor(){this.width=1536;this.height=1024;}async decode(){if(this.src===MCCANN_LOGO_URL){this.width=800;this.height=484;}}}
+ const c={fillRect(){},drawImage(image){drawn.push(image.src)},measureText(value){return {width:value.length*parseFloat(this.font)*.5}},fillText(){}};
+ const h=ui({search:'?view=solo',session:{'wr-arcade-solo':{alias:'BrandedFox',character:2,phase:'finished',game}},Image:CardImage,canvasFactory:()=>({getContext:()=>c,toBlob(done,type){assert.equal(type,'image/png');done(new Blob(['mock-canvas'],{type}));}}),onDownload:a=>downloads.push({name:a.download,url:a.href})});
+ assert.match(h.app.innerHTML,/arc-card-brand/);assert.match(h.app.innerHTML,/alt="McCann"/);
+ await h.click('download-role');assert.deepEqual(drawn,[MCCANN_LOGO_URL,'/assets/crew-reactions.png']);
+ assert.equal(downloads[0].name,'McCann-The-Agency-BrandedFox.png');assert.match(h.ids.get('toast').textContent,/McCann role card/);URL.revokeObjectURL(downloads[0].url);
+});
+test('a missing logo reports a saving error instead of exporting an unbranded card',async()=>{
+ const game=newArcadeGame();game.jobs[0]=2;game.affinity[0]=8;
+ class MissingLogo{async decode(){if(this.src===MCCANN_LOGO_URL)throw Error('Image failed');}}
+ let downloads=0;const h=ui({search:'?view=solo',session:{'wr-arcade-solo':{alias:'CarefulFox',character:0,phase:'finished',game}},Image:MissingLogo,onDownload(){downloads++}});
+ await h.click('download-role');assert.equal(downloads,0);assert.match(h.ids.get('toast').textContent,/screenshot your branded card/);
+});
 test('solo player selects a character, moves, collects, makes an ad and reaches a role card',async()=>{
  const h=ui();assert.match(h.app.innerHTML,/HOST A GAME/);assert.match(h.app.innerHTML,/SKIP TO JOB ROLES/);assert.doesNotMatch(h.app.innerHTML,/JOIN A GROUP GAME/);await h.click('solo');await h.click('character','2');await h.submit({mode:'solo',alias:'PixelHG'});
  assert.equal(h.context.arcTest.read().solo.character,2);assert.match(h.app.innerHTML,/TRY THE CONTROLS/);await h.start();
@@ -158,3 +176,4 @@ test('the host sees the brief first, then the QR lobby, and can get back to the 
  const home=ui({storage:{'wr-arc-host-ROOM27':{token:'t',host:true},'wr-arc-last-host':{code:'ROOM27',at:1800000000000}}});
  assert.match(home.app.innerHTML,/BACK TO YOUR GAME · ROOM27/);
 });
+

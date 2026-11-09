@@ -108,3 +108,8 @@ Rooms expire after twelve hours. Expiry blocks access; it does not delete event 
 - [Turso SQL over HTTP reference](https://docs.turso.tech/sdk/http/reference)
 
 The 3D character sheets were generated for this project. In-game pixel art is code-native. Nimbus fonts are URW Base35 fonts, supplied under AGPL with font exception; retain `assets/FONT-LICENSE.txt` when distributing.
+
+
+## McCann branding
+
+The supplied white-on-black McCann wordmark is included unchanged as `assets/mccann-logo.png`. The app and role cards display its upper wordmark area at the original proportions. Downloaded cards include the McCann mark, game name, chosen character, role and score, and use a `McCann-The-Agency-` filename. `src/role-card.js` draws the PNG itself so the branding is embedded in the saved image.

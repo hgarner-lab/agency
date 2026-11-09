@@ -3,12 +3,14 @@ import {roles,roleLessons,waysIn} from './content.js';
 import {character,selector} from './scenes.js';
 import {isClean,isGameName,makeNickname} from './filter.js';
 import {qr} from './qr.js';
+import {drawRoleCard,MCCANN_LOGO_URL} from './role-card.js';
 import {ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,nearbyJob,nextInstruction,jobAction,newPracticeGame,practiceInstruction,applyPracticeInput,MIN_ROLE_JOBS} from './arcade-world.js';
 import {createArcadeRenderer,createRoomRenderer,posterSVG,drawGameIcon,drawPractice} from './arcade-renderer.js';
 
 const q=s=>document.querySelector(s),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const root=q('#app'),params=new URLSearchParams(location.search);
 let view=params.get('view')||'home',roomCode=(params.get('room')||'').toUpperCase();
+let savingRole=false;
 let selected=0,creds=null,live=null,game=null,solo=null,ackGame=null,ackSeq=0,pending=[],nextSeq=0;
 let poller=null,sending=false,connected=false,clockOffset=0,sceneKey='',renderer=null,modalType=null,busy=false;
 let practice=null,practiceSaving=false,movementPointer=null,nickname=makeNickname();
@@ -18,7 +20,8 @@ const loadJSON=key=>{try{return JSON.parse(sessionStorage.getItem(key)||'null')}
 try{creds=JSON.parse(localStorage.getItem((view==='host'?'wr-arc-host-':'wr-arc-player-')+roomCode)||'null')}catch{}
 if(view==='stage')creds=null;
 const clock=()=>Date.now()+clockOffset;
-const brand=()=>`<a class="brand" href="/" aria-label="The Agency home"><span class="brand-icon">A</span><span class="brand-name">THE<br>AGENCY<span class="acid">.</span></span></a>`;
+const mccannMark=()=>`<span class="mccann-mark"><img src="${MCCANN_LOGO_URL}" alt="McCann" width="800" height="484" decoding="async"></span>`;
+const brand=()=>`<div class="brand-lockup"><a class="brand" href="/" aria-label="The Agency home"><span class="brand-icon">A</span><span class="brand-name">THE<br>AGENCY<span class="acid">.</span></span></a><div class="mccann-endorsement"><small>AN EXPERIENCE BY</small>${mccannMark()}</div></div>`;
 const prettyTime=n=>{n=Math.max(0,Math.ceil(n));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
 const toView=(v,code='')=>{location.href='/?view='+v+(code?'&room='+code:'')};
 const playerLink=()=>location.origin+'/?view=player&room='+roomCode;
@@ -233,13 +236,21 @@ function renderResult(profile){
   root.innerHTML=header()+`<div class="shell"><div class="waiting arc-no-role"><h1>GOOD START.</h1><p>You completed ${done} ${done===1?'job':'jobs'} and earned ${g?.score||0} points.</p>${lean>=0?`<p>You worked in <b style="color:${roles[lean].color}">${safe(roleLessons[roles[lean].key].title)}</b>. Find out what that job is like below.</p>`:'<p>Every agency needs these four jobs. Find out what each one does below.</p>'}${solo?`<p>Complete ${MIN_ROLE_JOBS} jobs in a game to unlock your role card.</p><button class="btn" data-action="solo" style="margin-top:20px">PLAY AGAIN →</button><a class="text-button" href="#meet-team">EXPLORE THE ROLES ↓</a>`:'<a class="btn" href="#meet-team" style="margin-top:20px">EXPLORE THE ROLES ↓</a>'}</div>${roleLearning(lean,true)}</div>`;return}
 
  const r=roles[profile.role],jobs=profile.completed;
- root.innerHTML=header()+`<div class="shell"><section class="arc-result-grid"><div class="arc-result-copy"><div class="eyebrow acid">${safe(alias)} / GAME COMPLETE</div><h1>${r.name}</h1><span class="arc-result-job" style="color:${r.color}">${r.job}</span><p>${r.description}</p><div class="arc-result-stats"><div><b>${profile.score.toLocaleString('en-GB')}</b><span>POINTS</span></div><div><b>${jobs}</b><span>${jobs===1?'JOB':'JOBS'} COMPLETED</span></div></div><div class="arc-result-evidence"><span>THE WORK YOU CHOSE</span>${JOBS.map((j,i)=>`<div><b style="color:${j.colour}">${j.role}</b><span>${profile.jobs[i]} ${profile.jobs[i]===1?'job':'jobs'}</span></div>`).join('')}</div><p class="fine">Just a game, not a careers test.</p><div class="reveal-actions"><button class="btn" data-action="download-role">SAVE ROLE CARD ↓</button><a class="btn secondary" href="#meet-team">WHAT DOES MY ROLE DO? ↓</a></div></div><div class="arc-result-card" id="arc-role-card" style="--role:${r.color}"><div class="id-top"><span class="brand-name">THE<br>AGENCY.</span><span class="mono">YOUR AGENCY ROLE<br>PIXEL GAME / ${new Date().getFullYear()}</span></div><div class="arc-card-character">${character(ci,'reacting')}</div><div class="id-name">${safe(alias.toUpperCase())}</div><h2>${r.name}</h2><span class="mono">${r.job}</span><div class="arc-card-score"><b>${profile.score}</b><span>POINTS / ${jobs} JOBS</span></div><div class="barcode"></div></div></section>${roleLearning(profile.role)}${g?.posters?.length?`<section class="arc-your-posters"><div class="eyebrow">THE ADS YOU MADE</div><div>${g.posters.map(p=>`<article>${posterSVG(p)}</article>`).join('')}</div></section>`:''}</div>`;
+ root.innerHTML=header()+`<div class="shell"><section class="arc-result-grid"><div class="arc-result-copy"><div class="eyebrow acid">${safe(alias)} / GAME COMPLETE</div><h1>${r.name}</h1><span class="arc-result-job" style="color:${r.color}">${r.job}</span><p>${r.description}</p><div class="arc-result-stats"><div><b>${profile.score.toLocaleString('en-GB')}</b><span>POINTS</span></div><div><b>${jobs}</b><span>${jobs===1?'JOB':'JOBS'} COMPLETED</span></div></div><div class="arc-result-evidence"><span>THE WORK YOU CHOSE</span>${JOBS.map((j,i)=>`<div><b style="color:${j.colour}">${j.role}</b><span>${profile.jobs[i]} ${profile.jobs[i]===1?'job':'jobs'}</span></div>`).join('')}</div><p class="fine">Just a game, not a careers test.</p><div class="reveal-actions"><button class="btn" data-action="download-role">SAVE ROLE CARD ↓</button><a class="btn secondary" href="#meet-team">WHAT DOES MY ROLE DO? ↓</a></div></div><div class="arc-result-card" id="arc-role-card" style="--role:${r.color}"><div class="arc-card-brand">${mccannMark()}<span class="arc-card-project">THE<br>AGENCY.</span><span class="arc-card-brand-caption">YOUR AGENCY ROLE / ${new Date().getFullYear()}</span></div><div class="arc-card-character">${character(ci,'reacting')}</div><div class="id-name">${safe(alias.toUpperCase())}</div><h2>${r.name}</h2><span class="mono">${r.job}</span><div class="arc-card-score"><b>${profile.score}</b><span>POINTS / ${jobs} JOBS</span></div><div class="barcode"></div><div class="arc-card-endorsement">A McCann experience</div></div></section>${roleLearning(profile.role)}${g?.posters?.length?`<section class="arc-your-posters"><div class="eyebrow">THE ADS YOU MADE</div><div>${g.posters.map(p=>`<article>${posterSVG(p)}</article>`).join('')}</div></section>`:''}</div>`;
 }
+function loadCardImage(src){const image=new Image();image.decoding='async';image.src=src;return image.decode().then(()=>image);}
 async function downloadRole(){
- const p=solo?arcadeProfile(game):live?.profile;if(!p)return;const r=roles[p.role],ci=game?.character??0,alias=solo?.alias||creds?.alias||'PLAYER';await document.fonts.ready;
- const canvas=document.createElement('canvas');canvas.width=800;canvas.height=1100;const c=canvas.getContext('2d');c.fillStyle=r.color;c.fillRect(0,0,800,1100);c.fillStyle='#172c35';const text=(s,x,y,size=25,font='WarMono')=>{c.font=`${size}px ${font}`;c.fillText(s,x,y)};
- text('THE AGENCY',45,80,65,'WarDisplay');text('YOUR AGENCY ROLE / PIXEL GAME',45,120,18);c.fillRect(45,148,710,2);const image=new Image();image.src='/assets/crew-reactions.png';await image.decode();const cw=image.width/4,ch=image.height*.65,w=350*cw/ch;c.drawImage(image,ci*cw,0,cw,ch,(800-w)/2,160,w,350);c.fillRect(45,520,710,2);text(alias.toUpperCase(),45,565,30);text(r.name,45,665,83,'WarDisplay');text(r.job,45,713,22);text(String(p.score),45,830,93,'WarDisplay');text('POINTS / '+p.completed+' JOBS',45,874,20);c.fillRect(45,925,710,2);text('YOUR JOBS. YOUR ROLE.',45,982,36,'WarDisplay');text('THE AGENCY / PIXEL GAME',45,1040,19);
- const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob){toast('You can screenshot your role card.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='The-Agency-'+alias.replace(/[^a-z0-9]/gi,'-')+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);toast('Role card ready to save.');
+ const profile=solo?arcadeProfile(game):live?.profile;if(!profile||savingRole)return;
+ const button=q('[data-action="download-role"]');savingRole=true;if(button){button.disabled=true;button.textContent='SAVING…';}
+ try{
+  await document.fonts.ready;
+  const [characterImage,brandImage]=await Promise.all([loadCardImage('/assets/crew-reactions.png'),loadCardImage(MCCANN_LOGO_URL)]);
+  const canvas=document.createElement('canvas'),alias=solo?.alias||creds?.alias||'PLAYER';
+  drawRoleCard(canvas,{role:roles[profile.role],profile,alias,characterIndex:game?.character??live?.game?.character??0,characterImage,brandImage});
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Card export failed.');
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='McCann-The-Agency-'+alias.replace(/[^a-z0-9]/gi,'-')+'.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);toast('Your McCann role card is ready to save.');
+ }catch(e){toast('Couldn’t save the card. Try again, or screenshot your branded card.');}
+ finally{savingRole=false;if(button){button.disabled=false;button.textContent='SAVE ROLE CARD ↓';}}
 }
 
 document.addEventListener('submit',e=>{if(e.target.id==='arc-entry'){e.preventDefault();enter(e.target)}});
@@ -254,7 +265,7 @@ document.addEventListener('click',async e=>{
  if(action==='slide'){const v=button.dataset.value;setSlide(v==='next'?finaleSlide+1:v==='prev'?finaleSlide-1:Number(v));}
  if(action==='fullscreen'){try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Press F11 (or Ctrl+Cmd+F on a Mac) for full screen.')}if(live)q('#arc-room-controls').innerHTML=roomControls();}
  if(action==='brief-done'){try{sessionStorage.setItem('wr-arc-brief-'+roomCode,'1')}catch{}if(live)renderRoom();}
- if(action==='finish-self')finishSelf();if(action==='download-role')downloadRole();if(action==='retry')fetchState(true);if(action==='control')control(button.dataset.value);
+ if(action==='finish-self')finishSelf();if(action==='download-role')await downloadRole();if(action==='retry')fetchState(true);if(action==='control')control(button.dataset.value);
  if(action==='stage')window.open('/?view=stage&room='+roomCode,'the-agency-stage');if(action==='copy'){try{await navigator.clipboard.writeText(playerLink());toast('Player link copied.')}catch{toast('Room code: '+roomCode)}}
  if(action==='sound'){sound=!sound;button.textContent=sound?'SOUND ON':'SOUND OFF';button.setAttribute('aria-pressed',String(sound));if(sound)playNote('pickup');}
 });
@@ -294,3 +305,4 @@ else if(view==='player'&&!creds?.id){home();openModal('join')}
 else if(view==='host'&&!creds?.host){home();openModal('host')}
 else if(['player','host','stage'].includes(view)){root.innerHTML=header()+`<div class="waiting"><div class="radar">A</div><h1>CONNECTING<br><span class="acid">YOUR ROOM…</span></h1></div>`;connectRoom()}
 else home();
+
