@@ -580,3 +580,27 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 .arcade-stage .arc-room-lobby .arc-more{justify-content:center;color:#c6ff40;border-style:dashed}
 .arcade-stage .arc-room-lobby .alias-chip:not(.is-ready){opacity:.7}
 @media(max-height:820px){.arcade-stage .arc-room-lobby .arc-join-count{padding:6px 0}.arcade-stage .arc-room-lobby .arc-join-count>b{font-size:56px}.arcade-stage .arc-lobby-brief{padding:6px 12px}.arcade-stage .arc-room-lobby p{margin:6px 0}}
+
+/* Jamie gives the existing brief a recognisable client and a clear request. */
+.arc-client-brief .arc-brief-layout{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);align-items:stretch;gap:24px}
+.arc-client-intro{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr);align-items:center;gap:8px;padding:16px 20px 0 8px;border:1px solid #52675e;background:radial-gradient(ellipse at 25% 65%,#b9a78732,transparent 70%),#1c3434;min-width:0}
+.arc-client-portrait{align-self:stretch;display:flex;align-items:flex-end;justify-content:center;min-width:0}
+.arc-client-portrait img{display:block;width:100%;height:100%;max-height:430px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 10px 16px #0003)}
+.arc-client-voice{padding:14px 0 22px;min-width:0}
+.arc-client-tag{display:inline-block;background:#f4efe1;color:#243a3b;padding:7px 9px;font:700 12px WarMono,monospace;letter-spacing:.08em}
+.arc-client-voice h2{font-size:clamp(40px,4vw,66px);line-height:.95;color:#f4efe1;margin:12px 0 6px}
+.arc-client-voice .arc-client-role{font-size:17px;color:#d2d9ca;line-height:1.3;margin:0 0 18px}
+.arc-client-voice blockquote{margin:0;color:#fff9ed;font-size:clamp(17px,1.5vw,23px);line-height:1.4}
+.arc-client-voice .arc-client-explain{margin:18px 0 0;padding-top:12px;border-top:1px solid #61736b;font-size:14px;line-height:1.4;color:#c7d1c2}
+.arc-client-brief .arc-brief-doc{transform:none}
+.arc-client-brief .arc-brief-doc dl>div{grid-template-columns:minmax(130px,.85fr) minmax(0,1.65fr)}
+.arc-brief-extra{border-top:1px solid #567266;padding-top:10px;margin:16px 0 10px;color:#d7e3cc}
+.arc-brief-extra>summary{font-size:16px;line-height:1.4;cursor:pointer;padding:5px 0}
+.arc-brief-extra>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;padding:18px 0}
+.arc-client-brief .arc-moodboard{grid-column:auto;grid-row:auto;transform:none;max-width:540px}
+.arc-client-brief .arc-moodboard img{max-height:280px;object-fit:contain;background:#1c3434}
+.arc-client-brief .arc-brief-extra .arc-gloss{margin:0;align-self:center;line-height:1.7}
+@media(min-width:1600px) and (min-height:950px){.arc-client-brief .arc-client-portrait img{max-height:490px}.arc-client-brief .arc-client-voice blockquote{font-size:24px}.arc-client-brief .arc-client-explain{font-size:16px}}
+@media(max-height:820px) and (min-width:900px){.arc-client-brief .arc-client-portrait img{max-height:320px}.arc-client-brief .arc-client-intro{padding-top:8px}.arc-client-brief .arc-client-voice{padding:10px 0}.arc-client-brief .arc-client-role{margin-bottom:12px;font-size:16px}.arc-client-brief .arc-client-voice blockquote{font-size:17px}.arc-client-brief .arc-client-explain{margin-top:12px;font-size:14px}.arc-client-brief .arc-brief-extra{margin:10px 0 8px}.arc-client-brief .arc-brief-extra>summary{font-size:15px}}
+@media(max-width:899px){.arc-client-brief .arc-brief-layout{grid-template-columns:1fr;gap:18px}.arc-client-brief .arc-client-intro{grid-template-columns:minmax(0,.8fr) minmax(0,1fr);padding:12px 18px 0 6px}.arc-client-brief .arc-client-portrait img{max-height:340px}.arc-client-brief .arc-client-voice blockquote{font-size:18px}.arc-client-brief .arc-client-voice h2{font-size:48px}.arc-brief-extra>div{grid-template-columns:1fr}.arc-client-brief .arc-intro-nav{flex-wrap:wrap}.arc-client-brief .arc-brief-doc dl>div{grid-template-columns:minmax(0,1fr) minmax(0,1.8fr)}}
+@media(max-width:480px){.arc-client-brief .arc-client-intro{gap:4px;padding-right:12px}.arc-client-brief .arc-client-tag{font-size:11px}.arc-client-brief .arc-client-voice .arc-client-role{font-size:14px;margin-bottom:12px}.arc-client-brief .arc-client-voice blockquote{font-size:16px}.arc-client-brief .arc-client-explain{font-size:12px}.arc-client-brief .arc-client-portrait img{max-height:300px}.arc-client-brief .arc-product{grid-template-columns:1fr}.arc-client-brief .arc-product-hero{max-width:240px;margin:auto;width:100%}}

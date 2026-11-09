@@ -172,7 +172,7 @@ test('the host sees the brief first, then the QR lobby, and can get back to the 
  const state={code:'ROOM27',phase:'lobby',duration:300,serverNow:1800000000000,count:0,readyCount:0,players:[],leaderboard:[],events:[],launch:{score:0,jobs:0,target:0,progress:0}};
  const h=ui({search:'?view=host&room=ROOM27',storage:{'wr-arc-host-ROOM27':{token:'t',host:true}},fetchImpl:async()=>Response.json(state)});await h.settle();
  assert.equal(h.context.arcTest.read().sceneKey,'intro-0');assert.match(h.app.innerHTML,/AGENCY NOW/);assert.match(h.app.innerHTML,/Client<\/b> = the brand/);assert.doesNotMatch(h.app.innerHTML,/ROOM CODE/);
- await h.click('intro','next');assert.equal(h.context.arcTest.read().sceneKey,'intro-1');assert.match(h.app.innerHTML,/A brief is the client/);assert.match(h.app.innerHTML,/5 minutes/);assert.match(h.app.innerHTML,/£160/);for(const c of COLOURWAYS)assert.ok(h.app.innerHTML.includes(c.image),'Brief must show '+c.name);
+ await h.click('intro','next');assert.equal(h.context.arcTest.read().sceneKey,'intro-1');assert.match(h.app.innerHTML,/A brief is the client/);assert.match(h.app.innerHTML,/5 minutes/);assert.match(h.app.innerHTML,/£160/);assert.match(h.app.innerHTML,/YOUR CLIENT/);assert.match(h.app.innerHTML,/JAMIE/);assert.match(h.app.innerHTML,/Founder, UNDERGROUND/);assert.match(h.app.innerHTML,/client-jamie-v1.webp/);for(const c of COLOURWAYS)assert.ok(h.app.innerHTML.includes(c.image),'Brief must show '+c.name);
  await h.click('intro','prev');assert.equal(h.context.arcTest.read().sceneKey,'intro-0');
  await h.click('intro','next');await h.click('intro','next');assert.equal(h.context.arcTest.read().sceneKey,'intro-2');assert.match(h.app.innerHTML,/Make the call/);
  await h.click('intro','next');assert.equal(h.context.arcTest.read().sceneKey,'lobby');assert.match(h.app.innerHTML,/ROOM CODE/);assert.match(h.app.innerHTML,/Saturday’s pop-up/);
@@ -210,4 +210,13 @@ test('the shared campaign wall opens the actual plan a player built',async()=>{
  const event={alias:'Budget Fox',type:3,points:150,detail:'Shoot booked',poster:{kind:'live',label:'SHOOT BOOKED',taskTitle:'Plan a shoot within budget',text:'Shoot booked for £850.',lines:['Premium camera package — £650','Sound recorder — £200','Courtyard — free']}};
  const state={code:'ROOM29',phase:'finished',serverNow:1800000000000,count:0,players:[],leaderboard:[],events:[event],launch:{score:150,jobs:1,target:4,progress:25}};
  const h=ui({search:'?view=stage&room=ROOM29',fetchImpl:async()=>Response.json(state)});await h.settle();assert.match(h.ids.get('arc-campaign-wrap').innerHTML,/View work by Budget Fox/);await h.click('view-work','0');assert.equal(h.context.arcTest.read().modalType,'artifact');assert.match(h.ids.get('arc-modal').innerHTML,/Premium camera package/);assert.match(h.ids.get('arc-modal').innerHTML,/£850/);
+});
+
+
+test('the client brief preview works without a room or database and keeps the full campaign ask',()=>{
+ let requests=0;const h=ui({search:'?view=brief',fetchImpl:async()=>{requests++;throw Error('Preview must not need a server');}});
+ assert.equal(h.context.arcTest.read().sceneKey,'brief-preview');assert.equal(requests,0);
+ assert.match(h.app.innerHTML,/MEET YOUR CLIENT/);assert.match(h.app.innerHTML,/Jamie, founder of UNDERGROUND/);assert.match(h.app.innerHTML,/Help us give students a reason to try them/);
+ assert.match(h.app.innerHTML,/WHO WE’RE TALKING TO/);assert.match(h.app.innerHTML,/WHAT’S IN THE WAY/);assert.match(h.app.innerHTML,/A WIN LOOKS LIKE/);assert.match(h.app.innerHTML,/Saturday’s pop-up/);assert.match(h.app.innerHTML,/5 minutes/);
+ assert.match(h.app.innerHTML,/<details class="arc-brief-extra">/);assert.match(h.app.innerHTML,/collage.webp/);assert.match(h.app.innerHTML,/href="\/\?view=host"/);assert.doesNotMatch(h.app.innerHTML,/data-action="intro"/);
 });
