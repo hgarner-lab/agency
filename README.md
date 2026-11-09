@@ -53,6 +53,7 @@ Keep these values in Vercel’s environment settings. Never add a real `.env` fi
 5. Players finish a short, unscored practice on their phones: move, collect a star, stand beside a teammate and press Ready. The host sees who is practising and who is ready.
 6. Start the game when everyone is ready. If needed, the host can choose **Start anyway**. The shared screen shows player spotlights, scores, completed jobs and posters.
 7. End the game to reveal the roles, or let the clock run out.
+8. Use the closing **Meet the team** screen to discuss what each role does and three habits that help someone do it well. Players can open the same explanations on their phones, with a trainer-launch example for every role. Final scores and highlights remain available below the big-screen role cards.
 
 Each player gets their own map. Complete at least two jobs to unlock a role; repeating a job is allowed. Practice does not affect points or roles. Late arrivals practise while the shared game clock continues. The room cap is 50. Points and role classification are separate: the work and items a player chooses shape their role.
 

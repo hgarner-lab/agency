@@ -33,3 +33,31 @@ export const roles = [
  {key:'account',name:'THE BOSS',job:'ACCOUNT MANAGEMENT',symbol:'↗',color:'#ff8d69',line:'YOU BRING PEOPLE TOGETHER.',description:'Your choices focused on the client, the budget and getting people to agree. In an agency, account managers work with the client and the team to keep a campaign on track.',skill:'Working with people',partner:'The Mastermind'},
  {key:'production',name:'THE FIXER',job:'PRODUCTION',symbol:'⊞',color:'#68dce9',line:'YOU GET IDEAS MADE.',description:'Your choices focused on solving practical problems and getting things done. In an agency, producers organise the people, time, equipment and places needed to make a campaign happen.',skill:'Solving practical problems',partner:'The Boss'}
 ];
+
+// Shared by the phone reveal and the facilitator's closing screen.
+export const roleLessons = {
+ strategy: {
+  title:'Strategy',
+  does:'Find out what people want and help the team decide what the campaign should say.',
+  example:'For a trainer launch: find out why people would choose these trainers, then give the team one clear direction.',
+  habits:['Ask good questions and listen to the answers.','Use evidence to check your assumptions.','Turn what you learn into a clear plan.']
+ },
+ creative: {
+  title:'Creative',
+  does:'Turn the plan into ideas people notice: the words, designs, films and experiences.',
+  example:'For a trainer launch: come up with the ad, the headline and the look of the campaign.',
+  habits:['Explore several ideas before choosing one.','Make the idea easy to understand.','Use feedback to make the work better.']
+ },
+ account: {
+  title:'Account management',
+  does:'Work with the client and the agency team so everyone knows what is needed, agreed and due.',
+  example:'For a trainer launch: agree the work, budget and dates, then keep the client and team updated.',
+  habits:['Listen carefully and ask when something is unclear.','Be clear about costs, decisions and deadlines.','Flag problems early and help agree a solution.']
+ },
+ production: {
+  title:'Production',
+  does:'Organise the people, time, places and equipment that turn an idea into finished work.',
+  example:'For a trainer launch: book the shoot, organise the crew and make sure the ad is ready on time.',
+  habits:['Break a big job into clear steps.','Spot practical problems and make a backup plan.','Pay attention to details and follow through.']
+ }
+};

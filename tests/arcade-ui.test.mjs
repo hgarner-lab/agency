@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {cast} from '../src/story.js';
-import {roles} from '../src/content.js';
+import {roles,roleLessons} from '../src/content.js';
 import {character,selector} from '../src/scenes.js';
 import {isClean} from '../src/filter.js';
 import {qr} from '../src/qr.js';
@@ -28,7 +28,7 @@ function ui(options={}){
  const app=new Element('app'),toast=new Element('toast');ids.set('app',app);ids.set('toast',toast);
  const store=()=>({data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,v)}});
  const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,
-  ...world,cast,roles,character,selector,isClean,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
+  ...world,cast,roles,roleLessons,character,selector,isClean,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
   location:{origin:'https://game.test',search:options.search||'',href:'https://game.test/'},history:{pushState(){}},sessionStorage:store(),localStorage:store(),navigator:{},
   setTimeout(){return 0},setInterval(){return 0},clearInterval(){},requestAnimationFrame(){},
   FormData:class{constructor(form){this.fields=form.fields}get(k){return this.fields[k]}},
@@ -55,7 +55,7 @@ test('solo player selects a character, moves, collects, makes an ad and reaches 
  assert.equal(h.context.arcTest.read().game.jobs[1],1);assert.match(h.ids.get('arc-score').textContent.toString(),/180/);
  h.advance(4000);h.walkTo(22,3);h.walkTo(22,8);h.walkTo(26,4,true);h.use();
  await h.click('pause-menu');await h.click('finish-self');
- assert.equal(h.context.arcTest.read().solo.phase,'finished');assert.match(h.app.innerHTML,/THE INSTIGATOR/);assert.match(h.app.innerHTML,/THE ADS YOU MADE/);assert.match(h.app.innerHTML,/PixelHG/);
+ assert.equal(h.context.arcTest.read().solo.phase,'finished');assert.match(h.app.innerHTML,/THE INSTIGATOR/);assert.match(h.app.innerHTML,/THE ADS YOU MADE/);assert.match(h.app.innerHTML,/PixelHG/);assert.match(h.app.innerHTML,/href="#meet-team"/);assert.match(h.app.innerHTML,new RegExp('lesson-color:'+roles[1].color+'" open'));assert.match(h.app.innerHTML,/YOUR GAME ROLE/);
 });
 test('solo pause keeps the remaining time, and the chosen character never preselects a role',async()=>{
  const h=ui();await h.click('solo');await h.click('character','0');await h.submit({mode:'solo',alias:'RemPlayer'});await h.start();h.advance(10000);await h.click('pause-menu');
@@ -117,4 +117,20 @@ test('late arrivals finish neutral practice while the shared clock keeps running
  const h=ui({search:'?view=player&room=ROOM25',storage:{'wr-arc-player-ROOM25':player},fetchImpl:async(url)=>{if(url.endsWith('/ready')){state.ready=true;state.game.practiceReady=true;return Response.json({ok:true});}return Response.json(state);}});
  await h.settle();assert.equal(h.context.arcTest.read().sceneKey,'practice');state.phase='paused';await h.click('retry');await h.settle();h.context.arcTest.step({d:'right'});assert.equal(h.context.arcTest.read().practice.x,2);assert.equal(h.ids.get('arc-practice-freeze').hidden,false);state.phase='active';await h.click('retry');await h.settle();for(let i=0;i<4;i++)h.context.arcTest.step({d:'right'});await h.use();
  assert.equal(h.context.arcTest.read().sceneKey,'play');assert.equal(h.context.arcTest.read().game.score,0);
+});
+test('players without a role card can still explore all four real agency jobs',async()=>{
+ const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'RoleExplorer'});await h.start();await h.click('pause-menu');await h.click('finish-self');
+ assert.match(h.app.innerHTML,/GOOD START/);assert.match(h.app.innerHTML,/EXPLORE THE ROLES/);
+ assert.equal((h.app.innerHTML.match(/class="arc-role-lesson"/g)||[]).length,4);
+ assert.doesNotMatch(h.app.innerHTML,/YOUR GAME ROLE/);assert.doesNotMatch(h.app.innerHTML,/SAVE ROLE CARD/);
+});
+test('the shared closing screen teaches all four roles and keeps the final scores available',async()=>{
+ const players=roles.map((r,i)=>({alias:'Crew'+i,character:i%3,score:400-i*10,completed:2,profile:{role:i},game:newArcadeGame(i%3)}));
+ const state={code:'ROOM26',phase:'finished',serverNow:1800000000000,count:4,players,leaderboard:players,events:[],launch:{score:1540,jobs:8,target:16,progress:50}};
+ const h=ui({search:'?view=stage&room=ROOM26',fetchImpl:async()=>Response.json(state)});await h.settle();
+ assert.equal(h.context.arcTest.read().sceneKey,'room-result');assert.match(h.app.innerHTML,/MEET THE TEAM/);
+ assert.equal((h.app.innerHTML.match(/class="arc-stage-lesson"/g)||[]).length,4);
+ for(let i=0;i<4;i++)assert.equal(h.ids.get('arc-role-count-'+i).textContent,'1 PLAYER IN THIS ROLE');
+ assert.match(h.ids.get('arc-leaderboard-wrap').innerHTML,/FINAL LEADERBOARD/);assert.doesNotMatch(h.app.innerHTML,/id="arc-stage-canvas"/);
+ await h.click('retry');await h.settle();assert.equal(h.context.arcTest.read().sceneKey,'room-result');
 });
