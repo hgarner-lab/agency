@@ -1,3 +1,4 @@
+import * as agencyTasks from '../src/agency-tasks.js';
 // A DOM adapter executes the shipped controller code. Browser layout and touch
 // compatibility need device QA; map pixels are rendered separately with Canvas.
 import {test} from 'node:test';
@@ -29,7 +30,7 @@ function ui(options={}){
  const app=new Element('app'),toast=new Element('toast');ids.set('app',app);ids.set('toast',toast);
  const store=()=>({data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,v)}});
  const context={console,URLSearchParams,URL,JSON,Math,Date:class extends Date{static now(){return time}},performance:{now:()=>time},structuredClone,TextEncoder,Blob,Image:options.Image,
-  ...world,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawRoleCard,MCCANN_LOGO_URL,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
+  ...world,...agencyTasks,cast,roles,roleLessons,waysIn,character,selector,isClean,isGameName,makeNickname,qr,ARCADE_TICK,JOBS,PICKUPS,newArcadeGame,applyArcadeInput,arcadeProfile,gameHint,jobLabel,jobChecklist,nearbyJob,nextInstruction,publicArcadeGame,posterSVG,drawRoleCard,MCCANN_LOGO_URL,drawGameIcon(){},drawPractice(){},createArcadeRenderer:()=>({draw(){}}),
   location:{origin:'https://game.test',search:options.search||'',href:'https://game.test/'},history:{pushState(){}},sessionStorage:store(),localStorage:store(),navigator:{},
   setTimeout(){return 0},setInterval(){return 0},clearInterval(){},requestAnimationFrame(){},
   FormData:class{constructor(form){this.fields=form.fields}get(k){return this.fields[k]}},
@@ -39,15 +40,15 @@ function ui(options={}){
  for(const [k,v] of Object.entries(options.session||{}))context.sessionStorage.setItem(k,JSON.stringify(v));
  for(const [k,v] of Object.entries(options.storage||{}))context.localStorage.setItem(k,JSON.stringify(v));
  const source=readFileSync(new URL('../src/arcade-app.js',import.meta.url),'utf8').replace(/^import .*?;\n/gm,'');
- vm.createContext(context);vm.runInContext(source+'\nglobalThis.arcTest={read:()=>({game,solo,view,sceneKey,practice,held,movementPointer}),step:processInput};',context);
+ vm.createContext(context);vm.runInContext(source+'\nglobalThis.arcTest={read:()=>({game,solo,view,sceneKey,practice,held,movementPointer,modalType}),step:processInput,workMarkup,update:updatePlayUI};',context);
  async function dispatch(name,target,extra={}){for(const fn of listeners.get(name)||[])await fn({target,preventDefault(){},...extra})}
- async function click(action,value){return dispatch('click',{closest(s){return s==='[data-action]'?{dataset:{action,value},disabled:false}:null}})}
+ async function click(action,value,slot){return dispatch('click',{closest(s){return s==='[data-action]'?{dataset:{action,value,slot},disabled:false}:null}})}
  const walkTo=(x,y,adjacent=false)=>{
   const g=context.arcTest.read().game,queue=[[g.x,g.y,[]]],seen=new Set([g.x+','+g.y]);let route;
   while(queue.length){const [cx,cy,p]=queue.shift();if(adjacent?Math.abs(cx-x)+Math.abs(cy-y)<=1:cx===x&&cy===y){route=p;break}for(const [d,dx,dy] of [['up',0,-1],['down',0,1],['left',-1,0],['right',1,0]]){const nx=cx+dx,ny=cy+dy,k=nx+','+ny;if(!seen.has(k)&&canWalk(nx,ny)){seen.add(k);queue.push([nx,ny,[...p,d]])}}}
   assert.ok(route);for(const d of route){time+=ARCADE_TICK;context.arcTest.step({d})}
  };
- return {context,app,ids,click,walkTo,dispatch,async settle(){await new Promise(setImmediate)},async start(){await click('begin-practice');for(let i=0;i<4;i++){time+=ARCADE_TICK;context.arcTest.step({d:'right'})}time+=ARCADE_TICK;await context.arcTest.step({a:1});},advance(ms){time+=ms},use(){time+=ARCADE_TICK;return context.arcTest.step({a:1})},submit(fields){return dispatch('submit',{id:'arc-entry',fields})}};
+ return {context,app,ids,click,walkTo,dispatch,async settle(){await new Promise(setImmediate)},async start(){await click('begin-practice');for(let i=0;i<4;i++){time+=ARCADE_TICK;context.arcTest.step({d:'right'})}time+=ARCADE_TICK;await context.arcTest.step({a:1});},advance(ms){time+=ms},use(){time+=ARCADE_TICK;const result=context.arcTest.step({a:1});const w=context.arcTest.read().game?.work;if(w){time+=ARCADE_TICK;context.arcTest.step({b:{task:w.id,run:w.run,picks:[0,0,0]}})}return result},submit(fields){return dispatch('submit',{id:'arc-entry',fields})}};
 }
 test('saving a role card loads the McCann artwork into the PNG and names the file for McCann',async()=>{
  const game=newArcadeGame(2);game.jobs[1]=2;game.affinity[1]=7;game.score=360;
@@ -73,7 +74,7 @@ test('solo player selects a character, moves, collects, makes an ad and reaches 
  assert.equal(h.context.arcTest.read().game.jobs[1],1);assert.match(h.ids.get('arc-score').textContent.toString(),/180/);
  h.advance(4000);h.walkTo(22,3);h.walkTo(22,8);h.walkTo(26,4,true);h.use();
  await h.click('pause-menu');await h.click('finish-self');
- assert.equal(h.context.arcTest.read().solo.phase,'finished');assert.match(h.app.innerHTML,/THE INSTIGATOR/);assert.match(h.app.innerHTML,/THE ADS YOU MADE/);assert.match(h.app.innerHTML,/PixelHG/);assert.match(h.app.innerHTML,/href="#meet-team"/);assert.match(h.app.innerHTML,new RegExp('lesson-color:'+roles[1].color+'" open'));assert.match(h.app.innerHTML,/YOUR GAME ROLE/);
+ assert.equal(h.context.arcTest.read().solo.phase,'finished');assert.match(h.app.innerHTML,/THE INSTIGATOR/);assert.match(h.app.innerHTML,/THE WORK YOU MADE/);assert.match(h.app.innerHTML,/PixelHG/);assert.match(h.app.innerHTML,/href="#meet-team"/);assert.match(h.app.innerHTML,new RegExp('lesson-color:'+roles[1].color+'" open'));assert.match(h.app.innerHTML,/YOUR GAME ROLE/);
 });
 test('solo pause keeps the remaining time, and the chosen character never preselects a role',async()=>{
  const h=ui();await h.click('solo');await h.click('character','0');await h.submit({mode:'solo',alias:'RemPlayer'});await h.start();h.advance(10000);await h.click('pause-menu');
@@ -92,7 +93,7 @@ test('opening the object guide pauses solo time and movement, then resumes with 
 test('the live instruction and action button advance from collecting to completing a job',async()=>{
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'FollowDots'});await h.start();
  assert.equal(h.ids.get('arc-use').disabled,true);assert.equal(h.ids.get('arc-hint').textContent,'Choose your first job.');
- h.walkTo(22,3);h.walkTo(22,8);assert.equal(h.ids.get('arc-hint').textContent,'Take colour + word to Nova.');
+ h.walkTo(22,3);h.walkTo(22,8);assert.equal(h.ids.get('arc-hint').textContent,'Help NOVA make a campaign idea.');
  h.walkTo(26,4,true);assert.equal(h.ids.get('arc-hint').textContent,'Press MAKE AD.');
  assert.equal(h.ids.get('arc-use').disabled,false);assert.equal(h.ids.get('arc-use').textContent,'MAKE AD');h.use();
  assert.equal(h.ids.get('arc-hint').textContent,'Job done. Choose your next one.');
@@ -177,3 +178,33 @@ test('the host sees the brief first, then the QR lobby, and can get back to the 
  assert.match(home.app.innerHTML,/BACK TO YOUR GAME · ROOM27/);
 });
 
+
+test('the phone builds a plan one part at a time and submits the actual chosen tiles',async()=>{
+ const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'PlanBuilder'});await h.start();h.walkTo(6,20,true);h.context.arcTest.step({a:1});
+ assert.equal(h.context.arcTest.read().modalType,'work');assert.match(h.context.arcTest.workMarkup(),/BUILD PART 1 OF 3/);assert.match(h.context.arcTest.workMarkup(),/arc-work-time/);
+ const before=h.context.arcTest.read().game.score;
+ await h.click('work-pick','1','0');await h.click('work-pick','0','1');await h.click('work-pick','0','2');
+ assert.match(h.context.arcTest.workMarkup(),/USE THIS PLAN/);await h.click('work-submit');
+ assert.equal(h.context.arcTest.read().game.score,before);assert.match(h.context.arcTest.workMarkup(),/One editor cannot/);
+ await h.click('work-edit','0');assert.match(h.context.arcTest.workMarkup(),/BUILD PART 1/);await h.click('work-pick','0','0');await h.click('work-submit');
+ const state=h.context.arcTest.read();assert.equal(state.modalType,null);assert.equal(state.game.delivery.to,1);assert.equal(state.game.jobs[2],0);h.walkTo(26,4,true);h.context.arcTest.step({a:1});assert.equal(h.context.arcTest.read().game.jobs[2],1);
+});
+test('work can be abandoned safely, and no plan can be submitted after the clock expires',async()=>{
+ const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'ClockBuilder'});await h.start();h.walkTo(6,20,true);h.context.arcTest.step({a:1});
+ await h.click('close-modal');assert.equal(h.context.arcTest.read().game.work,null);assert.equal(h.context.arcTest.read().modalType,null);
+ h.context.arcTest.step({a:1});for(let i=0;i<3;i++)await h.click('work-pick','0',String(i));h.advance(300000);await h.click('work-submit');assert.equal(h.context.arcTest.read().game.delivery,null);assert.equal(h.context.arcTest.read().game.score,0);
+});
+test('live work survives polling and host pause, then completes after resuming',async()=>{
+ const game=newArcadeGame();game.x=6;game.y=19;game.practiceReady=true;
+ const player={id:'work-player',token:'token',alias:'LiveBuilder',character:0};
+ let state={code:'ROOM28',phase:'active',serverNow:1800000000000,deadline:1800000300000,game,seq:0,count:1,ready:true,readyCount:1,players:[],finished:false};
+ const h=ui({search:'?view=player&room=ROOM28',storage:{'wr-arc-player-ROOM28':player},fetchImpl:async()=>Response.json(state)});await h.settle();h.context.arcTest.step({a:1});for(let i=0;i<3;i++)await h.click('work-pick','0',String(i));
+ state={...state,game:structuredClone(h.context.arcTest.read().game),seq:h.context.arcTest.read().game.seq,phase:'paused',remaining:280000};await h.click('retry');await h.settle();assert.equal(h.context.arcTest.read().modalType,'work');assert.match(h.ids.get('arc-work-status').textContent,/PAUSED/);await h.click('work-submit');assert.equal(h.context.arcTest.read().game.delivery,null);
+ state={...state,phase:'active'};await h.click('retry');await h.settle();assert.match(h.context.arcTest.workMarkup(),/USE THIS PLAN/);await h.click('work-submit');assert.equal(h.context.arcTest.read().game.delivery.to,1);
+});
+
+test('the shared campaign wall opens the actual plan a player built',async()=>{
+ const event={alias:'Budget Fox',type:3,points:150,detail:'Shoot booked',poster:{kind:'live',label:'SHOOT BOOKED',taskTitle:'Plan a shoot within budget',text:'Shoot booked for £850.',lines:['Premium camera package — £650','Sound recorder — £200','Courtyard — free']}};
+ const state={code:'ROOM29',phase:'finished',serverNow:1800000000000,count:0,players:[],leaderboard:[],events:[event],launch:{score:150,jobs:1,target:4,progress:25}};
+ const h=ui({search:'?view=stage&room=ROOM29',fetchImpl:async()=>Response.json(state)});await h.settle();assert.match(h.ids.get('arc-campaign-wrap').innerHTML,/View work by Budget Fox/);await h.click('view-work','0');assert.equal(h.context.arcTest.read().modalType,'artifact');assert.match(h.ids.get('arc-modal').innerHTML,/Premium camera package/);assert.match(h.ids.get('arc-modal').innerHTML,/£850/);
+});

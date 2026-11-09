@@ -46,6 +46,11 @@ const shoe=(x,y,s,fill,accent)=>`<g transform="translate(${x} ${y}) scale(${s})"
 export function posterSVG(p){
  const kind=p?.kind||'ad',ink='#233139';
  const frame=(bg,label,body)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 148" role="img" aria-label="${esc(label)}"><rect width="120" height="148" fill="${bg}"/>${body}</svg>`;
+ if(p?.lines&&kind!=='ad'){
+  const colours={insight:['#e4f2be','#496726'],approval:['#ffe0bf','#98552f'],live:['#c8ecec','#23555c']},[bg,accent]=colours[kind]||colours.insight;
+  const copy=wrap(p.text,19).slice(0,7);
+  return frame(bg,p.taskTitle+': '+p.text,`<rect x="7" y="7" width="106" height="134" fill="none" stroke="${accent}" stroke-width="2"/><text x="14" y="24" font-family="monospace" font-size="8" font-weight="bold" fill="${accent}">${esc(p.label)}</text><path d="M14 32h92" stroke="${accent}"/>${lines(copy,14,49,8,11,ink,'start')}<text x="14" y="132" font-family="monospace" font-size="6" fill="${accent}">UNDERGROUND / THE AGENCY</text>`);
+ }
  if(kind==='insight'){const t=wrap(p.text,13);return frame('#d9f2a8','Customer insight: '+p.text,`<rect x="8" y="8" width="104" height="132" fill="#f7fbe9" stroke="${ink}" stroke-width="2"/><text x="16" y="24" font-family="monospace" font-size="8" font-weight="bold" fill="#5b7d2b">INSIGHT</text><text x="16" y="52" font-family="Georgia,serif" font-size="34" fill="#9cc65a">“</text>${lines(t,16,62,11,14,ink,'start')}<text x="16" y="132" font-family="monospace" font-size="6" fill="#5b7d2b">STRATEGY / UNDERGROUND</text>`);}
  if(kind==='approval'){const t=wrap(p.text,14);return frame('#ffd9b8','Client approved: '+p.text,`<rect x="8" y="8" width="104" height="132" fill="#fff6ec" stroke="${ink}" stroke-width="2"/><text x="16" y="24" font-family="monospace" font-size="8" font-weight="bold" fill="#b5532a">CLIENT SIGN-OFF</text>${lines(t,60,52,11,14,ink)}<g transform="rotate(-12 60 106)"><rect x="18" y="88" width="84" height="34" rx="4" fill="none" stroke="#e1572d" stroke-width="3"/><text x="60" y="111" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="15" fill="#e1572d">APPROVED</text></g>`);}
  if(kind==='live'){const t=wrap(p.text,14);return frame('#1d3a3e','Now live: '+p.text,`<circle cx="20" cy="22" r="5" fill="#ff5b5b"/><text x="30" y="26" font-family="monospace" font-weight="bold" font-size="11" fill="#ff8a8a">LIVE</text>${lines(t,60,62,12,15,'#e9fbfb')}<path d="M16 110h88" stroke="#79d8d8" stroke-width="2" stroke-dasharray="4 3"/><text x="60" y="130" text-anchor="middle" font-family="monospace" font-size="7" fill="#79d8d8">PRODUCTION / LAUNCH DAY</text>`);}
@@ -100,7 +105,7 @@ export function createArcadeRenderer(canvas,fullMap=false){
   const visible=availablePickups(game,now);for(const item of visible)drawPickup(c,item,item.x*TILE-ox,item.y*TILE-oy,now);
   if(!fullMap){
    const item=target&&!target.person&&Math.abs(target.x-game.x)+Math.abs(target.y-game.y)<=5?target:visible.filter(p=>Math.abs(p.x-game.x)+Math.abs(p.y-game.y)<=3).sort((a,b)=>(Math.abs(a.x-game.x)+Math.abs(a.y-game.y))-(Math.abs(b.x-game.x)+Math.abs(b.y-game.y)))[0];
-   if(item){const label={clue:'CLUE',paint:'COLOUR',word:'WORD',spanner:'SPANNER',battery:'BATTERY'}[item.icon],w=label.length*6+8,x=Math.max(2,Math.min(canvas.width-w-2,item.x*TILE-ox+8-w/2)),y=Math.max(23,Math.min(canvas.height-14,item.y*TILE-oy+17));c.fillStyle='#19343bf0';c.fillRect(x,y,w,12);pixelText(c,label,x+w/2+1,y+3,'#f5edcf',1,'center');}
+   if(item){const label=game.taskVersion&&item.icon==='clue'?(item.type===3?'DOCUMENT':'RESEARCH'):{clue:'CLUE',paint:'COLOUR',word:'WORD',spanner:'SPANNER',battery:'BATTERY'}[item.icon],w=label.length*6+8,x=Math.max(2,Math.min(canvas.width-w-2,item.x*TILE-ox+8-w/2)),y=Math.max(23,Math.min(canvas.height-14,item.y*TILE-oy+17));c.fillStyle='#19343bf0';c.fillRect(x,y,w,12);pixelText(c,label,x+w/2+1,y+3,'#f5edcf',1,'center');}
   }
   for(const f of FURNITURE)arcadeFurniture({set fillStyle(v){c.fillStyle=v},fillRect(x,y,w,h){c.fillRect(x-ox,y-oy,w,h)}},f);
   const actors=JOBS.map((j,i)=>({x:j.x*TILE,y:j.y*TILE,character:[0,1,3,2][i],name:j.person,npc:true,index:i}));actors.push({x:px,y:py,character:game.character,name:options.label||'YOU',npc:false});actors.sort((a,b)=>a.y-b.y);
@@ -162,3 +167,4 @@ export function createRoomRenderer(canvas){
  }
  return {draw,canvas,destroy(){}};
 }
+

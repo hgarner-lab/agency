@@ -1,4 +1,4 @@
-import {newArcadeGame,applyArcadeInput,arcadeProfile,publicArcadeGame,ARCADE_TICK} from './arcade-world.js';
+import {validArcadeInput,newArcadeGame,applyArcadeInput,arcadeProfile,publicArcadeGame,ARCADE_TICK} from './arcade-world.js';
 import {isClean,isGameName} from './filter.js';
 const arcJson=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
 const arcHash=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)))).map(v=>v.toString(16).padStart(2,'0')).join('');
@@ -65,7 +65,7 @@ export async function arcadeApi(req,env){
    if(!mine)arcFail('Join this room before playing.',403);
    if(phase!=='active'||player.finished)arcFail(phase==='paused'?'The host has paused the game.':'The game is not running.',409);
    const ops=body.ops;if(!Array.isArray(ops)||!ops.length||ops.length>32)arcFail('Send between 1 and 32 game inputs.');
-   for(const op of ops)if(!op||!Number.isInteger(op.n)||op.n<1||!(op.a===1&&!op.d||['up','down','left','right'].includes(op.d)&&!op.a))arcFail('Invalid game input.');
+   for(const op of ops)if(!validArcadeInput(op))arcFail('Invalid game input.');
    const fresh=ops.filter(o=>o.n>player.seq),g=JSON.parse(player.game);
    if(!fresh.length)return arcJson({game:g,seq:player.seq,events:[],serverNow:now});
    for(let i=0;i<fresh.length;i++)if(fresh[i].n!==player.seq+i+1)arcFail('Your game needs to reconnect. Rejoining will keep your progress.',409);
@@ -93,3 +93,4 @@ export async function arcadeApi(req,env){
   return arcJson({error:'Not found.'},404);
  }catch(e){if(e.status)return arcJson({error:e.message},e.status);console.error('Arcade room error:',e.message);return arcJson({error:'The room could not sync. Your local game will wait while reconnecting.'},500);}
 }
+

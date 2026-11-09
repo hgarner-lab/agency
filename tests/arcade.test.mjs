@@ -1,3 +1,4 @@
+import {taskFor,TASK_POOLS,checkTask} from '../src/agency-tasks.js';
 import {test,beforeEach,mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
@@ -30,12 +31,12 @@ function path(g,tx,ty,adjacent=false){
 }
 function walk(g,x,y,adjacent=false){const inputs=path(g,x,y,adjacent);for(const input of inputs){now+=ARCADE_TICK;applyArcadeInput(g,input,now)}return inputs;}
 function act(g){now+=ARCADE_TICK;return applyArcadeInput(g,{a:1},now)}
+function submit(g,picks=[0,0,0]){now+=ARCADE_TICK;return applyArcadeInput(g,{b:{task:g.work.id,run:g.work.run,picks}},now)}
 function performJob(g,type){
  const input=[];const go=(x,y,a=false)=>input.push(...walk(g,x,y,a));const use=()=>{input.push({a:1});return act(g)};
- if(type===0){go(3,5);go(11,3);go(10,8);go(6,4,true);use();}
- if(type===1){go(22,3);go(22,8);go(26,4,true);use();}
- if(type===2){go(6,20,true);use();const j=JOBS[g.delivery.to];go(j.x,j.y,true);use();}
- if(type===3){go(22,17);go(30,22);go(26,20,true);use();}
+ if(taskFor(g,type).resources){if(type===0){go(3,5);go(11,3);go(10,8);}if(type===1){go(22,3);go(22,8);}if(type===3){go(22,17);go(30,22);}}
+ const job=JOBS[type];go(job.x,job.y,true);use();const b={task:g.work.id,run:g.work.run,picks:[0,0,0]};input.push({b});submit(g);
+ if(type===2){const j=JOBS[g.delivery.to];go(j.x,j.y,true);use();}
  return input;
 }
 async function request(route,body=null,auth=null){
@@ -53,8 +54,8 @@ test('movement respects walls, desks and NPCs; talking without ingredients canno
 });
 test('collectibles are single-use, jobs consume them, and a poster uses the collected colour and word',()=>{
  const g=newArcadeGame();walk(g,22,3);assert.ok(g.inventory.includes('ink-green'));const score=g.score;
- applyArcadeInput(g,{a:1},now);assert.equal(g.score,score);walk(g,22,8);walk(g,26,4,true);const events=act(g);
- assert.equal(g.posters.length,1);assert.equal(g.posters[0].colour,'#bbef66');assert.ok(PIECES.headlines['word-us'].includes(g.posters[0].title));assert.ok(events.some(e=>e.kind==='job'&&e.poster));assert.equal(g.inventory.filter(i=>i.startsWith('ink-')||i.startsWith('word-')).length,0);
+ applyArcadeInput(g,{a:1},now);assert.equal(g.score,score);walk(g,22,8);walk(g,26,4,true);act(g);const events=submit(g);
+ assert.equal(g.posters.length,1);assert.equal(g.posters[0].colour,'#bbef66');assert.equal(g.posters[0].title,'YOUR WAY');assert.ok(events.some(e=>e.kind==='job'&&e.poster));assert.equal(g.inventory.filter(i=>i.startsWith('ink-')||i.startsWith('word-')).length,0);
 });
 test('points and character choice do not decide a role; identical work yields the same classification',()=>{
  const one=newArcadeGame(0),two=newArcadeGame(2);performJob(one,0);performJob(two,0);now+=4000;performJob(one,0);performJob(two,0);one.score=99999;two.score=1;
@@ -63,15 +64,15 @@ test('points and character choice do not decide a role; identical work yields th
 test('instructions follow the current room, missing items and the action needed beside a teammate',()=>{
  const g=newArcadeGame();walk(g,22,3);
  assert.deepEqual(jobChecklist(g).map(i=>i.have),[true,false]);assert.match(gameHint(g,now),/Collect a word tile/);
- walk(g,22,8);assert.ok(jobChecklist(g).every(i=>i.have));assert.match(gameHint(g,now),/Take colour \+ word to Nova/);
- walk(g,26,4,true);assert.match(gameHint(g,now),/Press MAKE AD/);act(g);assert.match(gameHint(g,now),/Job done/);
- walk(g,3,5);assert.deepEqual(jobChecklist(g),[{icon:'clue',label:'Clues 1/3',have:false}]);assert.match(gameHint(g,now),/1\/3 collected/);
- walk(g,30,22);assert.deepEqual(jobChecklist(g).map(i=>i.have),[false,true]);assert.match(gameHint(g,now),/the spanner/);
+ walk(g,22,8);assert.ok(jobChecklist(g).every(i=>i.have));assert.match(gameHint(g,now),/make a campaign idea/);
+ walk(g,26,4,true);assert.match(gameHint(g,now),/Press MAKE AD/);act(g);submit(g);assert.match(gameHint(g,now),/Job done/);
+ walk(g,3,5);assert.deepEqual(jobChecklist(g),[{icon:'clue',label:'Research 1/3',have:false}]);assert.match(gameHint(g,now),/1\/3 collected/);
+ walk(g,30,22);assert.deepEqual(jobChecklist(g).map(i=>i.have),[false,true]);assert.match(gameHint(g,now),/the kit list/);
 });
 test('client brief instructions keep the named destination while crossing other rooms',()=>{
- const g=newArcadeGame();walk(g,6,20,true);assert.match(gameHint(g,now),/Press GET MESSAGE/);act(g);
- assert.match(gameHint(g,now),/Take Sol’s message to Nova/);assert.equal(jobChecklist(g)[0].icon,'brief');
- walk(g,3,5);assert.match(gameHint(g,now),/Take Sol’s message to Nova/);
+ const g=newArcadeGame();walk(g,6,20,true);assert.match(gameHint(g,now),/Press AGREE SCOPE/);act(g);submit(g);
+ assert.match(gameHint(g,now),/Take Sol’s agreement to Nova/);assert.equal(jobChecklist(g)[0].icon,'brief');
+ walk(g,3,5);assert.match(gameHint(g,now),/Take Sol’s agreement to Nova/);
  walk(g,26,4,true);assert.match(gameHint(g,now),/Press DELIVER/);act(g);assert.equal(g.jobs[2],1);assert.equal(g.delivery,null);
 });
 test('following the marked routes completes any chosen job without crossing walls or desks',()=>{
@@ -80,7 +81,7 @@ test('following the marked routes completes any chosen job without crossing wall
   const [x,y]=[[7,9],[24,9],[7,16],[24,16]][type];walk(g,x,y);
   for(let step=0;step<12&&!g.jobs[type];step++){
    const hint=nextInstruction(g,now);assert.ok(hint.target,'An unfinished job must have a next target');
-   if(hint.kind==='act'){act(g);continue;}
+   if(hint.kind==='act'){act(g);if(g.work)submit(g);continue;}
    const route=guidancePath(g,hint.target);assert.ok(route.length);
    for(const p of route){
     assert.ok(canWalk(p.x,p.y));assert.equal(Math.abs(p.x-g.x)+Math.abs(p.y-g.y),1);
@@ -126,12 +127,12 @@ test('the marked object stays selected while moving, until collected or changing
  walk(g,3,5);assert.equal(nextInstruction(g,now).type,0);
 });
 test('TALK cannot complete an unrelated job while delivering a message',()=>{
- const g=newArcadeGame();walk(g,6,20,true);assert.equal(jobAction(g,now).label,'GET MESSAGE');act(g);
+ const g=newArcadeGame();walk(g,6,20,true);assert.equal(jobAction(g,now).label,'AGREE SCOPE');act(g);submit(g);
  walk(g,22,17);walk(g,30,22);walk(g,26,20,true);
  assert.equal(jobAction(g,now).label,'TALK');const before=g.score,events=act(g);
  assert.equal(g.score,before);assert.equal(g.jobs[3],0);assert.ok(events.every(e=>e.kind==='note'));
  walk(g,26,4,true);assert.equal(jobAction(g,now).label,'DELIVER');act(g);
- walk(g,26,20,true);assert.equal(jobAction(g,now).label,'FIX KIT');act(g);assert.equal(g.jobs[3],1);
+ walk(g,26,20,true);assert.equal(jobAction(g,now).label,'LOCK PLAN');act(g);submit(g);assert.equal(g.jobs[3],1);
  assert.equal(jobAction(g,now).label,'TALK');const score=g.score;act(g);assert.equal(g.score,score);
 });
 test('a role needs two completed jobs, even with many collected items',()=>{
@@ -171,4 +172,47 @@ test('generated game names always pass the server name check and fit on screen',
  const {makeNickname,isGameName,isClean}=await import('../src/filter.js');
  for(let i=0;i<2000;i++){const name=makeNickname();assert.ok(isGameName(name),name);assert.ok(isClean(name),name);assert.ok(name.length<=16,name);}
  assert.equal(isGameName('Turbo Llama 69'),false);assert.equal(isGameName('Penis Llama'),false);assert.equal(isGameName('Galactic Capybara'),false);assert.equal(isGameName('Turbo Llama'),true);
+});
+
+
+test('all twelve job types create the selected work and cycle without needing old floor items',()=>{
+ for(const type of [0,1,2,3]){
+  const g=newArcadeGame(type%3);
+  for(let variant=0;variant<3;variant++){
+   now+=4000;const expected=TASK_POOLS[type][variant];performJob(g,type);
+   assert.equal(g.jobs[type],variant+1);const product=g.workProducts.at(-1);
+   assert.equal(product.taskTitle,expected.title);assert.deepEqual(product.lines,expected.slots.map(s=>s.options[0].text));assert.equal(product.kind,expected.kind);assert.equal(g.work,null);assert.equal(g.delivery,null);
+  }
+  assert.equal(taskFor(g,type).id,TASK_POOLS[type][0].id);
+ }
+});
+test('building, revising and cancelling work cannot award points or consume materials early',()=>{
+ const g=newArcadeGame();walk(g,3,5);walk(g,11,3);walk(g,10,8);walk(g,6,4,true);act(g);
+ const score=g.score,affinity=[...g.affinity],items=[...g.inventory],position=[g.x,g.y],task=g.work.id;
+ applyArcadeInput(g,{d:'down'},now);assert.deepEqual([g.x,g.y],position);
+ submit(g,[1,0,0]);assert.match(g.work.feedback,/research/);assert.equal(g.score,score);assert.deepEqual(g.affinity,affinity);assert.deepEqual(g.inventory,items);
+ applyArcadeInput(g,{b:{task,run:99,picks:[0,0,0]}},now);assert.equal(g.jobs[0],0);
+ applyArcadeInput(g,{c:1},now);assert.equal(g.work,null);assert.deepEqual(g.inventory,items);
+ applyArcadeInput(g,{b:{task,run:0,picks:[0,0,0]}},now);assert.equal(g.jobs[0],0);
+ act(g);const accepted={b:{task,run:0,picks:[0,0,1]}};applyArcadeInput(g,accepted,now);assert.equal(g.jobs[0],1);assert.equal(g.workProducts[0].lines[2],TASK_POOLS[0][0].slots[2].options[1].text);
+ const after=g.score;applyArcadeInput(g,accepted,now);assert.equal(g.score,after);
+});
+test('production accepts different affordable plans and explains an overspend without a penalty',()=>{
+ const g=newArcadeGame();walk(g,22,17);walk(g,30,22);walk(g,26,20,true);act(g);const before=g.score;
+ submit(g,[1,1,0]);assert.match(g.work.feedback,/£1000.*£900/);assert.equal(g.score,before);assert.equal(g.jobs[3],0);assert.ok(g.inventory.includes('spanner'));
+ submit(g,[1,0,0]);assert.equal(g.jobs[3],1);assert.match(g.workProducts[0].text,/£850/);assert.match(g.workProducts[0].lines[0],/Premium/);
+ const task=TASK_POOLS[3][0];assert.equal(checkTask(task,[0,1,0]).ok,true);assert.equal(checkTask(task,[0,0,0]).ok,true);
+});
+test('creative ideas allow several valid expressions while still responding to the brief',()=>{
+ for(const picks of [[0,0,0],[0,1,1],[0,1,2]])assert.equal(checkTask(TASK_POOLS[1][0],picks).ok,true);
+ assert.equal(checkTask(TASK_POOLS[1][0],[1,0,0]).ok,false);
+});
+test('new input validation rejects mixed actions, invalid tiles and work submitted away from a teammate',async()=>{
+ const {host,player}=await room();
+ for(const op of [{a:1,c:1},{a:1,b:{task:'strategy-insight',run:0,picks:[0,0,0]}},{b:{task:'strategy-insight',run:0,picks:[-1,0,0]}},{b:{task:'strategy-insight',run:0,picks:[0,0]}},{b:{task:'strategy-insight',run:'0',picks:[0,0,0]}}])assert.equal((await request('input',{code:host.code,ops:[{n:1,...op}]},player)).status,400);
+ const forged=await request('input',{code:host.code,ops:[{n:1,b:{task:'strategy-insight',run:0,picks:[0,0,0]}}]},player);
+ assert.equal(forged.status,200);assert.equal(forged.data.game.score,0);assert.equal(forged.data.game.jobs[0],0);
+});
+test('existing saved games retain their original job rules',()=>{
+ const g=newArcadeGame();delete g.taskVersion;walk(g,22,3);walk(g,22,8);walk(g,26,4,true);act(g);assert.equal(g.jobs[1],1);assert.equal(g.work,null);
 });

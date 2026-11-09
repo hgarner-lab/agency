@@ -56,6 +56,21 @@ To show the job role slides without playing, choose **Skip to job roles** on the
 
 Players need to complete two jobs to get a role card. Practice does not count towards points or roles. The room cap is 50. Player names come from a fixed list, so nothing typed by a player appears on the big screen.
 
+## The twelve agency tasks
+
+New games have three different tasks in each department. Return to a teammate to get the next one. The first Strategy, Creative and Production tasks use floor items; later tasks start at the teammate.
+
+| Role | First visit | Second visit | Third visit |
+| --- | --- | --- | --- |
+| Strategy | Turn research into an insight | Write Audience → Problem → Goal | Choose a priority and a way to check it |
+| Creative | Build a campaign concept | Revise an ad using feedback | Develop a launch experience |
+| Accounts | Agree a realistic scope | Manage a late change | Clarify a request and hand it over |
+| Production | Plan a shoot within £900 | Put a schedule in order | Put a backup location into action |
+
+On the phone, players tap short tiles to build three parts of a work product. They can change a tile before submitting. Clear feedback lets them revise a plan without losing points; creative tasks and the budget task allow several valid solutions. Accounts players must deliver the agreement to the named teammate to finish. The clock stays visible while building work, and the host can pause everyone.
+
+Completed work appears on the campaign wall. Click a wall item to see the player's plan. Players with a role card can also review their completed work below their result. Role classification still reflects the jobs they chose; it is not a test of career aptitude. Existing saved games retain their original rules; start a new game to use the expanded tasks.
+
 ## Troubleshooting
 
 **Solo works, but Create room says a database is needed:** add both Turso environment variables, then redeploy.
@@ -87,6 +102,7 @@ npm test
 | Path | Purpose |
 | --- | --- |
 | `src/arcade-app.js` | Phone, solo, host and central-screen UI |
+| `src/agency-tasks.js` | Twelve tasks, plan checks and campaign work products |
 | `src/arcade-world.js` | Movement, pickups, jobs, points and roles |
 | `src/arcade-renderer.js` | Pixel map, characters and poster drawing |
 | `src/arcade-server.js` | Authoritative room and input API |

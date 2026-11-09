@@ -1,12 +1,13 @@
+import {taskFor,checkTask,taskArtifact} from './agency-tasks.js';
 // Deterministic tile game, shared by the phone and authoritative room server.
 export const ARCADE_TICK=150;
 export const MIN_ROLE_JOBS=2;
 export const MAP_W=34,MAP_H=26,TILE=16;
 export const JOBS=[
- {id:'strategy',name:'STRATEGY',role:'Strategy',person:'REM',colour:'#b4df65',x:6,y:4,need:'Find 3 customer clues, then bring them to Rem.',real:'Strategists do this for real: they learn what customers think, then turn it into a plan.'},
- {id:'creative',name:'CREATIVE',role:'Creative',person:'NOVA',colour:'#bba2fa',x:26,y:4,need:'Find a colour and a word tile, then make an ad with Nova.',real:'Creatives do this for real: they turn the plan into ads, words and designs people notice.'},
- {id:'account',name:'ACCOUNTS',role:'Account management',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Get the client’s message from Sol, then take it to the person he names.',real:'Account managers do this for real: they make sure the team knows what the client needs.'},
- {id:'production',name:'PRODUCTION',role:'Production',person:'PATCH',colour:'#79d8d8',x:26,y:20,need:'Find a spanner and a battery, then help Patch fix the launch.',real:'Producers do this for real: they sort the kit, people and places to get the work made.'}
+ {id:'strategy',name:'STRATEGY',role:'Strategy',person:'REM',colour:'#b4df65',x:6,y:4,need:'Research the problem, build a brief and choose a direction with Rem.',real:'Strategists do this for real: they research the problem, write briefs and help teams choose a direction.'},
+ {id:'creative',name:'CREATIVE',role:'Creative',person:'NOVA',colour:'#bba2fa',x:26,y:4,need:'Build ideas, improve ads and plan a launch experience with Nova.',real:'Creatives do this for real: they turn the plan into ads, words and designs people notice.'},
+ {id:'account',name:'ACCOUNTS',role:'Account management',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Agree the scope, handle changes and give the team clear instructions with Sol.',real:'Account managers do this for real: they agree what can be delivered, manage changes and keep client and team aligned.'},
+ {id:'production',name:'PRODUCTION',role:'Production',person:'PATCH',colour:'#79d8d8',x:26,y:20,need:'Plan budgets, schedule the work and solve practical problems with Patch.',real:'Producers do this for real: they sort the kit, people and places to get the work made.'}
 ];
 export const PICKUPS=[
  {id:'clue-a',name:'CUSTOMER CLUE',kind:'clue',type:0,x:3,y:5,icon:'clue',text:'Customers want to feel included.'},
@@ -36,15 +37,32 @@ export function wallAt(x,y){
  return false;
 }
 export function canWalk(x,y){return !wallAt(x,y)&&!FURNITURE.some(f=>f[0]===x&&f[1]===y)&&!JOBS.some(j=>j.x===x&&j.y===y);}
-export function newArcadeGame(character=0){return {x:16,y:12,face:'down',steps:0,character,score:0,inventory:[],delivery:null,jobs:[0,0,0,0],affinity:[0,0,0,0],readyAt:[0,0,0,0],firstType:null,lastType:null,lastJobAt:0,focus:null,posters:[],lastNote:'Move into a room to choose your first job.',guide:null,practiceReady:false,seq:0};}
+export function newArcadeGame(character=0){return {taskVersion:1,work:null,workProducts:[],x:16,y:12,face:'down',steps:0,character,score:0,inventory:[],delivery:null,jobs:[0,0,0,0],affinity:[0,0,0,0],readyAt:[0,0,0,0],firstType:null,lastType:null,lastJobAt:0,focus:null,posters:[],lastNote:'Move into a room to choose your first job.',guide:null,practiceReady:false,seq:0};}
 export function nearbyJob(g){return JOBS.findIndex(j=>Math.abs(j.x-g.x)+Math.abs(j.y-g.y)<=1);}
 export function hasItem(g,id){return g.inventory.includes(id);}
-export function availablePickups(g,now){return PICKUPS.filter(p=>!hasItem(g,p.id)&&now>=g.readyAt[p.type]&&!(p.kind==='colour'&&g.inventory.some(id=>PICKUPS.find(p=>p.id===id)?.kind==='colour'))&&!(p.kind==='word'&&g.inventory.some(id=>PICKUPS.find(p=>p.id===id)?.kind==='word')));}
+export function availablePickups(g,now){return PICKUPS.filter(p=>(!g.taskVersion||!!taskFor(g,p.type).resources)&&!hasItem(g,p.id)&&now>=g.readyAt[p.type]&&!(p.kind==='colour'&&g.inventory.some(id=>PICKUPS.find(p=>p.id===id)?.kind==='colour'))&&!(p.kind==='word'&&g.inventory.some(id=>PICKUPS.find(p=>p.id===id)?.kind==='word'))).map(p=>pickupInfo(g,p.id));}
+export function pickupInfo(g,id){
+ const p=PICKUPS.find(p=>p.id===id);if(!p||!g.taskVersion)return p;
+ const research=['clue-a','clue-b','clue-c'].indexOf(id);
+ if(research>=0)return {...p,name:['CUSTOMER INTERVIEW','SALES NOTE','WEAR TEST'][research],text:taskFor(g,0).sources?.[research]};
+ if(p.type===3)return {...p,name:id==='spanner'?'KIT LIST':'LOCATION SHEET',icon:'clue',text:id==='spanner'?'Camera and sound packages have different costs. Choose a combination you can afford.':'The courtyard is free. The studio costs £400.'};
+ return p;
+}
+function materialsReady(g,type){const r=taskFor(g,type).resources;return !r||r==='research'&&['clue-a','clue-b','clue-c'].every(id=>hasItem(g,id))||r==='creative'&&g.inventory.some(id=>id.startsWith('ink-'))&&g.inventory.some(id=>id.startsWith('word-'))||r==='production'&&hasItem(g,'spanner')&&hasItem(g,'battery');}
+export function validArcadeInput(op){
+ if(!op||!Number.isInteger(op.n)||op.n<1)return false;
+ const modes=['a','b','c','d'].filter(k=>op[k]!==undefined);if(modes.length!==1)return false;
+ if(op.a!==undefined)return op.a===1;
+ if(op.c!==undefined)return op.c===1;
+ if(op.d!==undefined)return ['up','down','left','right'].includes(op.d);
+ const b=op.b;return !!b&&typeof b.task==='string'&&b.task.length<=64&&Number.isInteger(b.run)&&b.run>=0&&Array.isArray(b.picks)&&b.picks.length===3&&b.picks.every(v=>Number.isInteger(v)&&v>=0&&v<8);
+}
 export function jobAction(g,now=Date.now()){
  const near=nearbyJob(g),talk={label:'TALK',enabled:near>=0,ready:false};
  if(near<0)return talk;
  if(g.delivery)return g.delivery.to===near?{label:'DELIVER',enabled:true,ready:true}:talk;
  if(now<g.readyAt[near])return talk;
+ if(g.taskVersion)return materialsReady(g,near)?{label:taskFor(g,near).action,enabled:true,ready:true}:talk;
  if(near===2)return {label:'GET MESSAGE',enabled:true,ready:true};
  const ready=near===0?['clue-a','clue-b','clue-c'].every(id=>hasItem(g,id)):near===1?g.inventory.some(id=>id.startsWith('ink-'))&&g.inventory.some(id=>id.startsWith('word-')):hasItem(g,'spanner')&&hasItem(g,'battery');
  return ready?{label:['MAKE PLAN','MAKE AD','','FIX KIT'][near],enabled:true,ready:true}:talk;
@@ -54,7 +72,9 @@ export function jobLabel(g,now=Date.now()){return jobAction(g,now).label;}
 export function jobChecklist(g){
  if(g.delivery)return [{icon:'brief',label:'Client message',have:true}];
  const area=areaAt(g.x,g.y),type=area>=0?area:g.focus;
- if(type===0){const n=g.inventory.filter(id=>id.startsWith('clue-')).length;return [{icon:'clue',label:`Clues ${n}/3`,have:n===3}];}
+ if(g.taskVersion&&!taskFor(g,type??0).resources)return [];
+ if(g.taskVersion&&type===3)return [{icon:'clue',label:'Kit list',have:hasItem(g,'spanner')},{icon:'clue',label:'Location',have:hasItem(g,'battery')}];
+ if(type===0){const n=g.inventory.filter(id=>id.startsWith('clue-')).length;return [{icon:'clue',label:`Research ${n}/3`,have:n===3}];}
  if(type===1)return [{icon:'paint',label:'Colour',have:g.inventory.some(id=>id.startsWith('ink-'))},{icon:'word',label:'Word',have:g.inventory.some(id=>id.startsWith('word-'))}];
  if(type===3)return [{icon:'spanner',label:'Spanner',have:hasItem(g,'spanner')},{icon:'battery',label:'Battery',have:hasItem(g,'battery')}];
  return [];
@@ -65,15 +85,16 @@ export function nextInstruction(g,now=Date.now()){
  const near=nearbyJob(g),area=areaAt(g.x,g.y),type=g.delivery?g.delivery.to:near>=0?near:area>=0?area:g.focus;
  const personStep=(n,action,title)=>({type:n,kind:near===n?'act':'person',title:near===n?`Press ${action}.`:title,detail:near===n?'Press the round button, or Space.':`Follow the dots. Stand beside ${JOBS[n].person[0]+JOBS[n].person.slice(1).toLowerCase()}.`,icon:'player-'+[0,1,3,2][n],target:{x:JOBS[n].x,y:JOBS[n].y,person:true}});
  if(type===null||type===undefined||type<0)return {type:null,kind:'choose',title:'Choose your first job.',detail:'Hold an arrow. Move into any room.',icon:'player-'+g.character,target:null};
- if(g.delivery)return personStep(type,'DELIVER',`Take Sol’s message to ${JOBS[type].person[0]+JOBS[type].person.slice(1).toLowerCase()}.`);
+ if(g.delivery)return personStep(type,'DELIVER',`Take Sol’s ${g.taskVersion?'agreement':'message'} to ${JOBS[type].person[0]+JOBS[type].person.slice(1).toLowerCase()}.`);
  if(now<g.readyAt[type])return {type,kind:'wait',title:'Job done. Choose your next one.',detail:'Try another room, or wait for new items.',icon:'player-'+g.character,target:null};
+ if(g.taskVersion&&materialsReady(g,type))return personStep(type,taskFor(g,type).action,`Help ${JOBS[type].person} ${taskFor(g,type).title.toLowerCase()}.`);
  if(type===2)return personStep(2,'GET MESSAGE','Get the client’s message from Sol.');
  const missing=availablePickups(g,now).filter(p=>p.type===type).sort((a,b)=>(Math.abs(a.x-g.x)+Math.abs(a.y-g.y))-(Math.abs(b.x-g.x)+Math.abs(b.y-g.y)));
  const target=missing.find(p=>g.guide?.type===type&&g.guide.id===p.id)||missing[0];
  if(target){
   const n=g.inventory.filter(id=>id.startsWith('clue-')).length;
   const titles={clue:'Collect 3 clues.',paint:'Collect a colour tin.',word:'Collect a word tile.',spanner:'Collect the spanner.',battery:'Collect the battery.'};
-  return {type,kind:'collect',title:titles[target.icon],detail:target.icon==='clue'?`Walk over the flashing card. ${n}/3 collected.`:`Walk over the flashing ${{paint:'tin',word:'word tile',spanner:'spanner',battery:'battery'}[target.icon]} to pick it up.`,icon:target.icon,target};
+  return {type,kind:'collect',title:g.taskVersion&&type===3?`Collect the ${target.name.toLowerCase()}.`:g.taskVersion&&type===0?'Collect 3 research notes.':titles[target.icon],detail:g.taskVersion&&type===3?'Walk over the flashing document.':target.icon==='clue'?`Walk over the flashing card. ${n}/3 collected.`:`Walk over the flashing ${{paint:'tin',word:'word tile',spanner:'spanner',battery:'battery'}[target.icon]} to pick it up.`,icon:target.icon,target};
  }
  const names=['Rem','Nova','Sol','Patch'],actions=['MAKE PLAN','MAKE AD','GET MESSAGE','FIX KIT'];
  const titles=['Take 3 clues to Rem.','Take colour + word to Nova.','','Take the tools to Patch.'];
@@ -102,18 +123,43 @@ function arcadeNote(g,text,events){g.lastNote=text;events.push({kind:'note',text
 function collectArcadeItem(g,p,now,events){
  g.inventory.push(p.id);g.focus=p.type;g.affinity[p.type]+=p.type===0?1/3:1/2;g.score+=p.type===0?10:15;g.firstType??=p.type;
  events.push({kind:'pickup',name:p.name,type:p.type,points:p.type===0?10:15,x:p.x,y:p.y});
- if(p.text)arcadeNote(g,`Clue ${g.inventory.filter(id=>id.startsWith('clue-')).length}/3 collected: ${p.text}`,events);
+ if(p.text&&p.type===3)arcadeNote(g,p.name+': '+p.text,events);
+ else if(p.text)arcadeNote(g,`Research note ${g.inventory.filter(id=>id.startsWith('clue-')).length}/3 collected: ${p.text}`,events);
  else arcadeNote(g,p.kind==='word'?`Word tile collected: ${p.value}.`:`${p.name} collected. It’s in your bag.`,events);
 }
 function completeArcadeJob(g,type,now,events,detail,poster=null){
  const bonus=g.lastJobAt?Math.max(0,30-Math.floor((now-g.lastJobAt)/1000)):0;
+ if(poster&&g.taskVersion){g.workProducts??=[];g.workProducts.push(poster);g.workProducts=g.workProducts.slice(-12);}
  g.score+=150+bonus;g.jobs[type]++;g.affinity[type]+=3;g.lastType=type;g.lastJobAt=now;g.readyAt[type]=now+4000;g.focus=null;
  const used=PICKUPS.filter(p=>p.type===type).map(p=>p.id);g.inventory=g.inventory.filter(id=>!used.includes(id));
  events.push({kind:'job',type,points:150+bonus,total:g.score,detail,poster});
  arcadeNote(g,detail+' +'+(150+bonus)+' points. Choose your next job.',events);
 }
 function keepGuide(g,now){const step=nextInstruction(g,now);g.guide=step.kind==='collect'?{type:step.type,id:step.target.id}:null;}
-export function applyArcadeInput(g,input,now){keepGuide(g,now);const events=applyArcadeStep(g,input,now);keepGuide(g,now);return events;}
+export function applyArcadeInput(g,input,now){keepGuide(g,now);const events=g.taskVersion?applyDeepStep(g,input,now):applyArcadeStep(g,input,now);keepGuide(g,now);return events;}
+function applyDeepStep(g,input,now){
+ const events=[];
+ if(input.c){g.work=null;return events;}
+ if(input.b){
+  const work=g.work,b=input.b;if(!work||work.id!==b.task||work.run!==b.run||g.jobs[work.type]!==b.run||nearbyJob(g)!==work.type||!materialsReady(g,work.type))return events;
+  const task=taskFor(g,work.type),result=checkTask(task,b.picks);
+  if(!result.ok){g.work.feedback=result.message;arcadeNote(g,result.message,events);return events;}
+  const artifact=taskArtifact(task,result,g),type=work.type;g.work=null;
+  if(type===2){g.delivery={to:task.to,artifact};g.inventory.push('brief');g.affinity[2]+=1;g.firstType??=2;g.score+=30;
+   events.push({kind:'pickup',name:'AGREED HANDOVER',type:2,points:30,x:g.x,y:g.y});arcadeNote(g,`Agreement ready. Take it to ${JOBS[task.to].person}.`,events);return events;}
+  if(type===1){const ink=PICKUPS.find(p=>p.kind==='colour'&&hasItem(g,p.id));if(ink)artifact.colour=ink.value;g.posters.push(artifact);g.posters=g.posters.slice(-6);}
+  completeArcadeJob(g,type,now,events,task.label+': '+artifact.text,artifact);return events;
+ }
+ if(g.work)return events;
+ if(input.d){const dir={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[input.d];if(!dir)return events;g.face=input.d;const x=g.x+dir[0],y=g.y+dir[1];if(canWalk(x,y)){g.x=x;g.y=y;g.steps++;}for(const p of availablePickups(g,now))if(p.x===g.x&&p.y===g.y)collectArcadeItem(g,p,now,events);}
+ if(input.a){const n=nearbyJob(g);if(n<0){arcadeNote(g,'Stand beside a teammate to start a job.',events);return events;}
+  if(g.delivery){if(g.delivery.to!==n){arcadeNote(g,`Take the agreement to ${JOBS[g.delivery.to].person}.`,events);return events;}const artifact=g.delivery.artifact;g.delivery=null;g.inventory=g.inventory.filter(id=>id!=='brief');completeArcadeJob(g,2,now,events,'Agreement delivered. '+artifact.text,artifact);return events;}
+  g.focus=n;if(now<g.readyAt[n]){arcadeNote(g,'Job done. Try another room while the next job arrives.',events);return events;}
+  if(!materialsReady(g,n)){arcadeNote(g,n===0?'Collect the three research notes, then bring them to Rem.':n===1?'Pick a colour and word tile, then return to Nova.':'Collect the kit list and location sheet, then return to Patch.',events);return events;}
+  const task=taskFor(g,n);g.work={id:task.id,type:n,run:g.jobs[n],feedback:null};events.push({kind:'work',type:n,title:task.title});
+ }
+ return events;
+}
 function applyArcadeStep(g,input,now){
  const events=[];
  if(input.d){
@@ -158,7 +204,7 @@ export function arcadeProfile(g){
  const role=tied.includes(g.lastType)?g.lastType:tied.includes(g.firstType)?g.firstType:tied[0];
  return {role,score:g.score,jobs:[...g.jobs],collected:g.affinity.map((v,i)=>Math.max(0,Math.round((v-g.jobs[i]*3)*100)/100)),completed:g.jobs.reduce((a,b)=>a+b,0)};
 }
-export function publicArcadeGame(g){return {x:g.x,y:g.y,face:g.face,steps:g.steps,character:g.character,score:g.score,inventory:[...g.inventory],delivery:g.delivery,readyAt:g.readyAt,jobs:[...g.jobs],posters:g.posters,focus:g.focus};}
+export function publicArcadeGame(g){return {taskVersion:g.taskVersion,x:g.x,y:g.y,face:g.face,steps:g.steps,character:g.character,score:g.score,inventory:[...g.inventory],delivery:g.delivery,readyAt:g.readyAt,jobs:[...g.jobs],posters:g.posters.map(p=>({kind:p.kind,title:p.title,colour:p.colour,pattern:p.pattern})),focus:g.focus};}
 
 // Neutral practice has its own state; it never awards points or role scores.
 export function newPracticeGame(character=0){return {x:2,y:4,face:'right',character,steps:0,moved:false,collected:false,complete:false};}
@@ -176,3 +222,4 @@ export function applyPracticeInput(g,input){
  }
  if(input.a&&g.collected&&practiceInstruction(g).ready)g.complete=true;
 }
+
