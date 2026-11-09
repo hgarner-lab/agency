@@ -285,3 +285,11 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
  .arcade-playing .arc-controls{height:140px}
 }
 .arcade-home .hero-desc{font-size:19px;line-height:1.5;max-width:440px;color:#cfd6c4}
+/* Live screen fits one projector screen: no logo row, map sized above the host bar. */
+.arcade-stage #app:has(.arc-live) .arc-nav{display:none}
+.arcade-stage .arc-live{margin-top:0;padding-top:0}
+.arcade-stage .arc-live-top{padding:14px 0 12px}
+.arcade-stage .arc-live .arc-stage-canvas>canvas,.arcade-stage .arc-live aside{max-height:calc(100vh - 110px)}
+.arcade-host .arc-live .arc-stage-canvas>canvas,.arcade-host .arc-live aside{max-height:calc(100vh - 172px)}
+.arcade-stage .arc-live .arc-stage-canvas{width:fit-content;max-width:100%;justify-self:center}
+.arcade-stage #app:has(.arc-live)>.shell:first-child{display:none}

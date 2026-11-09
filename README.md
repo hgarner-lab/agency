@@ -44,20 +44,17 @@ The game creates its three tables and indexes automatically on the first group-g
 
 Keep these values in Vercel’s environment settings. Never add a real `.env` file or token to GitHub. `.env.example` documents the variable names and contains no credentials.
 
-## 4. Try a group game
+## 4. Run a session
 
-1. Open the production URL and choose **Host a group game**.
-2. Create a five- or ten-minute room.
-3. Choose **Open big screen** and put that tab on the projector. Keep the host tab for controls.
-4. Players scan the QR code on their phones and choose a nickname and character.
-5. Players finish a short, unscored practice on their phones: move, collect a star, stand beside a teammate and press Ready. The host sees who is practising and who is ready.
-6. Start the game when everyone is ready. If needed, the host can choose **Start anyway**. The shared screen shows player spotlights, scores, completed jobs and posters.
-7. End the game to reveal the roles, or let the clock run out.
-8. Use the closing **Meet the team** screen to discuss what each role does and three habits that help someone do it well. Players can open the same explanations on their phones, with a trainer-launch example for every role. Final scores and highlights remain available below the big-screen role cards.
+1. Open the production URL on the laptop connected to the projector and choose **Host a game**.
+2. Pick five or ten minutes and choose **Create room**. This tab is now the big screen. Your controls sit in a bar along the bottom.
+3. Players scan the QR code, pick a look and get a random game name (they can shuffle it). They then try the controls in a short practice. The big screen shows who has joined and who is ready.
+4. Choose **Start the game** (or **Start anyway** if some are still practising). The big screen shows everyone moving on one map, a race between the four departments, the leaderboard and a feed of finished jobs.
+5. Choose **End game + show job roles**, or let the clock run out. Use the arrow keys or a clicker to move through **Meet the team**, **Go deeper** and **Scores**. Each player sees their own role on their phone.
 
-Each player gets their own map. Complete at least two jobs to unlock a role; repeating a job is allowed. Practice does not affect points or roles. Late arrivals practise while the shared game clock continues. The room cap is 50. Points and role classification are separate: the work and items a player chooses shape their role.
+To show the job role slides without playing, choose **Skip to job roles** on the home page, or open `/?view=roles`. **Play solo** on the home page is useful for testing or for showing someone the game.
 
-Use the production URL when testing student entry. Confirm that your Vercel deployment access settings allow your intended visitors.
+Players need to complete two jobs to get a role card. Practice does not count towards points or roles. The room cap is 50. Player names come from a fixed list, so nothing typed by a player appears on the big screen.
 
 ## Troubleshooting
 
