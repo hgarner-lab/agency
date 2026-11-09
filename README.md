@@ -54,6 +54,14 @@ Keep these values in Vercel’s environment settings. Never add a real `.env` fi
 
 To show the job role slides without playing, choose **Skip to job roles** on the home page, or open `/?view=roles`. **Play solo** on the home page is useful for testing or for showing someone the game.
 
+During the game, three extras keep the room busy:
+
+- **Urgent jobs:** about every 70 seconds Jamie flashes up a team on the big screen and phones. The first player to finish a job there gets double points.
+- **Team-ups:** when two players in different teams finish jobs within 20 seconds of each other, both get 40 bonus points.
+- **Make it yours:** after a Creative task, players choose the ad's background, trainer colourway, format and sticker.
+
+When the game ends, players vote on their phones for the best ad someone else made. The campaign slide shows the leader live. Jamie reacts on the big screen to urgent jobs, team-ups and finished work.
+
 Players need to complete two jobs to get a role card. Practice does not count towards points or roles. The room cap is 50. Player names come from a fixed list, so nothing typed by a player appears on the big screen.
 
 ## The twelve agency tasks

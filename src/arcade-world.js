@@ -6,7 +6,7 @@ export const MAP_W=34,MAP_H=26,TILE=16;
 export const JOBS=[
  {id:'strategy',name:'STRATEGY',role:'Strategy',person:'REM',colour:'#b4df65',x:6,y:4,need:'Research the problem, build a brief and choose a direction with Rem.',real:'Strategists do this for real: they research the problem, write briefs and help teams choose a direction.'},
  {id:'creative',name:'CREATIVE',role:'Creative',person:'NOVA',colour:'#bba2fa',x:26,y:4,need:'Build ideas, improve ads and plan a launch experience with Nova.',real:'Creatives do this for real: they turn the plan into ads, words and designs people notice.'},
- {id:'account',name:'ACCOUNTS',role:'Account management',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Agree the scope, handle changes and give the team clear instructions with Sol.',real:'Account managers do this for real: they agree what can be delivered, manage changes and keep client and team aligned.'},
+ {id:'account',name:'ACCOUNTS',role:'Account management',person:'SOL',colour:'#ffb26e',x:6,y:20,need:'Agree the scope, handle changes and give the team clear instructions with Sol.',real:'Account managers do this for real: they agree what can be done, handle changes and keep the client and team on the same page.'},
  {id:'production',name:'PRODUCTION',role:'Production',person:'PATCH',colour:'#79d8d8',x:26,y:20,need:'Plan budgets, schedule the work and solve practical problems with Patch.',real:'Producers do this for real: they sort the kit, people and places to get the work made.'}
 ];
 export const PICKUPS=[
@@ -55,7 +55,7 @@ export function validArcadeInput(op){
  if(op.a!==undefined)return op.a===1;
  if(op.c!==undefined)return op.c===1;
  if(op.d!==undefined)return ['up','down','left','right'].includes(op.d);
- const b=op.b;return !!b&&typeof b.task==='string'&&b.task.length<=64&&Number.isInteger(b.run)&&b.run>=0&&Array.isArray(b.picks)&&b.picks.length===3&&b.picks.every(v=>Number.isInteger(v)&&v>=0&&v<8);
+ const b=op.b;return !!b&&typeof b.task==='string'&&b.task.length<=64&&Number.isInteger(b.run)&&b.run>=0&&Array.isArray(b.picks)&&b.picks.length===3&&b.picks.every(v=>Number.isInteger(v)&&v>=0&&v<8)&&(b.style===undefined||validAdStyle(b.style));
 }
 export function jobAction(g,now=Date.now()){
  const near=nearbyJob(g),talk={label:'TALK',enabled:near>=0,ready:false};
@@ -147,7 +147,7 @@ function applyDeepStep(g,input,now){
   const artifact=taskArtifact(task,result,g),type=work.type;g.work=null;
   if(type===2){g.delivery={to:task.to,artifact};g.inventory.push('brief');g.affinity[2]+=1;g.firstType??=2;g.score+=30;
    events.push({kind:'pickup',name:'AGREED HANDOVER',type:2,points:30,x:g.x,y:g.y});arcadeNote(g,`Agreement ready. Take it to ${JOBS[task.to].person}.`,events);return events;}
-  if(type===1){const ink=PICKUPS.find(p=>p.kind==='colour'&&hasItem(g,p.id));if(ink)artifact.colour=ink.value;g.posters.push(artifact);g.posters=g.posters.slice(-6);}
+  if(type===1){const ink=PICKUPS.find(p=>p.kind==='colour'&&hasItem(g,p.id));if(ink)artifact.colour=ink.value;if(input.b.style)Object.assign(artifact,adStyle(input.b.style));g.posters.push(artifact);g.posters=g.posters.slice(-6);}
   completeArcadeJob(g,type,now,events,task.label+': '+artifact.text,artifact);return events;
  }
  if(g.work)return events;
@@ -223,3 +223,29 @@ export function applyPracticeInput(g,input){
  if(input.a&&g.collected&&practiceInstruction(g).ready)g.complete=true;
 }
 
+
+// Urgent jobs from Jamie. Every room follows the same timetable, worked out from
+// how long the game has been running, so the server and every screen agree.
+// Each rush asks for one team; the first player to finish a job there gets double points.
+export const RUSH_FIRST=40000,RUSH_EVERY=70000,RUSH_LENGTH=25000;
+function codeSeed(code){let h=7;for(const ch of String(code))h=(h*31+ch.charCodeAt(0))>>>0;return h;}
+export function rushAt(code,durationMs,elapsedMs){
+ if(!(elapsedMs>=RUSH_FIRST))return null;
+ const index=Math.floor((elapsedMs-RUSH_FIRST)/RUSH_EVERY),start=RUSH_FIRST+index*RUSH_EVERY,end=start+RUSH_LENGTH;
+ if(elapsedMs>=end||end>durationMs-5000)return null;
+ const seed=codeSeed(code),type=(seed+index*3+Math.floor(index/4))%4;
+ return {index,type,start,end,left:end-elapsedMs};
+}
+// Team-ups: two players in different teams finishing within this window both get a bonus.
+export const TEAMUP_WINDOW=20000,TEAMUP_BONUS=40;
+
+// "Make it yours": the player styles each ad they make, so no two ads look alike.
+export const AD_STYLE={
+ bg:[['Lime','#bbef66'],['Lilac','#b69bf4'],['Orange','#ff9a5c'],['Teal','#6fd6d6'],['Cream','#f4efe1'],['Pink','#ff8fb1']],
+ shoe:['Lime Rush','Lilac Wave','Steel Teal','Sunset'],
+ layout:['Poster','Billboard','Social post'],
+ sticker:['No sticker','NEW','£160','SAT 10AM'],
+ tag:['MADE BY THE CREW','DESIGNED WITH LOCAL CREATORS','TRY A PAIR · SATURDAY 10AM','PROVE US WRONG. TRY A PAIR.','NO TWO PAIRS WORN THE SAME','TRAINERS FOR YOUR FEET','AVAILABLE NOW']
+};
+export function validAdStyle(st){if(!st||typeof st!=='object'||Array.isArray(st))return false;const keys=Object.keys(st);return ['bg','shoe','layout','sticker'].every(k=>keys.includes(k))&&keys.every(k=>k in AD_STYLE&&Number.isInteger(st[k])&&st[k]>=0&&st[k]<AD_STYLE[k].length);}
+export function adStyle(st){return {colour:AD_STYLE.bg[st.bg][1],shoe:st.shoe,pattern:st.layout,sticker:st.sticker?AD_STYLE.sticker[st.sticker]:null,tag:AD_STYLE.tag[st.tag||0]};}

@@ -1,4 +1,8 @@
-import {validArcadeInput,newArcadeGame,applyArcadeInput,arcadeProfile,publicArcadeGame,ARCADE_TICK} from './arcade-world.js';
+import {validArcadeInput,newArcadeGame,applyArcadeInput,arcadeProfile,publicArcadeGame,ARCADE_TICK,rushAt,TEAMUP_WINDOW,TEAMUP_BONUS} from './arcade-world.js';
+// Extra rows in arcade_events (no schema change): type -1 = urgent-job win, -2 = team-up bonus, -3 = pitch vote.
+const RUSH=-1,TEAMUP=-2,VOTE=-3;
+const inserted=r=>(r.meta?.changes??r.changes)===1;
+const elapsedIn=(room,now)=>room.duration*1000-(room.phase==='paused'?(room.remaining||0):Math.max(0,(room.deadline||now)-now));
 import {isClean,isGameName} from './filter.js';
 const arcJson=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
 const arcHash=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)))).map(v=>v.toString(16).padStart(2,'0')).join('');
@@ -74,21 +78,53 @@ export async function arcadeApi(req,env){
    const events=[];for(const op of fresh){const emitted=applyArcadeInput(g,op,now);g.seq=op.n;events.push(...emitted.map(e=>({...e,seq:op.n})));}
    const changed=await db.prepare('UPDATE arcade_players SET game=?,seq=?,updated_at=?,credit=? WHERE id=? AND seq=?').bind(JSON.stringify(g),g.seq,now,credit-fresh.length,pid,player.seq).run();
    if((changed.meta?.changes??changed.changes)===0)arcFail('Your game changed while syncing. Reconnecting.',409);
-   for(const event of events.filter(e=>e.kind==='job'))await db.prepare('INSERT OR IGNORE INTO arcade_events(id,room,player,alias,character,type,detail,points,poster,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(pid+'_'+event.seq,code,pid,player.alias,player.character,event.type,event.detail,event.points,event.poster?JSON.stringify(event.poster):null,now).run();
-   return arcJson({game:g,seq:g.seq,events,serverNow:now});
+   const bonuses=[],add=(id,who,alias,character,type,detail,points,extra)=>db.prepare('INSERT OR IGNORE INTO arcade_events(id,room,player,alias,character,type,detail,points,poster,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(id,code,who,alias,character,type,detail,points,extra?JSON.stringify(extra):null,now).run();
+   for(const event of events.filter(e=>e.kind==='job')){
+    const eid=pid+'_'+event.seq;
+    if(!inserted(await add(eid,pid,player.alias,player.character,event.type,event.detail,event.points,event.poster)))continue;
+    // Urgent job: the first finisher in the asked-for team claims it and doubles their points.
+    const rush=rushAt(code,room.duration*1000,elapsedIn(room,now));
+    if(rush&&rush.type===event.type&&inserted(await add(code+'_rush_'+rush.index,pid,player.alias,player.character,RUSH,'Urgent job won',event.points,{kind:'rush',team:event.type,index:rush.index})))bonuses.push({kind:'rush',points:event.points,team:event.type});
+    // Team-up: someone in a different team finished in the last 20 seconds.
+    const partners=(await db.prepare('SELECT id,player,alias,character,type FROM arcade_events WHERE room=? AND type>=0 AND player!=? AND type!=? AND created_at>=? ORDER BY created_at DESC LIMIT 5').bind(code,pid,event.type,now-TEAMUP_WINDOW).all()).results;
+    for(const mate of partners){
+     if(!inserted(await add('tu_'+mate.id,mate.player,mate.alias,mate.character,TEAMUP,'Team-up with '+player.alias,TEAMUP_BONUS,{kind:'teamup',with:player.alias,types:[mate.type,event.type]})))continue;
+     await add('tu_'+mate.id+'_b',pid,player.alias,player.character,TEAMUP,'Team-up with '+mate.alias,TEAMUP_BONUS,{kind:'teamup',with:mate.alias,types:[event.type,mate.type]});
+     bonuses.push({kind:'teamup',points:TEAMUP_BONUS,with:mate.alias,team:mate.type});break;
+    }
+   }
+   return arcJson({game:g,seq:g.seq,events,bonuses,serverNow:now});
   }
   if(path==='finish'&&req.method==='POST'){
    if(!mine)arcFail('Join this room before finishing.',403);
    if(phase==='lobby')arcFail('Wait for the host to start the game.');
    await db.prepare('UPDATE arcade_players SET finished=1 WHERE id=?').bind(pid).run();return arcJson({ok:true});
   }
+  if(path==='vote'&&req.method==='POST'){
+   if(!mine)arcFail('Join this room before voting.',403);
+   if(phase!=='finished')arcFail('Voting opens when the game ends.',409);
+   const target=String(body.target||'');if(!target||target.length>120)arcFail('Choose an ad to vote for.');
+   const ad=await db.prepare('SELECT player FROM arcade_events WHERE room=? AND id=? AND type=1').bind(code,target).first();
+   if(!ad)arcFail('That ad could not be found.',404);
+   if(ad.player===pid)arcFail('Vote for someone else’s ad.');
+   await db.prepare('INSERT OR REPLACE INTO arcade_events(id,room,player,alias,character,type,detail,points,poster,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)').bind('vote_'+pid,code,pid,player.alias,player.character,VOTE,target,0,null,now).run();
+   return arcJson({ok:true});
+  }
   if(path==='state'&&req.method==='GET'){
    const rows=(await db.prepare('SELECT id,alias,character,game,finished,joined_at FROM arcade_players WHERE room=? ORDER BY joined_at').bind(code).all()).results;
    const players=rows.map(p=>{const g=JSON.parse(p.game);return {alias:p.alias,character:p.character,game:publicArcadeGame(g),ready:!!g.practiceReady,score:g.score,completed:g.jobs.reduce((a,b)=>a+b,0),finished:!!p.finished,profile:phase==='finished'?arcadeProfile(g):undefined};});
-   const events=(await db.prepare('SELECT alias,character,type,detail,points,poster,created_at,id FROM arcade_events WHERE room=? ORDER BY created_at DESC,id DESC LIMIT 40').bind(code).all()).results.map(e=>({...e,poster:e.poster?JSON.parse(e.poster):null}));
+   const events=(await db.prepare('SELECT alias,character,type,detail,points,poster,created_at,id FROM arcade_events WHERE room=? AND type>=0 ORDER BY created_at DESC,id DESC LIMIT 40').bind(code).all()).results.map(e=>({...e,poster:e.poster?JSON.parse(e.poster):null}));
+   const extras=(await db.prepare('SELECT id,player,alias,type,detail,points,poster,created_at FROM arcade_events WHERE room=? AND type<0 ORDER BY created_at DESC').bind(code).all()).results;
+   const bonusBy={};for(const x of extras)if(x.type!==VOTE)bonusBy[x.player]=(bonusBy[x.player]||0)+x.points;
+   for(const [i,p] of players.entries()){const extra=bonusBy[rows[i].id]||0;p.score+=extra;p.bonus=extra;}
+   const moments=extras.filter(x=>x.type!==VOTE&&!x.id.endsWith('_b')).slice(0,12).map(x=>({id:x.id,type:x.type,alias:x.alias,points:x.points,detail:x.detail,info:x.poster?JSON.parse(x.poster):null,created_at:x.created_at}));
+   const live=rushAt(code,room.duration*1000,elapsedIn(room,now)),claim=live&&extras.find(x=>x.id===code+'_rush_'+live.index);
+   const rush=phase==='active'||phase==='paused'?(live?{index:live.index,type:live.type,endsAt:now+live.left,left:live.left,claimedBy:claim?.alias||null}:null):null;
+   const votes={};let myVote=null;for(const x of extras)if(x.type===VOTE){votes[x.detail]=(votes[x.detail]||0)+1;if(x.player===pid)myVote=x.detail;}
+   const ads=phase==='finished'?(await db.prepare('SELECT id,player,alias,poster FROM arcade_events WHERE room=? AND type=1 ORDER BY created_at').bind(code).all()).results.map(a=>({id:a.id,alias:a.alias,mine:a.player===pid,poster:a.poster?JSON.parse(a.poster):null,votes:votes[a.id]||0})):[];
    const game=mine?JSON.parse(player.game):null,finished=mine&&!!player.finished;
    const jobs=players.reduce((a,p)=>a+p.completed,0),score=players.reduce((a,p)=>a+p.score,0);
-   return arcJson({code,phase,deadline:room.deadline,remaining:room.remaining,duration:room.duration,revision:room.revision,serverNow:now,host,count:players.length,readyCount:players.filter(p=>p.ready).length,ready:!!game?.practiceReady,players,leaderboard:[...players].sort((a,b)=>b.score-a.score||b.completed-a.completed).slice(0,5),events,launch:{jobs,target:room.target,score,progress:Math.min(100,Math.round(jobs/room.target*100))},game,seq:mine?player.seq:null,finished,profile:game&&(phase==='finished'||finished)?arcadeProfile(game):null});
+   return arcJson({code,phase,deadline:room.deadline,remaining:room.remaining,duration:room.duration,revision:room.revision,serverNow:now,host,count:players.length,readyCount:players.filter(p=>p.ready).length,ready:!!game?.practiceReady,players,leaderboard:[...players].sort((a,b)=>b.score-a.score||b.completed-a.completed).slice(0,5),events,launch:{jobs,target:room.target,score,progress:Math.min(100,Math.round(jobs/room.target*100))},game,seq:mine?player.seq:null,finished,profile:game&&(phase==='finished'||finished)?arcadeProfile(game):null,bonus:mine?bonusBy[pid]||0:0,rush,moments,ads,myVote});
   }
   return arcJson({error:'Not found.'},404);
  }catch(e){if(e.status)return arcJson({error:e.message},e.status);console.error('Arcade room error:',e.message);return arcJson({error:'The room could not sync. Your local game will wait while reconnecting.'},500);}
