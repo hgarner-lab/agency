@@ -364,3 +364,52 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 .arc-wall-tile>button{display:block;width:100%;padding:0;background:transparent;cursor:pointer}.arc-wall-tile>button svg{width:100%;display:block}.arc-wall-tile>button:focus-visible{outline:3px solid #bbef66;outline-offset:3px}.arc-artifact-lines{padding-left:20px}.arc-artifact-lines li{margin:16px 0;line-height:1.5}
 
 .arc-work-modal{max-width:560px}.arc-work-modal>.close-modal{z-index:3;background:#111318;width:36px;height:36px;top:26px;right:24px}.arc-work-built li button{min-height:44px}.arc-work-modal .arc-work-built>p,.arc-work-modal .arc-work-choice>p{margin-bottom:10px}@media(max-width:480px){.arc-work-modal>.close-modal{top:20px;right:18px}}
+
+/* Opening screens: welcome, the brief, how it works. */
+.arc-intro{padding-top:2vh}
+.arc-intro h1{font-size:clamp(48px,6vw,96px);margin:6px 0 18px}
+.arc-intro-lead{font-size:clamp(19px,1.7vw,28px);line-height:1.4;color:#e7ecd8;max-width:1050px;margin:0 0 22px}
+.arc-team-explain>div{align-items:flex-start}
+.arc-team-explain p{margin:6px 0 0;font-size:clamp(15px,1.2vw,20px);line-height:1.35;color:#d9e2cf}
+.arc-gloss{font-size:clamp(14px,1.1vw,18px);color:#a9c19c;border-left:3px solid #56705f;padding-left:12px;margin:0 0 20px}
+.arc-gloss b{color:#f2ecd3}
+.arc-brief-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;margin:0 0 18px;background:#36544a;border:2px solid #36544a}
+.arc-brief-card>div{background:#1c3635;padding:14px 18px}
+.arc-brief-card>div:first-child{grid-column:1/-1}
+.arc-brief-card dt{font-family:WarMono,monospace;font-size:clamp(12px,1vw,16px);letter-spacing:.1em;color:#c6ff40;margin-bottom:6px}
+.arc-brief-card dd{margin:0;font-size:clamp(17px,1.5vw,26px);line-height:1.35;color:#f2ecd3}
+.arc-how-steps{list-style:none;padding:0;margin:0 0 22px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.arc-how-steps li{display:flex;gap:12px;background:#1c3635;border:1px solid #3f5b4a;padding:16px}
+.arc-how-steps li>b{font-family:WarDisplay,sans-serif;font-size:clamp(34px,3vw,52px);color:#c6ff40;line-height:.9}
+.arc-how-steps strong{display:block;font-size:clamp(18px,1.5vw,26px);color:#f2ecd3;margin-bottom:6px}
+.arc-how-steps span{font-size:clamp(15px,1.2vw,20px);line-height:1.35;color:#d9e2cf}
+.arc-intro-nav{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.arc-intro-nav .text-button{font-size:14px}
+.arc-intro-count{font-family:WarMono,monospace;font-size:15px;color:#8fac91;margin-left:auto}
+.arc-lobby-brief{border-left:3px solid #c6ff40;padding:8px 14px;background:#c6ff4012;max-width:620px}
+.arcade-stage .arc-room-lobby p.arc-lobby-brief{font-size:clamp(17px,1.5vw,24px);line-height:1.35}
+.arc-lobby-brief b,.arc-campaign-brief b{display:block;font-family:WarMono,monospace;font-size:13px;letter-spacing:.1em;color:#c6ff40;margin-bottom:3px}
+.arc-campaign-brief{font-size:clamp(16px,1.4vw,22px);color:#e7ecd8;margin:0 0 10px}
+.arc-campaign-brief strong{color:#c6ff40}
+@media(max-width:1000px){.arc-how-steps{grid-template-columns:1fr 1fr}.arc-brief-card{grid-template-columns:1fr}}
+.arcade-stage .arc-intro{display:block;padding-bottom:80px}
+@media(max-height:820px){
+ .arcade-stage .arc-intro{padding-top:0}
+ .arcade-stage .arc-intro>.eyebrow{font-size:14px}
+ .arcade-stage .arc-intro h1{font-size:46px;margin:2px 0 10px}
+ .arcade-stage .arc-intro h1 br{display:none}
+ .arcade-stage .arc-intro h1 .acid{margin-left:.25em}
+ .arcade-stage .arc-intro-lead{font-size:18px;margin-bottom:14px}
+ .arcade-stage .arc-team-explain{margin-bottom:12px}
+ .arcade-stage .arc-team-explain>div{padding:10px}
+ .arcade-stage .arc-team-explain p{font-size:15px}
+ .arcade-stage .arc-gloss{font-size:15px;margin-bottom:14px}
+ .arcade-stage .arc-brief-card{margin-bottom:12px}
+ .arcade-stage .arc-brief-card>div{padding:9px 14px}
+ .arcade-stage .arc-brief-card dt{font-size:12px;margin-bottom:3px}
+ .arcade-stage .arc-brief-card dd{font-size:17px;line-height:1.3}
+ .arcade-stage .arc-how-steps{margin-bottom:14px}
+ .arcade-stage .arc-how-steps li{padding:12px}
+ .arcade-stage .arc-how-steps strong{font-size:18px}
+ .arcade-stage .arc-how-steps span{font-size:15px}
+}

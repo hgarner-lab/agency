@@ -171,8 +171,11 @@ test('the host can skip straight to the job roles slides without a game',async()
 test('the host sees the brief first, then the QR lobby, and can get back to the game from home',async()=>{
  const state={code:'ROOM27',phase:'lobby',duration:300,serverNow:1800000000000,count:0,readyCount:0,players:[],leaderboard:[],events:[],launch:{score:0,jobs:0,target:0,progress:0}};
  const h=ui({search:'?view=host&room=ROOM27',storage:{'wr-arc-host-ROOM27':{token:'t',host:true}},fetchImpl:async()=>Response.json(state)});await h.settle();
- assert.equal(h.context.arcTest.read().sceneKey,'brief');assert.match(h.app.innerHTML,/THE BRIEF/);assert.match(h.app.innerHTML,/5 minutes/);assert.doesNotMatch(h.app.innerHTML,/ROOM CODE/);
- await h.click('brief-done');assert.equal(h.context.arcTest.read().sceneKey,'lobby');assert.match(h.app.innerHTML,/ROOM CODE/);
+ assert.equal(h.context.arcTest.read().sceneKey,'intro-0');assert.match(h.app.innerHTML,/AGENCY NOW/);assert.match(h.app.innerHTML,/Client<\/b> = the brand/);assert.doesNotMatch(h.app.innerHTML,/ROOM CODE/);
+ await h.click('intro','next');assert.equal(h.context.arcTest.read().sceneKey,'intro-1');assert.match(h.app.innerHTML,/A brief is the client/);assert.match(h.app.innerHTML,/5 minutes/);assert.match(h.app.innerHTML,/£160/);
+ await h.click('intro','prev');assert.equal(h.context.arcTest.read().sceneKey,'intro-0');
+ await h.click('intro','next');await h.click('intro','next');assert.equal(h.context.arcTest.read().sceneKey,'intro-2');assert.match(h.app.innerHTML,/Make the call/);
+ await h.click('intro','next');assert.equal(h.context.arcTest.read().sceneKey,'lobby');assert.match(h.app.innerHTML,/ROOM CODE/);assert.match(h.app.innerHTML,/Saturday’s pop-up/);
  h.context.localStorage.setItem('wr-arc-last-host',JSON.stringify({code:'ROOM27',at:h.context.Date.now()}));
  const home=ui({storage:{'wr-arc-host-ROOM27':{token:'t',host:true},'wr-arc-last-host':{code:'ROOM27',at:1800000000000}}});
  assert.match(home.app.innerHTML,/BACK TO YOUR GAME · ROOM27/);
