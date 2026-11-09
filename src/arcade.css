@@ -735,3 +735,31 @@ html.is-presenting #arc-room-controls{display:none!important}
 }
 @media(max-height:820px){.arcade-stage .arc-room-finale .arc-room-heading h1{font-size:44px;white-space:nowrap}}
 .arc-practice .arc-canvas-frame>canvas{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+
+/* Closing screen spacing */
+.arc-no-role{padding-bottom:56px}
+.arc-no-role h1{margin-bottom:28px}
+.arc-no-role p{font-size:17px;line-height:1.5;margin:0 auto 14px;max-width:460px;color:#c3d1bb}
+.arc-no-role-actions{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:30px}
+.arc-no-role-actions .btn{min-width:240px;justify-content:center}
+.arc-no-role-actions .text-button{font-size:16px}
+.arc-result-copy>.eyebrow{margin-bottom:16px;line-height:1.5}
+.arc-result-copy h1{margin-bottom:16px}
+.arc-result-job{display:block;font-size:14px;margin-bottom:6px}
+.arc-result-copy>p{font-size:17px;line-height:1.6;margin:18px 0 26px;color:#c3d1bb}
+.arc-result-stats{gap:48px;margin:0 0 30px}
+.arc-result-stats b{margin-bottom:10px}
+.arc-result-stats span{font-size:13px;letter-spacing:.06em}
+.arc-result-evidence{padding:22px 0 18px}
+.arc-result-evidence>span{font-size:13px;margin-bottom:12px}
+.arc-result-evidence>div{font-size:16px;padding:8px 0;align-items:baseline}
+.arc-result-evidence>div>span{font-size:14px}
+.arc-result-copy .fine{margin:20px 0 26px!important;font-size:14px!important}
+.arc-result-copy .reveal-actions{display:flex;flex-direction:column;gap:14px}
+.arc-your-posters article{margin-bottom:10px}
+@media(max-width:720px){
+ .arc-result-copy h1{font-size:54px}
+ .arc-result-copy>p{font-size:16px}
+ .arc-result-stats{gap:40px}
+ .arc-no-role p{font-size:16px}
+}

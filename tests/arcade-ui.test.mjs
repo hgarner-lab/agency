@@ -150,7 +150,7 @@ test('late arrivals finish neutral practice while the shared clock keeps running
 });
 test('players without a role card can still explore all four real agency jobs',async()=>{
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'RoleExplorer'});await h.start();await h.click('pause-menu');await h.click('finish-self');
- assert.match(h.app.innerHTML,/GOOD START/);assert.match(h.app.innerHTML,/EXPLORE THE ROLES/);
+ assert.match(h.app.innerHTML,/GOOD START/);assert.match(h.app.innerHTML,/Explore the roles/);
  assert.equal((h.app.innerHTML.match(/class="arc-role-lesson"/g)||[]).length,4);
  assert.doesNotMatch(h.app.innerHTML,/YOUR GAME ROLE/);assert.doesNotMatch(h.app.innerHTML,/SAVE ROLE CARD/);
 });
