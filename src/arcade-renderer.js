@@ -42,13 +42,9 @@ export function posterSVG(p){
  const bg=p?.colour||'#bbef66',title=p?.title||'YOUR WAY';
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 148" role="img" aria-label="UNDERGROUND campaign poster: ${title}"><rect width="120" height="148" fill="${bg}"/><path d="M0 14h120M0 134h120" stroke="#233139" stroke-width="2"/><text x="9" y="10" font-family="monospace" font-size="7" font-weight="bold" fill="#233139">UNDERGROUND</text><path d="M16 80h8V64h12v6h9v6h10v5h13v5h22v6h14v14H16z" fill="#273942"/><path d="M16 102h88v10H16z" fill="#f7f1d9"/><path d="M25 85h12v5H25zm20 0h12v5H45zm20 4h12v5H65z" fill="${bg}"/><path d="M20 113h80v3H20z" fill="#273942"/><text x="60" y="37" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="${title.length>9?12:17}" fill="#233139">${title}</text><text x="60" y="144" text-anchor="middle" font-family="monospace" font-size="6" fill="#233139">MADE BY THE CREW</text></svg>`;
 }
-export function createArcadeRenderer(canvas,fullMap=false){
- canvas.width=fullMap?MAP_W*TILE:288;canvas.height=fullMap?MAP_H*TILE:224;
- function resize(){const bounds=canvas.parentElement?.getBoundingClientRect?.();if(!fullMap&&bounds?.width>0&&bounds.height>0)canvas.height=Math.max(80,Math.min(MAP_H*TILE,Math.round(288*bounds.height/bounds.width)));}
- resize();
- const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;const map=document.createElement('canvas');map.width=MAP_W*TILE;map.height=MAP_H*TILE;const b=map.getContext('2d');b.imageSmoothingEnabled=false;
- const observer=!fullMap&&canvas.parentElement&&typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>{resize();c.imageSmoothingEnabled=false;}):null;
- observer?.observe(canvas.parentElement);
+// The shared floor plan: rooms, walls, signs and the launch stand. Drawn once.
+function buildBaseMap(){
+ const map=document.createElement('canvas');map.width=MAP_W*TILE;map.height=MAP_H*TILE;const b=map.getContext('2d');b.imageSmoothingEnabled=false;
  for(let y=0;y<MAP_H;y++)for(let x=0;x<MAP_W;x++){
   const area=areaAt(x,y),colour=area>=0?['#c7c9a6','#c8bad0','#d0b99c','#afc4c1'][area]:'#b6bea7';
   b.fillStyle=colour;b.fillRect(x*TILE,y*TILE,TILE,TILE);b.fillStyle=area>=0?'#544c3e12':'#344f4215';b.fillRect(x*TILE,y*TILE,1,TILE);b.fillRect(x*TILE,y*TILE+15,TILE,1);
@@ -62,6 +58,15 @@ export function createArcadeRenderer(canvas,fullMap=false){
  }
  // Public launch space in the centre of the floor.
  b.fillStyle='#445b53';b.fillRect(15*TILE+2,3*TILE,60,48);b.fillStyle='#e3d8b4';b.fillRect(15*TILE+5,3*TILE+3,54,41);pixelText(b,'UG',17*TILE,3*TILE+10,'#425849',2,'center');pixelText(b,'LAUNCH',17*TILE,3*TILE+30,'#425849',1,'center');
+ return map;
+}
+export function createArcadeRenderer(canvas,fullMap=false){
+ canvas.width=fullMap?MAP_W*TILE:288;canvas.height=fullMap?MAP_H*TILE:224;
+ function resize(){const bounds=canvas.parentElement?.getBoundingClientRect?.();if(!fullMap&&bounds?.width>0&&bounds.height>0)canvas.height=Math.max(80,Math.min(MAP_H*TILE,Math.round(288*bounds.height/bounds.width)));}
+ resize();
+ const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;const map=buildBaseMap();
+ const observer=!fullMap&&canvas.parentElement&&typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>{resize();c.imageSmoothingEnabled=false;}):null;
+ observer?.observe(canvas.parentElement);
  const reduceMotion=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  let cx=0,cy=0,px=16*TILE,py=12*TILE,targetX=px,targetY=py,previousSteps=-1,previousCharacter=-1,particles=[],seenScore=0,seenInventory='',routeKey='',route=[];
  function draw(game,now,options={}){
@@ -110,4 +115,38 @@ export function drawPractice(canvas,g,now){
  drawPixelPerson(c,px(7)+3,py(4),3);pixelText(c,'TEAMMATE',px(7)+11,py(4)-11,'#203b3a',1,'center');
  drawPixelPerson(c,px(g.x)+3,py(g.y),g.character,g.steps,g.face);pixelText(c,'YOU',px(g.x)+12,py(g.y)-9,'#203b3a',1,'center');
  pixelText(c,'PRACTICE / NO POINTS',144,6,'#edf0d7',1,'center');
+}
+
+// Big screen: every player on one shared floor plan. Each phone has its own
+// copy of the map, but the layout is identical, so positions line up.
+export function createRoomRenderer(canvas){
+ const S=2,W=MAP_W*TILE,H=MAP_H*TILE;canvas.width=W*S;canvas.height=H*S;
+ const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;const map=buildBaseMap();
+ const reduceMotion=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ const spots=new Map(),seen=new Set();let bursts=[],primed=false;
+ const label=(text,x,y,bg,fg)=>{c.font='600 17px WarMono, monospace';const w=Math.ceil(c.measureText(text).width)+12;c.fillStyle=bg;c.fillRect(Math.round(x-w/2),Math.round(y-12),w,22);c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';c.fillText(text,Math.round(x),Math.round(y));};
+ function draw(players=[],events=[],now=Date.now(),options={}){
+  // Job bursts: only for jobs finished after the screen opened.
+  for(const e of events){const id=e.id||e.alias+e.created_at;if(seen.has(id))continue;seen.add(id);if(!primed)continue;const j=JOBS[e.type];if(j)bursts.push({x:j.x*TILE+8,y:j.y*TILE-6,text:'+'+e.points,name:e.alias,colour:j.colour,start:now});}
+  primed=true;bursts=bursts.filter(b=>now-b.start<2600);
+  c.setTransform(1,0,0,1,0,0);c.imageSmoothingEnabled=false;c.drawImage(map,0,0,W*S,H*S);
+  c.setTransform(S,0,0,S,0,0);
+  for(const f of FURNITURE)arcadeFurniture(c,f);
+  // Gentle pulse under the crew member who just got help.
+  for(const b of bursts){const t=(now-b.start)/2600;c.strokeStyle=b.colour;c.globalAlpha=1-t;c.lineWidth=2;c.beginPath();c.arc(b.x,b.y+14,10+t*26,0,Math.PI*2);c.stroke();c.globalAlpha=1;}
+  // Players glide between the positions each poll reports.
+  const tiles=new Map(),actors=[];
+  for(const p of players){const g=p.game;if(!g)continue;let s=spots.get(p.alias);const tx=g.x*TILE,ty=g.y*TILE;if(!s){s={x:tx,y:ty};spots.set(p.alias,s);}s.x+=(tx-s.x)*.12;s.y+=(ty-s.y)*.12;
+   const key=g.x+','+g.y,n=tiles.get(key)||0;tiles.set(key,n+1);actors.push({x:s.x+(n%3-1)*5*(n>0),y:s.y+Math.floor(n/3)*3,character:g.character??p.character,steps:g.steps,face:g.face,name:p.alias,area:areaAt(g.x,g.y),moving:Math.abs(tx-s.x)+Math.abs(ty-s.y)>1});}
+  for(const [i,j] of JOBS.entries())actors.push({x:j.x*TILE,y:j.y*TILE,character:[0,1,3,2][i],npc:true,name:j.person,colour:j.colour});
+  actors.sort((a,b)=>a.y-b.y);
+  for(const a of actors)drawPixelPerson(c,a.x,a.y-7,a.character,a.npc?0:(a.moving&&!reduceMotion?Math.floor(now/180):0),a.npc?'down':a.face);
+  c.setTransform(1,0,0,1,0,0);
+  for(const a of actors){const x=(a.x+8)*S,y=(a.y-13)*S;
+   if(a.npc)label(a.name,x,y,'#1d3136',a.colour);
+   else label(a.name.toUpperCase(),x,(a.y+20)*S,a.area>=0?JOBS[a.area].colour:'#f2ecd3','#13252a');}
+  for(const b of bursts){const t=(now-b.start)/2600,y=(b.y-12-t*30)*S;c.globalAlpha=t<.8?1:(1-t)*5;c.font='700 30px WarDisplay, sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=6;c.strokeStyle='#13252a';c.strokeText(b.text,(b.x)*S,y);c.fillStyle=b.colour;c.fillText(b.text,b.x*S,y);c.font='600 16px WarMono, monospace';c.strokeText(b.name.toUpperCase(),b.x*S,y+26);c.fillStyle='#f6f0d8';c.fillText(b.name.toUpperCase(),b.x*S,y+26);c.globalAlpha=1;}
+  if(options.paused){c.fillStyle='#19343bb8';c.fillRect(0,0,canvas.width,canvas.height);c.font='700 64px WarDisplay, sans-serif';c.fillStyle='#f4e8c4';c.textAlign='center';c.fillText('PAUSED',canvas.width/2,canvas.height/2);}
+ }
+ return {draw,canvas,destroy(){}};
 }

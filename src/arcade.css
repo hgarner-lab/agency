@@ -224,3 +224,13 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
  .arcade-stage .arc-room-lobby .qr-box{width:440px}
  .arcade-stage .arc-room-lobby .room-display{font-size:84px}
 }
+
+/* Host = big screen: controls live in a slim bar along the bottom. */
+.arcade-host #arc-room-controls{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#0e1b20f2;border-top:1px solid #36544a;padding:8px 3vw}
+.arcade-host #arc-room-controls:empty{display:none}
+.arcade-host .arc-host-controls{display:flex;gap:12px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin:0;padding:0;border:0}
+.arcade-host .arc-host-controls .btn{width:auto;min-height:40px;padding:10px 16px;font-size:13px;box-shadow:none}
+.arcade-host .arc-host-controls .text-button{font-size:13px}
+.arcade-host .shell{padding-bottom:64px}
+.arcade-roles .arc-host-controls{display:flex;gap:16px;align-items:center;justify-content:center;margin-top:18px}
+.arc-home-solo{display:block;margin-top:18px;font-size:14px}

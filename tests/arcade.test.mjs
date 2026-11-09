@@ -4,6 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {newArcadeGame,applyArcadeInput,arcadeProfile,canWalk,JOBS,ARCADE_TICK,gameHint,jobChecklist,nextInstruction,guidancePath,jobAction,newPracticeGame,applyPracticeInput,practiceInstruction} from '../src/arcade-world.js';
 import {arcadeApi} from '../src/arcade-server.js';
+import {NAME_WORDS,NAME_ANIMALS} from '../src/filter.js';
 let now,sql,env;
 beforeEach(()=>{
  mock.restoreAll();now=1800000000000;mock.method(Date,'now',()=>now);
@@ -41,7 +42,7 @@ async function request(route,body=null,auth=null){
  const headers={'content-type':'application/json'};if(auth?.token)headers.authorization='Bearer '+auth.token;if(auth?.id)headers['x-player']=auth.id;
  const response=await arcadeApi(new Request('https://game.test/api/arcade/'+route,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined}),env);return {status:response.status,data:await response.json()};
 }
-async function room(){const host=(await request('create',{duration:300})).data;const player=(await request('join',{code:host.code,alias:'Swift Fox 21',character:1})).data;await request('ready',{code:host.code},player);await request('control',{code:host.code,action:'start'},host);return {host,player};}
+async function room(){const host=(await request('create',{duration:300})).data;const player=(await request('join',{code:host.code,alias:'Turbo Llama',character:1})).data;await request('ready',{code:host.code},player);await request('control',{code:host.code,action:'start'},host);return {host,player};}
 
 test('all four jobs can be completed through actual walkable routes on the map',()=>{
  for(const type of [0,1,2,3]){const g=newArcadeGame(1);const inputs=performJob(g,type);assert.ok(inputs.length>10);assert.equal(g.jobs[type],1);assert.ok(g.score>=180);assert.equal(arcadeProfile(g),null);now+=4000;performJob(g,type);assert.equal(arcadeProfile(g).role,type);assert.ok(canWalk(g.x,g.y));}
@@ -107,13 +108,13 @@ test('rate limits, identity checks, room pause and clock expiry are server enfor
 });
 test('the shared screen gets high scores and highlights, with no credentials or hidden affinities',async()=>{
  const {host,player}=await room();const publicState=(await request('state?room='+host.code)).data;
- assert.equal(publicState.count,1);assert.equal(publicState.players[0].alias,'Swift Fox 21');assert.equal(publicState.players[0].game.affinity,undefined);assert.equal(publicState.players[0].token,undefined);assert.equal(publicState.game,null);assert.equal(publicState.host,false);
+ assert.equal(publicState.count,1);assert.equal(publicState.players[0].alias,'Turbo Llama');assert.equal(publicState.players[0].game.affinity,undefined);assert.equal(publicState.players[0].token,undefined);assert.equal(publicState.game,null);assert.equal(publicState.host,false);
  const own=(await request('state?room='+host.code,null,player)).data;assert.equal(own.game.character,1);assert.equal(own.seq,0);
  await request('control',{code:host.code,action:'finish'},host);assert.equal((await request('state?room='+host.code,null,player)).data.phase,'finished');
 });
 test('rooms allow 50 distinct players and reject a duplicate, typed or unsafe name',async()=>{
- const host=(await request('create',{})).data;for(let n=0;n<50;n++)assert.equal((await request('join',{code:host.code,alias:(n<25?'Swift Fox ':'Bold Wolf ')+(30+n%25),character:n%3})).status,201);
- assert.equal((await request('join',{code:host.code,alias:'Lucky Hawk 30'})).status,400);assert.equal((await request('join',{code:host.code,alias:'swift fox 31'})).status,400);assert.equal((await request('join',{code:host.code,alias:'Swift Fox 31'})).status,409);assert.equal((await request('join',{code:host.code,alias:'BigDick'})).status,400);assert.equal((await request('join',{code:host.code,alias:'Moose Hawk 69'})).status,400);assert.equal((await request('join',{code:host.code,alias:'f u c k'})).status,400);
+ const host=(await request('create',{})).data;for(let n=0;n<50;n++)assert.equal((await request('join',{code:host.code,alias:NAME_WORDS[n%NAME_WORDS.length]+' '+NAME_ANIMALS[Math.floor(n/NAME_WORDS.length)],character:n%3})).status,201);
+ assert.equal((await request('join',{code:host.code,alias:'Royal Meerkat'})).status,400);assert.equal((await request('join',{code:host.code,alias:'cosmic goblin'})).status,400);assert.equal((await request('join',{code:host.code,alias:'Cosmic Goblin'})).status,409);assert.equal((await request('join',{code:host.code,alias:'BigDick'})).status,400);assert.equal((await request('join',{code:host.code,alias:'Moose Hawk 69'})).status,400);assert.equal((await request('join',{code:host.code,alias:'f u c k'})).status,400);
  assert.equal((await request('state?room='+host.code)).data.count,50);
 });
 test('the marked object stays selected while moving, until collected or changing rooms',()=>{
@@ -148,7 +149,7 @@ test('practice teaches movement, collection and the action button without affect
 });
 test('the host sees readiness and ordinary start waits for everyone to practise',async()=>{
  const host=(await request('create',{})).data;
- const a=(await request('join',{code:host.code,alias:'Lucky Hawk 23',character:0})).data,b=(await request('join',{code:host.code,alias:'Rapid Shark 24',character:1})).data;
+ const a=(await request('join',{code:host.code,alias:'Cosmic Goblin',character:0})).data,b=(await request('join',{code:host.code,alias:'Chaotic Waffle',character:1})).data;
  assert.equal((await request('ready',{code:host.code})).status,403);
  assert.equal((await request('control',{code:host.code,action:'start'},host)).status,409);
  await request('ready',{code:host.code},a);let state=(await request('state?room='+host.code,null,a)).data;
@@ -159,7 +160,7 @@ test('the host sees readiness and ordinary start waits for everyone to practise'
  assert.equal((await request('control',{code:host.code,action:'start'},host)).status,200);
 });
 test('an explicit host override starts the clock and late arrivals can finish practice safely',async()=>{
- const host=(await request('create',{})).data,p=(await request('join',{code:host.code,alias:'Bold Wolf 22',character:1})).data;
+ const host=(await request('create',{})).data,p=(await request('join',{code:host.code,alias:'Sneaky Taco',character:1})).data;
  assert.equal((await request('control',{code:host.code,action:'start',allowUnready:true},p)).status,403);
  assert.equal((await request('control',{code:host.code,action:'start',allowUnready:true},host)).status,200);
  assert.equal((await request('ready',{code:host.code},p)).status,200);
@@ -168,6 +169,6 @@ test('an explicit host override starts the clock and late arrivals can finish pr
 });
 test('generated game names always pass the server name check and fit on screen',async()=>{
  const {makeNickname,isGameName,isClean}=await import('../src/filter.js');
- for(let i=0;i<2000;i++){const name=makeNickname();assert.ok(isGameName(name),name);assert.ok(isClean(name),name);assert.ok(name.length<=16,name);assert.doesNotMatch(name,/ (14|18|69|88)$/);}
- assert.equal(isGameName('Swift Fox 69'),false);assert.equal(isGameName('Penis Fox 21'),false);assert.equal(isGameName('Swift Fox 21'),true);
+ for(let i=0;i<2000;i++){const name=makeNickname();assert.ok(isGameName(name),name);assert.ok(isClean(name),name);assert.ok(name.length<=16,name);}
+ assert.equal(isGameName('Turbo Llama 69'),false);assert.equal(isGameName('Penis Llama'),false);assert.equal(isGameName('Galactic Capybara'),false);assert.equal(isGameName('Turbo Llama'),true);
 });

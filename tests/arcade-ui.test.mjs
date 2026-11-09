@@ -48,7 +48,7 @@ function ui(options={}){
  return {context,app,ids,click,walkTo,dispatch,async settle(){await new Promise(setImmediate)},async start(){await click('begin-practice');for(let i=0;i<4;i++){time+=ARCADE_TICK;context.arcTest.step({d:'right'})}time+=ARCADE_TICK;await context.arcTest.step({a:1});},advance(ms){time+=ms},use(){time+=ARCADE_TICK;return context.arcTest.step({a:1})},submit(fields){return dispatch('submit',{id:'arc-entry',fields})}};
 }
 test('solo player selects a character, moves, collects, makes an ad and reaches a role card',async()=>{
- const h=ui();assert.match(h.app.innerHTML,/PLAY SOLO/);await h.click('solo');await h.click('character','2');await h.submit({mode:'solo',alias:'PixelHG'});
+ const h=ui();assert.match(h.app.innerHTML,/HOST A GAME/);assert.match(h.app.innerHTML,/SKIP TO JOB ROLES/);assert.doesNotMatch(h.app.innerHTML,/JOIN A GROUP GAME/);await h.click('solo');await h.click('character','2');await h.submit({mode:'solo',alias:'PixelHG'});
  assert.equal(h.context.arcTest.read().solo.character,2);assert.match(h.app.innerHTML,/TRY THE CONTROLS/);await h.start();
  assert.equal(h.context.arcTest.read().sceneKey,'play');assert.match(h.app.innerHTML,/arc-dpad/);assert.match(h.app.innerHTML,/arc-action/);
  h.walkTo(22,3);h.walkTo(22,8);h.walkTo(26,4,true);h.use();
@@ -138,8 +138,14 @@ test('the shared closing screen teaches all four roles and keeps the final score
  assert.match(h.app.innerHTML,/data-slide="0"/);
 });
 test('players learn more about each job on their phone, with the crew member who does it',async()=>{
- const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'Swift Fox 21'});await h.start();
+ const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'Turbo Llama'});await h.start();
  h.walkTo(22,3);h.walkTo(22,8);h.walkTo(26,4,true);h.use();await h.click('pause-menu');await h.click('finish-self');
  assert.match(h.app.innerHTML,/GOOD START/);assert.match(h.app.innerHTML,/You worked in <b[^>]*>Creative/);assert.match(h.app.innerHTML,/YOUR JOB IN THE GAME/);
  assert.match(h.app.innerHTML,/WITH NOVA/);assert.match(h.app.innerHTML,/A NORMAL DAY/);assert.match(h.app.innerHTML,/YOU’D BE INTO IT IF/);assert.match(h.app.innerHTML,/Copywriter/);
+});
+test('the host can skip straight to the job roles slides without a game',async()=>{
+ const h=ui({search:'?view=roles'});
+ assert.equal(h.context.arcTest.read().sceneKey,'room-result');assert.match(h.app.innerHTML,/MEET THE TEAM/);
+ assert.equal((h.app.innerHTML.match(/class="arc-stage-lesson"/g)||[]).length,4);assert.equal((h.app.innerHTML.match(/class="arc-deeper"/g)||[]).length,4);
+ assert.equal((h.app.innerHTML.match(/class="arc-slide-tab"/g)||[]).length,2);assert.doesNotMatch(h.app.innerHTML,/arc-slide-scores/);assert.doesNotMatch(h.app.innerHTML,/ROOM POINTS/);
 });

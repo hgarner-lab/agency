@@ -7,15 +7,15 @@ export function isClean(value){
 
 // Players get a random game name instead of typing one, so nothing rude can
 // reach the big screen. The server only accepts names built from these lists.
-export const NAME_WORDS=['Swift','Bold','Lucky','Rapid','Cosmic','Turbo','Mighty','Clever','Brave','Chill','Epic','Golden','Hyper','Ninja','Pixel','Silent','Sonic','Super','Neon','Iron','Prime','Rogue','Shadow','Laser'];
-export const NAME_ANIMALS=['Fox','Wolf','Hawk','Shark','Tiger','Otter','Panda','Eagle','Lynx','Cobra','Falcon','Bison','Gecko','Moose','Raven','Rhino','Llama','Koala','Puma','Orca','Yak','Badger','Crab','Owl'];
-const SKIPPED_NUMBERS=new Set([14,18,69,88]);
+// Words were picked so no pairing reads as a double meaning.
+export const NAME_WORDS=['Turbo','Cosmic','Chaotic','Sneaky','Crispy','Galactic','Mega','Hyper','Quantum','Glitchy','Electric','Feral','Frosty','Mystic','Funky','Wonky','Jazzy','Zesty','Retro','Pixel','Neon','Laser','Rocket','Atomic','Supreme','Iconic','Epic','Elite','Sonic','Ninja','Golden','Chill','Rogue','Stealth','Legit','Spooky','Royal','Midnight','Thunder','Lucky'];
+export const NAME_ANIMALS=['Llama','Goblin','Wizard','Panda','Nugget','Waffle','Taco','Noodle','Penguin','Kraken','Yeti','Dragon','Pirate','Raccoon','Pigeon','Gecko','Hamster','Toaster','Burrito','Pretzel','Cactus','Donut','Moose','Otter','Badger','Falcon','Unicorn','Robot','Comet','Walrus','Lobster','Capybara','Narwhal','Ferret','Pancake','Sloth','Wombat','Gremlin','Potato','Meerkat'];
+const MAX_NAME=16;
 export function makeNickname(random=Math.random){
  const pick=list=>list[Math.floor(random()*list.length)];
- let n;do{n=10+Math.floor(random()*90)}while(SKIPPED_NUMBERS.has(n));
- return `${pick(NAME_WORDS)} ${pick(NAME_ANIMALS)} ${n}`;
+ for(;;){const name=`${pick(NAME_WORDS)} ${pick(NAME_ANIMALS)}`;if(name.length<=MAX_NAME)return name;}
 }
 export function isGameName(value){
- const m=/^([A-Za-z]+) ([A-Za-z]+) (\d\d)$/.exec(String(value));
- return !!m&&NAME_WORDS.includes(m[1])&&NAME_ANIMALS.includes(m[2])&&!SKIPPED_NUMBERS.has(Number(m[3]));
+ const m=/^([A-Za-z]+) ([A-Za-z]+)$/.exec(String(value));
+ return !!m&&String(value).length<=MAX_NAME&&NAME_WORDS.includes(m[1])&&NAME_ANIMALS.includes(m[2]);
 }
