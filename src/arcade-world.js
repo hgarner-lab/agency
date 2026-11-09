@@ -91,6 +91,13 @@ export function guidancePath(g,target){
  return [];
 }
 
+// Every finished job adds one piece to the room's campaign wall.
+export const PIECES={
+ insight:['Customers want a say in the next design.','People want to feel included, not sold to.','They care about who is behind the brand.','They trust real people more than ads.','They want trainers that last.','They share what their mates are wearing.'],
+ approval:['Budget signed off','Launch date locked in','Final ad approved','Influencer deal agreed','Shoot location approved','Press release approved'],
+ live:['Billboard up in Shoreditch','Launch lights on','Camera rolling','Pop-up shop built','Trainers on the shelves','Projection on the station wall'],
+ headlines:{'word-us':['FOR EVERYONE','MADE WITH YOU','ONE CREW','NO VIP LIST'],'word-you':['YOUR WAY','DESIGNED BY YOU','YOUR MOVE','STEP UP']}
+};
 function arcadeNote(g,text,events){g.lastNote=text;events.push({kind:'note',text});}
 function collectArcadeItem(g,p,now,events){
  g.inventory.push(p.id);g.focus=p.type;g.affinity[p.type]+=p.type===0?1/3:1/2;g.score+=p.type===0?10:15;g.firstType??=p.type;
@@ -119,20 +126,19 @@ function applyArcadeStep(g,input,now){
   if(n<0){arcadeNote(g,'Stand next to Rem, Nova, Sol or Patch to do a job.',events);return events;}
   if(g.delivery&&g.delivery.to===n){
    const from=JOBS[n].person;g.delivery=null;g.inventory=g.inventory.filter(id=>id!=='brief');
-   completeArcadeJob(g,2,now,events,`Message delivered to ${from}. The client’s plan is agreed.`);return events;
+   const text=PIECES.approval[(g.jobs[2]+g.steps)%PIECES.approval.length];completeArcadeJob(g,2,now,events,`Message delivered to ${from}. ${text}.`,{kind:'approval',text});return events;
   }
   if(g.delivery){arcadeNote(g,`Take Sol’s message to ${JOBS[g.delivery.to].person} first.`,events);return events;}
   g.focus=n;
   if(now<g.readyAt[n]){arcadeNote(g,'New supplies are arriving. Try another room for a moment.',events);return events;}
   if(n===0){
    if(!['clue-a','clue-b','clue-c'].every(id=>hasItem(g,id))){arcadeNote(g,'REM: Bring me all 3 customer clues. They’re the green cards in this room.',events);return events;}
-   const texts=['You found what customers want: a say in the next trainer.','You found a customer insight: make the launch feel open to everyone.','You turned customer comments into a clear plan for the campaign.'];
-   completeArcadeJob(g,0,now,events,texts[g.jobs[0]%3]);
+   const text=PIECES.insight[(g.jobs[0]+g.steps)%PIECES.insight.length];completeArcadeJob(g,0,now,events,'Insight found: '+text,{kind:'insight',text});
   }else if(n===1){
    const ink=PICKUPS.find(p=>p.kind==='colour'&&hasItem(g,p.id)),word=PICKUPS.find(p=>p.kind==='word'&&hasItem(g,p.id));
    if(!ink||!word){arcadeNote(g,'NOVA: Pick a colour tin and a word tile in this room. Then we’ll make your ad.',events);return events;}
-   const poster={title:word.value,colour:ink.value,pattern:g.jobs[1]%3};g.posters.push(poster);g.posters=g.posters.slice(-4);
-   completeArcadeJob(g,1,now,events,'Ad made: UNDERGROUND / '+word.value,poster);
+   const lines=PIECES.headlines[word.id],poster={kind:'ad',title:lines[(g.jobs[1]+g.steps)%lines.length],colour:ink.value,pattern:(g.jobs[1]+Math.floor(g.steps/4))%3};g.posters.push(poster);g.posters=g.posters.slice(-6);
+   completeArcadeJob(g,1,now,events,'Ad made: '+poster.title,poster);
   }else if(n===2){
    if(g.delivery){arcadeNote(g,`SOL: ${JOBS[g.delivery.to].person} is waiting for my message. Take it to them.`,events);return events;}
    const to=[1,0,3][g.jobs[2]%3];g.delivery={to};g.inventory.push('brief');g.affinity[2]+=1;g.firstType??=2;g.score+=30;
@@ -140,7 +146,7 @@ function applyArcadeStep(g,input,now){
    arcadeNote(g,`SOL: Take this message to ${JOBS[to].person} in ${JOBS[to].name}. They need it to start work.`,events);
   }else if(n===3){
    if(!hasItem(g,'spanner')||!hasItem(g,'battery')){arcadeNote(g,'PATCH: Bring me a spanner and a battery from this room. We need to fix the launch equipment.',events);return events;}
-   completeArcadeJob(g,3,now,events,['Launch sign fixed. The brand’s name is back in lights.','Launch lights repaired. The set is ready.','Camera repaired. The crew can start filming.'][g.jobs[3]%3]);
+   const text=PIECES.live[(g.jobs[3]+g.steps)%PIECES.live.length];completeArcadeJob(g,3,now,events,'Kit fixed. '+text+'.',{kind:'live',text});
   }
  }
  return events;

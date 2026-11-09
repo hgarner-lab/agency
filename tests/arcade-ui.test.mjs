@@ -128,14 +128,14 @@ test('the shared closing screen teaches all four roles and keeps the final score
  const players=roles.map((r,i)=>({alias:'Crew'+i,character:i%3,score:400-i*10,completed:2,profile:{role:i},game:newArcadeGame(i%3)}));
  const state={code:'ROOM26',phase:'finished',serverNow:1800000000000,count:4,players,leaderboard:players,events:[],launch:{score:1540,jobs:8,target:16,progress:50}};
  const h=ui({search:'?view=stage&room=ROOM26',fetchImpl:async()=>Response.json(state)});await h.settle();
- assert.equal(h.context.arcTest.read().sceneKey,'room-result');assert.match(h.app.innerHTML,/MEET THE TEAM/);
+ assert.equal(h.context.arcTest.read().sceneKey,'room-result');assert.match(h.app.innerHTML,/aria-label="Meet the team"/);
  assert.equal((h.app.innerHTML.match(/class="arc-stage-lesson"/g)||[]).length,4);
  for(let i=0;i<4;i++)assert.equal(h.ids.get('arc-role-count-'+i).textContent,'1 PLAYER IN THIS ROLE');
  assert.match(h.ids.get('arc-leaderboard-wrap').innerHTML,/FINAL LEADERBOARD/);assert.doesNotMatch(h.app.innerHTML,/id="arc-stage-canvas"/);
  await h.click('retry');await h.settle();assert.equal(h.context.arcTest.read().sceneKey,'room-result');
  for(const name of ['REM','NOVA','SOL','PATCH'])assert.match(h.app.innerHTML,new RegExp('arc-crew-name">'+name));
  assert.equal((h.app.innerHTML.match(/class="arc-deeper"/g)||[]).length,4);assert.match(h.app.innerHTML,/JOB TITLES TO SEARCH/);assert.match(h.app.innerHTML,/Ways in:/);
- assert.match(h.app.innerHTML,/data-slide="0"/);
+ assert.match(h.app.innerHTML,/data-slide="campaign"/);assert.match(h.app.innerHTML,/YOUR CAMPAIGN/);
 });
 test('players learn more about each job on their phone, with the crew member who does it',async()=>{
  const h=ui();await h.click('solo');await h.submit({mode:'solo',alias:'Turbo Llama'});await h.start();
@@ -148,4 +148,13 @@ test('the host can skip straight to the job roles slides without a game',async()
  assert.equal(h.context.arcTest.read().sceneKey,'room-result');assert.match(h.app.innerHTML,/MEET THE TEAM/);
  assert.equal((h.app.innerHTML.match(/class="arc-stage-lesson"/g)||[]).length,4);assert.equal((h.app.innerHTML.match(/class="arc-deeper"/g)||[]).length,4);
  assert.equal((h.app.innerHTML.match(/class="arc-slide-tab"/g)||[]).length,2);assert.doesNotMatch(h.app.innerHTML,/arc-slide-scores/);assert.doesNotMatch(h.app.innerHTML,/ROOM POINTS/);
+});
+test('the host sees the brief first, then the QR lobby, and can get back to the game from home',async()=>{
+ const state={code:'ROOM27',phase:'lobby',duration:300,serverNow:1800000000000,count:0,readyCount:0,players:[],leaderboard:[],events:[],launch:{score:0,jobs:0,target:0,progress:0}};
+ const h=ui({search:'?view=host&room=ROOM27',storage:{'wr-arc-host-ROOM27':{token:'t',host:true}},fetchImpl:async()=>Response.json(state)});await h.settle();
+ assert.equal(h.context.arcTest.read().sceneKey,'brief');assert.match(h.app.innerHTML,/THE BRIEF/);assert.match(h.app.innerHTML,/5 minutes/);assert.doesNotMatch(h.app.innerHTML,/ROOM CODE/);
+ await h.click('brief-done');assert.equal(h.context.arcTest.read().sceneKey,'lobby');assert.match(h.app.innerHTML,/ROOM CODE/);
+ h.context.localStorage.setItem('wr-arc-last-host',JSON.stringify({code:'ROOM27',at:h.context.Date.now()}));
+ const home=ui({storage:{'wr-arc-host-ROOM27':{token:'t',host:true},'wr-arc-last-host':{code:'ROOM27',at:1800000000000}}});
+ assert.match(home.app.innerHTML,/BACK TO YOUR GAME · ROOM27/);
 });
