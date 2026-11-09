@@ -673,3 +673,11 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 .arcade-stage .arc-deeper .arc-role-love{font-size:17px}
 @media(max-height:820px){.arcade-stage .arc-deeper .arc-role-voice{font-size:15.5px;margin-bottom:8px}.arcade-stage .arc-deeper .arc-role-love{font-size:15px;margin-bottom:7px}.arcade-stage .arc-deeper header small{font-size:14px}}
 @media(min-width:1600px) and (min-height:950px){.arcade-stage .arc-deeper .arc-role-voice{font-size:24px}.arcade-stage .arc-deeper .arc-role-love{font-size:21px}.arcade-stage .arc-role-skills span{font-size:17px}.arcade-stage .arc-role-start{font-size:19px}}
+
+/* The client identity appears on the brief and campaign work. */
+.arc-client-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.arc-client-brand img{display:block;flex-shrink:0;width:56px;height:31px;object-fit:contain}
+.arc-client-brief .arc-brief-doc header .arc-client-brand b{font-size:clamp(19px,1.75vw,29px)}
+@media(max-height:820px) and (min-width:900px){.arc-client-brand{gap:8px}.arc-client-brand img{width:44px;height:25px}.arc-client-brief .arc-brief-doc header{gap:10px}}
+@media(max-width:480px){.arc-client-brand{gap:6px}.arc-client-brand img{width:40px;height:23px}.arc-client-brief .arc-brief-doc header{gap:8px;padding:10px 12px}.arc-client-brief .arc-brief-doc header>span{font-size:10px}.arc-client-brief .arc-brief-doc header .arc-client-brand b{font-size:17px}.arc-client-brief .arc-brief-doc header i{font-size:18px;padding:2px 7px}}
+@media(max-width:480px){.arc-client-brief .arc-brief-doc header{display:grid;grid-template-columns:1fr auto;gap:4px 10px}.arc-client-brief .arc-brief-doc header>span{grid-column:1;grid-row:1}.arc-client-brief .arc-client-brand{grid-column:1;grid-row:2}.arc-client-brief .arc-brief-doc header i{grid-column:2;grid-row:1/3;margin-left:0;align-self:center}}
