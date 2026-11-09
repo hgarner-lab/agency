@@ -137,14 +137,14 @@ export function createRoomRenderer(canvas){
   // Players glide between the positions each poll reports.
   const tiles=new Map(),actors=[];
   for(const p of players){const g=p.game;if(!g)continue;let s=spots.get(p.alias);const tx=g.x*TILE,ty=g.y*TILE;if(!s){s={x:tx,y:ty};spots.set(p.alias,s);}s.x+=(tx-s.x)*.12;s.y+=(ty-s.y)*.12;
-   const key=g.x+','+g.y,n=tiles.get(key)||0;tiles.set(key,n+1);actors.push({x:s.x+(n%3-1)*5*(n>0),y:s.y+Math.floor(n/3)*3,character:g.character??p.character,steps:g.steps,face:g.face,name:p.alias,area:areaAt(g.x,g.y),moving:Math.abs(tx-s.x)+Math.abs(ty-s.y)>1});}
+   const key=g.x+','+g.y,n=tiles.get(key)||0;tiles.set(key,n+1);actors.push({tile:key,first:n===0,x:s.x+(n%3-1)*5*(n>0),y:s.y+Math.floor(n/3)*3,character:g.character??p.character,steps:g.steps,face:g.face,name:p.alias,area:areaAt(g.x,g.y),moving:Math.abs(tx-s.x)+Math.abs(ty-s.y)>1});}
   for(const [i,j] of JOBS.entries())actors.push({x:j.x*TILE,y:j.y*TILE,character:[0,1,3,2][i],npc:true,name:j.person,colour:j.colour});
   actors.sort((a,b)=>a.y-b.y);
   for(const a of actors)drawPixelPerson(c,a.x,a.y-7,a.character,a.npc?0:(a.moving&&!reduceMotion?Math.floor(now/180):0),a.npc?'down':a.face);
   c.setTransform(1,0,0,1,0,0);
   for(const a of actors){const x=(a.x+8)*S,y=(a.y-13)*S;
    if(a.npc)label(a.name,x,y,'#1d3136',a.colour);
-   else label(a.name.toUpperCase(),x,(a.y+20)*S,a.area>=0?JOBS[a.area].colour:'#f2ecd3','#13252a');}
+   else if(a.first){const more=tiles.get(a.tile)-1;label(a.name.toUpperCase()+(more?' +'+more:''),x,(a.y+20)*S,a.area>=0?JOBS[a.area].colour:'#f2ecd3','#13252a');}}
   for(const b of bursts){const t=(now-b.start)/2600,y=(b.y-12-t*30)*S;c.globalAlpha=t<.8?1:(1-t)*5;c.font='700 30px WarDisplay, sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=6;c.strokeStyle='#13252a';c.strokeText(b.text,(b.x)*S,y);c.fillStyle=b.colour;c.fillText(b.text,b.x*S,y);c.font='600 16px WarMono, monospace';c.strokeText(b.name.toUpperCase(),b.x*S,y+26);c.fillStyle='#f6f0d8';c.fillText(b.name.toUpperCase(),b.x*S,y+26);c.globalAlpha=1;}
   if(options.paused){c.fillStyle='#19343bb8';c.fillRect(0,0,canvas.width,canvas.height);c.font='700 64px WarDisplay, sans-serif';c.fillStyle='#f4e8c4';c.textAlign='center';c.fillText('PAUSED',canvas.width/2,canvas.height/2);}
  }
