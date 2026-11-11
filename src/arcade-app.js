@@ -7,6 +7,7 @@ import {character,selector} from './scenes.js';
 import {isClean,isGameName,makeNickname} from './filter.js';
 import {qr} from './qr.js';
 import {drawRoleCard,MCCANN_LOGO_URL} from './role-card.js';
+import {music,sfx,unlockAudio} from './arcade-audio.js';
 import {rushAt,AD_STYLE,adStyle,ARCADE_TICK,JOBS,PICKUPS,pickupInfo,newArcadeGame,applyArcadeInput,arcadeProfile,nearbyJob,nextInstruction,jobAction,newPracticeGame,practiceInstruction,applyPracticeInput,MIN_ROLE_JOBS} from './arcade-world.js';
 import {createArcadeRenderer,createRoomRenderer,trainerSVG,COLOURWAYS,posterSVG,drawGameIcon,drawPractice} from './arcade-renderer.js';
 
@@ -17,7 +18,7 @@ let savingRole=false,workDraft=null,viewedWork=null;
 let selected=0,creds=null,live=null,game=null,solo=null,ackGame=null,ackSeq=0,pending=[],nextSeq=0;
 let poller=null,sending=false,connected=false,clockOffset=0,sceneKey='',renderer=null,modalType=null,busy=false;
 let practice=null,practiceSaving=false,movementPointer=null,nickname=makeNickname();
-let held='',keys=[],actionQueued=false,lastInput=0,lastSave=0,toastUntil=0,spotlight=-1,spotlightAt=0,sound=false,audio=null;
+let held='',keys=[],actionQueued=false,lastInput=0,lastSave=0,toastUntil=0,spotlight=-1,spotlightAt=0,sound=false;
 const gameStore='wr-arcade-solo';
 const loadJSON=key=>{try{return JSON.parse(sessionStorage.getItem(key)||'null')}catch{return null}};
 try{creds=JSON.parse(localStorage.getItem((view==='host'?'wr-arc-host-':'wr-arc-player-')+roomCode)||'null')}catch{}
@@ -32,7 +33,15 @@ const playerLink=()=>location.origin+'/?view=player&room='+roomCode;
 function toast(text){const el=q('#toast');el.textContent=text;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3200)}
 // The message moves to whichever half of the map your next target is not in.
 function note(text,ms=2500){const n=q('#game-message');if(n){const target=game&&nextInstruction(game,clock()).target;n.textContent=text;n.classList.add('visible');toastUntil=Date.now()+ms}}
-function playNote(type){if(!sound)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume();const frequencies=type==='job'?[392,523,659]:type==='pickup'?[740,988]:type==='miss'?[220,196]:[440];frequencies.forEach((f,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime+i*.07;o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.0001,t+.10);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.11)})}catch{}}
+function playNote(type){if(sound)sfx(type)}
+// The laptop running the big screen plays the music and room sounds. Phones only play short sounds.
+let hostSound=(()=>{try{return localStorage.getItem('wr-arc-host-sound')!=='off'}catch{return true}})(),lastTick=0;
+const soundIcon=on=>`<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M3 7h3l5-4v14l-5-4H3z" fill="currentColor"/>${on?'<path d="M13.5 7a4 4 0 0 1 0 6M15.5 4.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.6"/>':'<path d="M13.5 7.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.8"/>'}</svg>`;
+function roomSounds(){
+ if(view==='host'&&live){const s=secondsLeft(),on=hostSound&&live.phase==='active'&&sceneKey==='room-playing';music(on,s<30);const n=Math.ceil(s);if(on&&n<=10&&n>0&&n!==lastTick)sfx('tick');lastTick=n;}
+ else if(solo)music(sound&&sceneKey==='play'&&solo.phase==='active'&&secondsLeft()>0,secondsLeft()<30);
+ else music(false);
+}
 function header(){return `<div class="shell"><header class="nav arc-nav">${brand()}<div class="arc-nav-right"><span class="arc-mode mono">${view==='solo'?'':view==='host'||view==='stage'||view==='roles'||view==='brief'?'':roomCode?'ROOM '+safe(roomCode):'THE PIXEL GAME'}</span>${view==='player'?`<span class="arc-connection mono${connected?'':' offline'}" id="arc-connection">${connected?'CONNECTED':'CONNECTING…'}</span>`:''}</div></header></div>`}
 function itemIcon(kind,label){return `<canvas class="arc-item-icon" width="24" height="24" data-game-icon="${safe(kind)}" role="img" aria-label="${safe(label)}"></canvas>`;}
 function paintIcons(){document.querySelectorAll('[data-game-icon]').forEach(el=>drawGameIcon(el,el.dataset.gameIcon));}
@@ -143,7 +152,7 @@ function secondsLeft(){if(solo)return solo.phase==='paused'?solo.remaining/1000:
 function renderPlay(){
  clearMovement();renderer?.destroy?.();document.body.className='arcade-playing';sceneKey='play';
  const alias=solo?.alias||creds?.alias||'PLAYER';
- root.innerHTML=header()+`<main class="arc-player-shell"><div class="arc-hud"><div><span>YOU</span><b>${safe(alias)}</b></div><div class="arc-score"><span>POINTS</span><b id="arc-score">${game?.score||0}</b></div><div><span>TIME LEFT</span><b id="arc-time">${prettyTime(secondsLeft())}</b></div></div><div class="arc-task"><canvas id="arc-objective-icon" class="arc-item-icon" width="24" height="24" aria-hidden="true"></canvas><p id="arc-hint" role="status" aria-live="polite"></p><small id="arc-hint-detail"></small></div><div class="arc-canvas-frame"><div id="arc-rush" class="arc-rush" hidden></div><canvas id="arc-canvas" role="img" aria-label="Top-down pixel agency. Use the direction pad or arrow keys to move. Collect items, then stand next to a teammate and press the action button."></canvas><div class="arc-game-message" id="game-message" role="status" aria-live="polite"></div><div id="arc-freeze" class="arc-freeze" hidden></div></div><div class="arc-bag" id="arc-bag" aria-label="Items in your bag"></div>${controlsMarkup()}<div class="arc-play-footer"><button data-action="map">HELP</button><button class="arc-sound" data-action="sound" aria-pressed="${sound}">${sound?'SOUND ON':'SOUND OFF'}</button><span id="arc-role-progress" aria-label="Jobs needed for a role"></span><button data-action="pause-menu">${view==='solo'?'PAUSE':'MENU'} Ⅱ</button></div></main>`;
+ root.innerHTML=header()+`<main class="arc-player-shell"><div class="arc-hud"><div><span>YOU</span><b>${safe(alias)}</b></div><div class="arc-score"><span>POINTS</span><b id="arc-score">${game?.score||0}</b></div><div><span>TIME LEFT</span><b id="arc-time">${prettyTime(secondsLeft())}</b></div></div><div class="arc-task"><canvas id="arc-objective-icon" class="arc-item-icon" width="24" height="24" aria-hidden="true"></canvas><p id="arc-hint" role="status" aria-live="polite"></p><small id="arc-hint-detail"></small></div><div class="arc-canvas-frame"><div id="arc-rush" class="arc-rush" hidden></div><canvas id="arc-canvas" role="img" aria-label="Top-down pixel agency. Use the direction pad or arrow keys to move. Collect items, then stand next to a teammate and press the action button."></canvas><div class="arc-game-message" id="game-message" role="status" aria-live="polite"></div><div id="arc-freeze" class="arc-freeze" hidden></div></div><div class="arc-bag" id="arc-bag" aria-label="Items in your bag"></div>${controlsMarkup()}<div class="arc-play-footer"><button class="arc-icon-btn" data-action="map" aria-label="Help">?</button><button class="arc-sound arc-icon-btn" data-action="sound" aria-pressed="${sound}" aria-label="Sound">${soundIcon(sound)}</button><span id="arc-role-progress" aria-label="Jobs needed for a role"></span><button data-action="pause-menu">${view==='solo'?'PAUSE':'MENU'} Ⅱ</button></div></main>`;
  renderer=createArcadeRenderer(q('#arc-canvas'));updatePlayUI();
 }
 // Bonus points from urgent jobs and team-ups sit outside the game state.
@@ -154,8 +163,20 @@ function currentRush(){
  if(solo){const r=rushAt('SOLO',300000,300000-secondsLeft()*1000);return r?{...r,left:r.left,claimedBy:(solo.rushWon||[]).includes(r.index)?solo.alias:null}:null;}
  if(!live?.rush)return null;return {...live.rush,left:live.phase==='paused'?live.rush.left:live.rush.endsAt-clock()};
 }
+// Jamie pops up over everything (even an open job) when an urgent job starts, so nobody misses it.
+let rushSeen=-1,popTimer=0;
+function jamiePop(r,stage){
+ const old=q('#arc-client-pop');if(old&&(!r||r.left<=0||r.claimedBy))old.remove();
+ if(!r||r.left<=0||r.claimedBy||r.index===rushSeen)return;rushSeen=r.index;
+ const team=JOBS[r.type],el=document.createElement('div');old?.remove();
+ el.id='arc-client-pop';el.className='arc-client-pop'+(stage?' stage':'');el.style.setProperty('--c',team.colour);el.setAttribute('role','alert');
+ el.innerHTML=`<img src="/assets/client-jamie-v1.webp" alt="" width="768" height="1152"><div><small>JAMIE · YOUR CLIENT</small><b>“I need ${safe(team.name)} help. Now!”</b><span>First to finish ${teamJob(team)} gets <strong>double points</strong>.</span></div>`;
+ el.addEventListener('click',()=>el.remove());document.body.append(el);
+ if(stage){if(view==='host'&&hostSound)sfx('jamie')}else{playNote('jamie');try{navigator.vibrate?.([120,60,120])}catch{}}
+ clearTimeout(popTimer);popTimer=setTimeout(()=>el.remove(),stage?9000:5000);
+}
 function updateRush(){
- const el=q('#arc-rush');if(!el)return;const r=currentRush();
+ const el=q('#arc-rush');if(!el)return;const r=currentRush();jamiePop(r,false);
  if(!r||r.left<=0){el.hidden=true;return;}
  const team=JOBS[r.type],mine=r.claimedBy&&r.claimedBy===(solo?.alias||creds?.alias);
  el.hidden=false;el.style.setProperty('--c',team.colour);
@@ -225,7 +246,7 @@ function renderWaiting(){document.body.className='arcade-waiting';root.innerHTML
 
 function roomControls(){
  if(view!=='host')return '';const p=live.phase,ready=live.readyCount||0,waiting=live.count-ready;
- return `<div class="arc-host-controls">${p==='lobby'?`<button class="btn" data-action="control" data-value="start" ${!live.count||waiting?'disabled':''}>${waiting?waiting+' STILL PRACTISING':'START THE GAME →'}</button>${waiting?'<button class="text-button" data-action="control" data-value="start-anyway">Start anyway</button>':''}`:p==='active'?'<button class="btn secondary" data-action="control" data-value="pause">PAUSE EVERYONE Ⅱ</button><button class="btn" data-action="control" data-value="finish">END GAME + SHOW JOB ROLES →</button>':p==='paused'?'<button class="btn" data-action="control" data-value="resume">RESUME EVERYONE →</button><button class="btn secondary" data-action="control" data-value="finish">END GAME + SHOW JOB ROLES →</button>':'<button class="btn secondary" data-action="new-room">NEW GAME ↗</button><a class="text-button" href="/">Home</a>'}${p==='lobby'?'<a class="text-button" href="/?view=roles">Skip to job roles</a><button class="text-button" data-action="copy">Copy player link</button>':''}<button class="text-button" data-action="fullscreen">${document.fullscreenElement?'Exit full screen':'Full screen ⛶'}</button></div>`;
+ return `<div class="arc-host-controls">${p==='lobby'?`<button class="btn" data-action="control" data-value="start" ${!live.count||waiting?'disabled':''}>${waiting?waiting+' STILL PRACTISING':'START THE GAME →'}</button>${waiting?'<button class="text-button" data-action="control" data-value="start-anyway">Start anyway</button>':''}`:p==='active'?'<button class="btn secondary" data-action="control" data-value="pause">PAUSE EVERYONE Ⅱ</button><button class="btn" data-action="control" data-value="finish">END GAME + SHOW JOB ROLES →</button>':p==='paused'?'<button class="btn" data-action="control" data-value="resume">RESUME EVERYONE →</button><button class="btn secondary" data-action="control" data-value="finish">END GAME + SHOW JOB ROLES →</button>':'<button class="btn secondary" data-action="new-room">NEW GAME ↗</button><a class="text-button" href="/">Home</a>'}${p==='lobby'?'<a class="text-button" href="/?view=roles">Skip to job roles</a><button class="text-button" data-action="copy">Copy player link</button>':''}<button class="text-button arc-host-sound" data-action="host-sound" aria-pressed="${hostSound}">${hostSound?'♪ Sound on':'♪ Sound off'}</button><button class="text-button" data-action="fullscreen">${document.fullscreenElement?'Exit full screen':'Full screen ⛶'}</button></div>`;
 }
 
 function leaderboard(){return `<div class="arc-leaderboard"><div class="eyebrow">${live.phase==='finished'?'FINAL':'LIVE'} LEADERBOARD</div>${live.leaderboard.length?live.leaderboard.slice(0,live.phase==='finished'?10:8).map((p,i)=>`<div class="arc-rank-row"><span class="arc-rank-num">${String(i+1).padStart(2,'0')}</span><span class="mini-head">${character(p.character)}</span><div><b>${safe(p.alias)}</b><small>${p.completed} ${p.completed===1?'JOB':'JOBS'} DONE</small></div><strong>${p.score.toLocaleString('en-GB')}</strong></div>`).join(''):'<p class="fine">Players appear when they join.</p>'}</div>`}
@@ -258,7 +279,21 @@ function setSlide(n,share=true){
 const pieceOf=e=>e.poster||{kind:['insight','ad','approval','live'][e.type],text:e.detail,title:'YOUR WAY'};
 const votesFor=id=>(live?.ads||[]).find(a=>a.id===id)?.votes||0;
 function pitchLine(){const ads=(live?.ads||[]).filter(a=>a.votes).sort((a,b)=>b.votes-a.votes);if(!(live?.ads||[]).length)return '';return ads.length?`<b>PITCH VOTE</b> Leading: ${safe(ads[0].alias)}’s ad · ${ads[0].votes} ${ads[0].votes===1?'vote':'votes'}. Vote for the best ad on your phone.`:'<b>PITCH VOTE</b> Vote for the best ad on your phone.';}
-const wallTiles=(events,n)=>events.slice(0,n).map((e,i)=>`<figure class="arc-wall-tile" style="--c:${JOBS[e.type].colour}">${e.type===1&&votesFor(e.id)?`<i class="arc-vote-badge">♥ ${votesFor(e.id)}</i>`:''}<button data-action="view-work" data-value="${i}" aria-label="View work by ${safe(e.alias)}">${posterSVG(pieceOf(e))}</button><figcaption>${safe(e.alias)}${e.poster?.taskTitle?`<small>${safe(e.poster.taskTitle)}</small>`:''}</figcaption></figure>`).join('');
+const wallTile=(e,i,label=e.poster?.taskTitle)=>`<figure class="arc-wall-tile" style="--c:${JOBS[e.type].colour}">${e.type===1&&votesFor(e.id)?`<i class="arc-vote-badge">♥ ${votesFor(e.id)}</i>`:''}<button data-action="view-work" data-value="${i}" aria-label="View work by ${safe(e.alias)}">${posterSVG(pieceOf(e))}</button><figcaption>${safe(e.alias)}${label?`<small>${safe(label).replace(/_/g,'_<wbr>')}</small>`:''}</figcaption></figure>`;
+const wallTiles=(events,n)=>events.slice(0,n).map((e,i)=>wallTile(e,i)).join('');
+// End of the game: every piece of work, grouped by project like a real agency folder.
+// Each new go at the same project is the next version, named the way real files end up.
+const VERSIONS=['V1','V2','V3_FINAL','V4_FINAL_final','V5_FINAL_actual_final','V6_USE_THIS_ONE','V7_FINAL_FINAL_v2','V8_ok_THIS_one'];
+const versionName=(title,n)=>title.replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'')+'_'+(VERSIONS[n]||'V'+(n+1)+'_FINAL_promise');
+function finalWall(events){
+ const all=events.map((e,i)=>({e,i})),groups=new Map();
+ for(const x of [...all].reverse()){const title=x.e.poster?.taskTitle||JOBS[x.e.type].role;const key=x.e.type+'|'+title;if(!groups.has(key))groups.set(key,{title,type:x.e.type,items:[]});groups.get(key).items.push(x);}
+ const names={};for(const g of groups.values())g.items.forEach((x,n)=>names[x.i]=versionName(g.title,n));
+ const faves=all.filter(x=>x.e.type===1&&votesFor(x.e.id)).sort((a,b)=>votesFor(b.e.id)-votesFor(a.e.id)||a.i-b.i).slice(0,4);
+ const top=faves.length?`<section class="arc-project arc-faves"><h3><span>♥ CROWD FAVOURITES</span>The ads you voted for</h3><div class="arc-campaign-grid">${faves.map(x=>wallTile(x.e,x.i,names[x.i])).join('')}</div></section>`:'';
+ const folders=[...groups.values()].sort((a,b)=>a.type-b.type).map(g=>`<section class="arc-project" style="--c:${JOBS[g.type].colour}"><h3><span>${JOBS[g.type].name}</span>${safe(g.title)}<small>${g.items.length} ${g.items.length===1?'version':'versions'}</small></h3><div class="arc-campaign-grid">${g.items.map((x,n)=>wallTile(x.e,x.i,names[x.i])).join('')}</div></section>`).join('');
+ return top+folders;
+}
 function campaignSummary(){const n=[0,0,0,0];for(const p of live.players)for(let t=0;t<4;t++)n[t]+=p.game?.jobs?.[t]||0;const words=[['strategy plan','strategy plans'],['creative piece','creative pieces'],['client agreement','client agreements'],['production plan','production plans']];return [1,0,2,3].filter(t=>n[t]).map(t=>`<span style="color:${JOBS[t].colour}">${n[t]} ${words[t][n[t]===1?0:1]}</span>`).join('<i>·</i>');}
 function setHTML(el,html){if(el&&el._html!==html){el.innerHTML=html;el._html=html;}}
 function roleLearning(ownRole=-1,partial=false){return `<section class="arc-role-learning" id="meet-team" aria-labelledby="arc-learning-title"><h2 id="arc-learning-title">MEET THE TEAM.</h2><p>Tap a job to find out more.</p><div class="arc-role-lessons">${roles.map((r,i)=>`<details class="arc-role-lesson" style="--lesson-color:${r.color}" ${i===ownRole?'open':''}><summary><span class="mini-head arc-lesson-head" aria-hidden="true">${character(roleLessons[r.key].crew)}</span><span><b>${safe(roleLessons[r.key].title)}</b><small>WITH ${crewName(i)} · ${safe(r.name)}${i===ownRole?(partial?' · YOUR JOB IN THE GAME':' · YOUR GAME ROLE'):''}</small></span><span class="arc-lesson-toggle" aria-hidden="true">+</span></summary>${roleLessonBody(i)}</details>`).join('')}</div><div class="arc-learning-close"><strong>Which one sounds most like you?</strong></div><a class="text-button" href="/">Back to home →</a></section>`;}
@@ -267,7 +302,7 @@ function roomFinale(standalone=false){
  const team=roles.map((r,i)=>{const l=roleLessons[r.key];return `<article class="arc-stage-lesson" style="--lesson-color:${r.color}"><div class="arc-crew-portrait">${character(l.crew)}</div><b class="arc-crew-name">${crewName(i)}</b><h2>${safe(l.title)}</h2><small class="arc-stage-alias">${safe(r.name)}</small><p class="arc-crew-line">${safe(l.oneLiner)}</p><p class="arc-stage-role-count" id="arc-role-count-${i}"></p></article>`}).join('');
  const deeper=roles.map((r,i)=>{const l=roleLessons[r.key];return `<article class="arc-deeper" style="--lesson-color:${r.color}"><header><span class="mini-head">${character(l.crew)}</span><div><b>${safe(l.title)}</b><small>${safe(l.oneLiner)}</small></div></header>${roleStory(l,i)}</article>`}).join('');
  return `<div class="shell arc-room-shell arc-room-finale" data-slide="${key}"><div class="arc-room-heading"><div><span class="eyebrow acid" id="arc-slide-eyebrow">${eyebrow}</span><h1 id="arc-slide-title">${title}</h1></div><div class="arc-finale-right"><nav class="arc-slide-nav" aria-label="Closing slides"><button data-action="slide" data-value="prev" aria-label="Previous slide">←</button>${slideKeys().map((k,i)=>`<button class="arc-slide-tab" data-action="slide" data-value="${i}" aria-current="${i===finaleSlide?'step':'false'}">${i+1}. ${SLIDE_DEFS[k][2]}</button>`).join('')}<button data-action="slide" data-value="next" aria-label="Next slide">→</button><button class="arc-present" data-action="fullscreen" aria-label="Present full screen">${document.fullscreenElement?'EXIT ⛶':'PRESENT ⛶'}</button></nav>${standalone?'':`<div class="arc-room-clock"><span>ROOM POINTS</span><b id="arc-room-clock">${live.launch.score.toLocaleString('en-GB')}</b></div>`}</div></div>
- ${standalone?'':`<section class="arc-slide arc-slide-campaign" aria-label="Your campaign"><p class="arc-campaign-brief"><b>THE BRIEF</b>${BRIEF_LINE} <strong>Did we answer it?</strong></p><p class="arc-campaign-summary" id="arc-campaign-summary"></p><p class="arc-pitch" id="arc-pitch"></p><div class="arc-campaign-grid" id="arc-campaign-wrap"></div></section>`}
+ ${standalone?'':`<section class="arc-slide arc-slide-campaign" aria-label="Your campaign"><p class="arc-campaign-brief"><b>THE BRIEF</b>${BRIEF_LINE} <strong>Did we answer it?</strong></p><p class="arc-campaign-summary" id="arc-campaign-summary"></p><p class="arc-pitch" id="arc-pitch"></p><div class="arc-campaign-projects" id="arc-campaign-wrap" tabindex="0" aria-label="All the work, by project"></div></section>`}
  <section class="arc-slide arc-slide-team" aria-label="Meet the team"><div class="arc-stage-lessons">${team}</div><p class="arc-finale-question">Which one sounds most like you?</p></section>
  <section class="arc-slide arc-slide-deeper" aria-label="Go deeper"><div class="arc-deeper-grid">${deeper}</div><p class="arc-ways-in">${safe(waysIn)}</p></section>
  ${standalone?'':`<section class="arc-slide arc-slide-scores" aria-label="Final scores"><div class="arc-final-score-grid"><div id="arc-leaderboard-wrap"></div><div id="arc-highlights-wrap"></div></div></section>`}
@@ -287,7 +322,7 @@ function introScreen(step){
 }
 function updateStageRush(){
  const el=q('#arc-stage-rush');if(!el)return;const r=live?.rush,left=r?(live.phase==='paused'?r.left:r.endsAt-clock()):0;
- if(!r||left<=0){el.hidden=true;return;}const team=JOBS[r.type];el.hidden=false;el.style.setProperty('--c',team.colour);
+ jamiePop(r&&{...r,left},true);if(!r||left<=0){el.hidden=true;return;}const team=JOBS[r.type];el.hidden=false;el.style.setProperty('--c',team.colour);
  setHTML(el,r.claimedBy?`<b>⚡ ${safe(r.claimedBy)} GOT JAMIE’S URGENT JOB</b><span>Double points</span>`:`<b>⚡ URGENT: ${safe(team.name)}</b><span>First to finish ${teamJob(team)} gets double points · ${Math.ceil(left/1000)}s</span>`);
 }
 // Jamie reacts to whatever just happened: urgent jobs, team-ups and finished work.
@@ -312,7 +347,7 @@ function jamieLine(){
 function renderRoom(){
  document.body.className='arcade-room arcade-stage'+(view==='host'?' arcade-host':'');
  const key=live.phase==='lobby'?(view==='host'&&introStep()<INTRO_STEPS?'intro-'+introStep():'lobby'):live.phase==='finished'?'room-result':'room-playing';
- const structural=sceneKey!==key;if(structural){sceneKey=key;
+ const structural=sceneKey!==key;if(structural){if(key==='room-result'&&sceneKey==='room-playing'&&view==='host'&&hostSound){music(false);sfx('buzzer');setTimeout(()=>sfx('fanfare'),900);}sceneKey=key;
   if(key.startsWith('intro')){root.innerHTML=header()+introScreen(introStep())+'<div id="arc-room-controls"></div>';paintIcons();const m=q('#arc-intro-map');if(m)createRoomRenderer(m).draw([],[],clock());}
   else if(key==='lobby'){root.innerHTML=header()+`<div class="shell"><section class="arc-room-lobby"><div><div class="eyebrow acid">GROUP GAME / ${Math.round(live.duration/60)} MINUTES</div><h1>GET THE<br><span class="acid">CREW IN.</span></h1><p>Scan the code to join, then try the controls.</p><p class="arc-lobby-brief"><b>THE BRIEF</b>${BRIEF_LINE}</p><div class="arc-join-count"><b id="arc-joined">0</b><span>PLAYERS IN<br><strong id="arc-ready">0 READY</strong></span></div><div class="player-cloud" id="arc-player-cloud"></div></div><div class="qr-box">${qr(playerLink())}<div class="mono" style="margin-top:14px">ROOM CODE</div><div class="room-display">${safe(roomCode)}</div></div></section><div id="arc-room-controls"></div></div>`;}
   else if(key==='room-result'){renderer?.destroy?.();renderer=null;root.innerHTML=header()+roomFinale();}
@@ -320,7 +355,7 @@ function renderRoom(){
   if(key==='room-playing'){renderer=createRoomRenderer(q('#arc-stage-canvas'));}
  }
  if(key==='lobby'){q('#arc-joined').textContent=live.count;q('#arc-ready').textContent=(live.readyCount||0)+' READY TO PLAY';{const cap=view==='host'||view==='stage'?((globalThis.innerHeight||900)<820?12:24):99,list=[...live.players].reverse(),shown=list.slice(0,cap);setHTML(q('#arc-player-cloud'),shown.map(p=>`<span class="alias-chip character-chip${p.ready?' is-ready':''}"><span class="mini-head">${character(p.character)}</span>${safe(p.alias)}${p.ready?'<small class="arc-ready-tag">✓</small>':''}</span>`).join('')+(list.length>cap?`<span class="alias-chip arc-more">+${list.length-cap} more</span>`:''));}}
- else if(!key.startsWith('intro')){setHTML(q('#arc-leaderboard-wrap'),leaderboard());setHTML(q('#arc-highlights-wrap'),highlights());if(key==='room-result'){setHTML(q('#arc-pitch'),pitchLine());setHTML(q('#arc-campaign-wrap'),live.events.length?wallTiles(live.events,40):'<p class="arc-feed-empty">No jobs were finished this time.</p>');setHTML(q('#arc-campaign-summary'),campaignSummary());roles.forEach((r,i)=>{const count=live.players.filter(p=>p.profile?.role===i).length;q('#arc-role-count-'+i).textContent=count+' '+(count===1?'PLAYER':'PLAYERS')+' IN THIS ROLE';});}else{const jl=q('#arc-jamie-line');if(jl&&jl.textContent!==jamieLine())jl.textContent=jamieLine();const done=[0,1,2,3].map(t=>live.players.reduce((a,p)=>a+(p.game?.jobs?.[t]||0),0)),top=Math.max(4,...done);q('#arc-dept-bars').innerHTML=JOBS.map((j,t)=>`<div style="--c:${j.colour}"><span>${j.name}</span><strong>${done[t]}</strong><div class="arc-bar"><div style="width:${done[t]/top*100}%"></div></div></div>`).join('');}}
+ else if(!key.startsWith('intro')){setHTML(q('#arc-leaderboard-wrap'),leaderboard());setHTML(q('#arc-highlights-wrap'),highlights());if(key==='room-result'){setHTML(q('#arc-pitch'),pitchLine());setHTML(q('#arc-campaign-wrap'),live.events.length?finalWall(live.events):'<p class="arc-feed-empty">No jobs were finished this time.</p>');setHTML(q('#arc-campaign-summary'),campaignSummary());roles.forEach((r,i)=>{const count=live.players.filter(p=>p.profile?.role===i).length;q('#arc-role-count-'+i).textContent=count+' '+(count===1?'PLAYER':'PLAYERS')+' IN THIS ROLE';});}else{const jl=q('#arc-jamie-line');if(jl&&jl.textContent!==jamieLine())jl.textContent=jamieLine();const done=[0,1,2,3].map(t=>live.players.reduce((a,p)=>a+(p.game?.jobs?.[t]||0),0)),top=Math.max(4,...done);q('#arc-dept-bars').innerHTML=JOBS.map((j,t)=>`<div style="--c:${j.colour}"><span>${j.name}</span><strong>${done[t]}</strong><div class="arc-bar"><div style="width:${done[t]/top*100}%"></div></div></div>`).join('');}}
  q('#arc-room-controls').innerHTML=roomControls();
 }
 async function control(action){if(busy)return;if(action==='finish'&&!window.confirm('End the game for everyone and show the job roles?'))return;
@@ -336,7 +371,8 @@ async function finishSelf(){
 function updateVote(){
  if(solo||!live)return;let el=q('#arc-vote');
  if(!el){const anchor=q('#meet-team');if(!anchor||!anchor.parentElement)return;el=document.createElement('section');el.id='arc-vote';el.className='arc-vote';anchor.parentElement.insertBefore(el,anchor);}
- const ads=(live.ads||[]).filter(a=>!a.mine);
+ const ads=(live.ads||[]).filter(a=>!a.mine),cta=q('#arc-vote-cta');
+ if(cta){cta.hidden=!ads.length;const pick=ads.find(a=>a.id===live.myVote);setHTML(cta,pick?`<b>✓ YOU VOTED</b><span>For ${safe(pick.alias)}’s ad. The big screen shows the winner.</span><i>CHANGE VOTE ↓</i>`:`<b>🗳 PITCH TIME</b><span>Vote for the best ad. The winner goes up on the big screen.</span><i>VOTE NOW ↓</i>`);cta.classList.toggle('done',!!pick);}
  if(!ads.length){el.hidden=true;return;}el.hidden=false;
  setHTML(el,`<h2>PITCH TIME.</h2><p>${live.myVote?'Vote counted. Change it any time.':'Vote for the best ad someone else made. The big screen shows the winner.'}</p><div class="arc-vote-grid">${ads.map(a=>`<button class="arc-vote-ad${live.myVote===a.id?' picked':''}" data-action="vote" data-value="${safe(a.id)}" aria-pressed="${live.myVote===a.id}">${posterSVG(a.poster)}<span>${safe(a.alias)}</span>${live.myVote===a.id?'<b>✓ YOUR VOTE</b>':''}</button>`).join('')}</div>`);
 }
@@ -346,7 +382,7 @@ function renderResult(profile){
   root.innerHTML=header()+`<div class="shell"><div class="waiting arc-no-role"><h1>${done?'GOOD START.':'TIME’S UP.'}</h1><p>${done?`You finished ${done} job and earned ${(g?.score||0)+myBonus()} points.`:'You didn’t finish a job this time. No worries.'}</p>${lean>=0?`<p>You worked in <b style="color:${roles[lean].color}">${safe(roleLessons[roles[lean].key].title)}</b>. Find out what that job is like below.</p>`:'<p>Every agency needs these four jobs. Find out what each one does below.</p>'}${solo?`<p>Complete ${MIN_ROLE_JOBS} jobs in a game to unlock your role card.</p><div class="arc-no-role-actions"><button class="btn" data-action="solo">PLAY AGAIN →</button><a class="text-button" href="#meet-team">Explore the roles ↓</a></div>`:'<div class="arc-no-role-actions"><a class="btn" href="#meet-team">EXPLORE THE ROLES ↓</a></div>'}</div>${roleLearning(lean,true)}</div>`;return}
 
  const r=roles[profile.role],jobs=profile.completed,total=profile.score+myBonus();
- root.innerHTML=header()+`<div class="shell"><section class="arc-result-grid"><div class="arc-result-copy"><div class="eyebrow acid">${safe(alias)} / GAME COMPLETE</div><h1>${r.name}</h1><span class="arc-result-job" style="color:${r.color}">${r.job}</span><p>${r.description}</p><div class="arc-result-stats"><div><b>${total.toLocaleString('en-GB')}</b><span>POINTS</span></div><div><b>${jobs}</b><span>${jobs===1?'JOB':'JOBS'} COMPLETED</span></div></div><div class="arc-result-evidence"><span>THE WORK YOU CHOSE</span>${JOBS.map((j,i)=>`<div><b style="color:${j.colour}">${j.role}</b><span>${profile.jobs[i]} ${profile.jobs[i]===1?'job':'jobs'}</span></div>`).join('')}</div><p class="fine">Just a game, not a careers test.</p><div class="reveal-actions"><button class="btn" data-action="download-role">SAVE ROLE CARD ↓</button><a class="btn secondary" href="#meet-team">WHAT DOES MY ROLE DO? ↓</a></div></div><div class="arc-result-card" id="arc-role-card" style="--role:${r.color}"><div class="arc-card-brand">${mccannMark()}<span class="arc-card-project">THE<br>AGENCY.</span><span class="arc-card-brand-caption">YOUR AGENCY ROLE / ${new Date().getFullYear()}</span></div><div class="arc-card-character">${character(ci,'reacting')}</div><div class="id-name">${safe(alias.toUpperCase())}</div><h2>${r.name}</h2><span class="mono">${r.job}</span><div class="arc-card-score"><b>${total}</b><span>POINTS / ${jobs} JOBS</span></div><div class="barcode"></div><div class="arc-card-endorsement">A McCann experience</div></div></section>${roleLearning(profile.role)}${(g?.workProducts||g?.posters)?.length?`<section class="arc-your-posters"><div class="eyebrow">THE WORK YOU MADE</div><div>${(g.workProducts||g.posters).map(p=>`<article>${posterSVG(p)}${p.lines?`<details><summary>${safe(p.taskTitle)}</summary><ul>${p.lines.map(v=>`<li>${safe(v)}</li>`).join('')}</ul></details>`:''}</article>`).join('')}</div></section>`:''}</div>`;
+ root.innerHTML=header()+`<div class="shell"><section class="arc-result-grid"><div class="arc-result-copy"><div class="eyebrow acid">${safe(alias)} / GAME COMPLETE</div><h1>${r.name}</h1><span class="arc-result-job" style="color:${r.color}">${r.job}</span><p>${r.description}</p><div class="arc-result-stats"><div><b>${total.toLocaleString('en-GB')}</b><span>POINTS</span></div><div><b>${jobs}</b><span>${jobs===1?'JOB':'JOBS'} COMPLETED</span></div></div><div class="arc-result-evidence"><span>THE WORK YOU CHOSE</span>${JOBS.map((j,i)=>`<div><b style="color:${j.colour}">${j.role}</b><span>${profile.jobs[i]} ${profile.jobs[i]===1?'job':'jobs'}</span></div>`).join('')}</div><p class="fine">Just a game, not a careers test.</p><div class="reveal-actions"><button class="btn" data-action="download-role">SAVE ROLE CARD ↓</button><a class="btn secondary" href="#meet-team">WHAT DOES MY ROLE DO? ↓</a></div></div><div class="arc-result-card" id="arc-role-card" style="--role:${r.color}"><div class="arc-card-brand">${mccannMark()}<span class="arc-card-project">THE<br>AGENCY.</span><span class="arc-card-brand-caption">YOUR AGENCY ROLE / ${new Date().getFullYear()}</span></div><div class="arc-card-character">${character(ci,'reacting')}</div><div class="id-name">${safe(alias.toUpperCase())}</div><h2>${r.name}</h2><span class="mono">${r.job}</span><div class="arc-card-score"><b>${total}</b><span>POINTS / ${jobs} JOBS</span></div><div class="barcode"></div><div class="arc-card-endorsement">A McCann experience</div></div>${solo?'':'<a class="arc-vote-cta" id="arc-vote-cta" href="#arc-vote" hidden></a>'}</section>${roleLearning(profile.role)}${(g?.workProducts||g?.posters)?.length?`<section class="arc-your-posters"><div class="eyebrow">THE WORK YOU MADE</div><div>${(g.workProducts||g.posters).map(p=>`<article>${posterSVG(p)}${p.lines?`<details><summary>${safe(p.taskTitle)}</summary><ul>${p.lines.map(v=>`<li>${safe(v)}</li>`).join('')}</ul></details>`:''}</article>`).join('')}</div></section>`:''}</div>`;
 }
 function loadCardImage(src){const image=new Image();image.decoding='async';image.src=src;return image.decode().then(()=>image);}
 async function downloadRole(){
@@ -386,7 +422,8 @@ document.addEventListener('click',async e=>{
  if(action==='vote'&&live){const id=button.dataset.value;live.myVote=id;updateVote();api('vote',{target:id}).then(()=>fetchState(true)).catch(e=>toast(e.message));}
  if(action==='finish-self')finishSelf();if(action==='download-role')await downloadRole();if(action==='retry')fetchState(true);if(action==='control')control(button.dataset.value);
  if(action==='stage')window.open('/?view=stage&room='+roomCode,'the-agency-stage');if(action==='copy'){try{await navigator.clipboard.writeText(playerLink());toast('Player link copied.')}catch{toast('Room code: '+roomCode)}}
- if(action==='sound'){sound=!sound;button.textContent=sound?'SOUND ON':'SOUND OFF';button.setAttribute('aria-pressed',String(sound));if(sound)playNote('pickup');}
+ if(action==='host-sound'){hostSound=!hostSound;try{localStorage.setItem('wr-arc-host-sound',hostSound?'on':'off')}catch{}button.textContent=hostSound?'♪ Sound on':'♪ Sound off';button.setAttribute('aria-pressed',String(hostSound));if(hostSound)unlockAudio();}
+ if(action==='sound'){sound=!sound;button.innerHTML=soundIcon(sound);button.setAttribute('aria-pressed',String(sound));if(sound)playNote('pickup');}
 });
 document.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-dir]');if(!b||modalType||!['play','practice'].includes(sceneKey)||movementPointer!==null)return;e.preventDefault();movementPointer=e.pointerId;held=b.dataset.dir;keys=[];b.setPointerCapture?.(e.pointerId);b.classList.add('pressed');});
 function releaseMovement(e){if(e.pointerId!==movementPointer)return;held='';movementPointer=null;document.querySelectorAll('[data-dir]').forEach(b=>b.classList.remove('pressed'));}
@@ -416,6 +453,7 @@ function frame(time){
   if(live.phase!=='finished'&&renderer?.draw){renderer.draw(live.players,live.events,clock(),{paused:live.phase==='paused'});updateStageRush();}
   const t=q('#arc-room-clock');if(t)t.textContent=live.phase==='finished'?live.launch.score.toLocaleString('en-GB'):prettyTime(secondsLeft());
  }
+ roomSounds();
  requestAnimationFrame(frame);
 }
 setInterval(flushInputs,650);requestAnimationFrame(frame);
@@ -427,3 +465,6 @@ else if(view==='host'&&!creds?.host){home();openModal('host')}
 else if(['player','host','stage'].includes(view)){root.innerHTML=header()+`<div class="waiting"><div class="radar">A</div><h1>CONNECTING<br><span class="acid">YOUR ROOM…</span></h1></div>`;connectRoom()}
 else home();
 
+
+// Browsers only allow sound after a tap or key press on the page.
+for(const ev of ['pointerdown','keydown'])document.addEventListener(ev,()=>{if(view==='host'?hostSound:sound)unlockAudio()},{capture:true});
