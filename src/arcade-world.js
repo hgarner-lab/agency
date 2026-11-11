@@ -83,7 +83,7 @@ export function jobChecklist(g){
 // chooses a first job: players pick a room, then get help with that job.
 export function nextInstruction(g,now=Date.now()){
  const near=nearbyJob(g),area=areaAt(g.x,g.y),type=g.delivery?g.delivery.to:near>=0?near:area>=0?area:g.focus;
- const personStep=(n,action,title)=>({type:n,kind:near===n?'act':'person',title:near===n?`Press ${action}.`:title,detail:near===n?'Press the round button, or Space.':`Follow the dots. Stand beside ${JOBS[n].person[0]+JOBS[n].person.slice(1).toLowerCase()}.`,icon:'player-'+[0,1,3,2][n],target:{x:JOBS[n].x,y:JOBS[n].y,person:true}});
+ const personStep=(n,action,title)=>({type:n,kind:near===n?'act':'person',title:near===n?`Press ${action}.`:title,detail:near===n?'Tap the round button (or press Space).':`Follow the dots. Stand beside ${JOBS[n].person[0]+JOBS[n].person.slice(1).toLowerCase()}.`,icon:'player-'+[0,1,3,2][n],target:{x:JOBS[n].x,y:JOBS[n].y,person:true}});
  if(type===null||type===undefined||type<0)return {type:null,kind:'choose',title:'Choose your first job.',detail:'Hold an arrow. Move into any room.',icon:'player-'+g.character,target:null};
  if(g.delivery)return personStep(type,'DELIVER',`Take Sol’s ${g.taskVersion?'agreement':'message'} to ${JOBS[type].person[0]+JOBS[type].person.slice(1).toLowerCase()}.`);
  if(now<g.readyAt[type])return {type,kind:'wait',title:'Job done. Choose your next one.',detail:'Try another room, or wait for new items.',icon:'player-'+g.character,target:null};
@@ -153,7 +153,7 @@ function applyDeepStep(g,input,now){
  if(g.work)return events;
  if(input.d){const dir={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[input.d];if(!dir)return events;g.face=input.d;const x=g.x+dir[0],y=g.y+dir[1];if(canWalk(x,y)){g.x=x;g.y=y;g.steps++;}for(const p of availablePickups(g,now))if(p.x===g.x&&p.y===g.y)collectArcadeItem(g,p,now,events);}
  if(input.a){const n=nearbyJob(g);if(n<0){arcadeNote(g,'Stand beside a teammate to start a job.',events);return events;}
-  if(g.delivery){if(g.delivery.to!==n){arcadeNote(g,`Take the agreement to ${JOBS[g.delivery.to].person}.`,events);return events;}const artifact=g.delivery.artifact;g.delivery=null;g.inventory=g.inventory.filter(id=>id!=='brief');completeArcadeJob(g,2,now,events,'Agreement delivered. '+artifact.text,artifact);return events;}
+  if(g.delivery){if(g.delivery.to!==n){arcadeNote(g,`Take the agreement to ${JOBS[g.delivery.to].person}.`,events);return events;}const artifact=g.delivery.artifact;g.delivery=null;g.inventory=g.inventory.filter(id=>id!=='brief');completeArcadeJob(g,2,now,events,artifact.text,artifact);return events;}
   g.focus=n;if(now<g.readyAt[n]){arcadeNote(g,'Job done. Try another room while the next job arrives.',events);return events;}
   if(!materialsReady(g,n)){arcadeNote(g,n===0?'Collect the three research notes, then bring them to Rem.':n===1?'Pick a colour and word tile, then return to Nova.':'Collect the kit list and location sheet, then return to Patch.',events);return events;}
   const task=taskFor(g,n);g.work={id:task.id,type:n,run:g.jobs[n],feedback:null};events.push({kind:'work',type:n,title:task.title});

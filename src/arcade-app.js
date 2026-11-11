@@ -125,7 +125,7 @@ function renderPractice(){
  root.innerHTML=header()+`<main class="arc-player-shell"><div class="arc-hud"><div><span>PRACTICE</span><b>Try the controls</b></div><div><span>POINTS</span><b>Not scored</b></div></div><div class="arc-task"><canvas id="arc-objective-icon" class="arc-item-icon" width="24" height="24" aria-hidden="true"></canvas><p id="arc-hint" role="status" aria-live="polite"></p><small id="arc-hint-detail"></small></div><div class="arc-canvas-frame"><canvas id="arc-practice-canvas" role="img" aria-label="Practice area. Move over the star, stand beside your teammate and press Ready."></canvas><div id="arc-practice-freeze" class="arc-freeze" hidden><b>GAME PAUSED</b><span>Wait for your host to resume.</span></div></div><div class="arc-bag"></div>${controlsMarkup()}<div class="arc-play-footer"><button data-action="map">HOW TO PLAY</button><span id="arc-practice-save" role="status">${solo?'Your timer has not started.':practiceStatus()}</span></div></main>`;
  updatePracticeUI();
 }
-function practiceStatus(){return live?.phase==='active'||live?.phase==='paused'?'The game has started. Finish practice to jump in.':'Get ready while the room fills up.'}
+function practiceStatus(){return live?.phase==='active'||live?.phase==='paused'?'The game has started. Finish practice to jump in.':'Practise while everyone joins.'}
 function updateConnection(){const el=q('#arc-connection');if(el){el.textContent=connected?'CONNECTED':'RECONNECTING';el.classList.toggle('offline',!connected);}}
 function updatePracticeUI(){
  if(!practice||sceneKey!=='practice')return;const step=practiceInstruction(practice);
