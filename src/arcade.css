@@ -642,12 +642,10 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 /* Moodboard behind Jamie: shows the audience she wants to reach. */
 .arc-client-brief .arc-client-intro{position:relative;overflow:hidden;background:linear-gradient(90deg,#132a2be6 0%,#132a2bb8 30%,#132a2bf5 55%,#132a2bfa 100%),url('/assets/collage.webp') center/cover no-repeat,#1c3434}
 .arc-client-brief .arc-client-portrait,.arc-client-brief .arc-client-voice{position:relative;z-index:1}
-.arc-moodboard-tag{position:absolute;left:10px;top:10px;z-index:2;background:#0e1d20e6;border:1px solid #5d7466;color:#d7e3cc;font-size:13px;padding:4px 8px}
-.arc-moodboard-tag b{font-family:WarMono,monospace;font-size:12px;letter-spacing:.1em;color:#c6ff40;margin-right:6px}
 .arc-brief-words{display:flex;flex-wrap:wrap;gap:6px 22px;margin:12px 0 10px;font-size:16px;color:#c9d6c2;border-top:1px solid #4a6457;padding-top:10px}
 .arc-brief-words b{color:#f2ecd3}
 @media(max-height:820px) and (min-width:900px){.arc-brief-words{font-size:14px;margin:8px 0 6px;padding-top:6px}}
-@media(min-width:1600px) and (min-height:950px){.arc-brief-words{font-size:19px}.arc-moodboard-tag{font-size:16px}}
+@media(min-width:1600px) and (min-height:950px){.arc-brief-words{font-size:19px}}
 
 /* Decision tasks: one plain question at a time, instant feedback, big tap targets. */
 .arc-work-modal .arc-work-context{font-size:16px!important;margin:6px 0 10px!important}
@@ -823,7 +821,7 @@ html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
 .arc-stage-rush b{font-size:22px}
 .arc-stage-rush span{font-size:18px}
 /* Jamie on the live big screen */
-.arc-jamie{display:flex;align-items:flex-end;gap:10px;background:#1c3434;border:1px solid #52675e;padding:8px 12px 0;min-height:0}
+.arc-jamie{display:flex;align-items:flex-end;gap:10px;background:#1c3434;border:1px solid #52675e;padding:8px 12px 0;min-height:max-content}
 .arc-jamie img{width:62px;height:auto;flex-shrink:0;align-self:flex-end}
 .arc-jamie>div{position:relative;background:#f4efe1;color:#1d2a2e;padding:8px 12px;margin-bottom:10px;border-radius:10px;flex:1}
 .arc-jamie>div:before{content:'';position:absolute;left:-7px;bottom:12px;border:7px solid transparent;border-right-color:#f4efe1;border-left:0}
@@ -929,3 +927,7 @@ html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
 #arc-vote{scroll-margin-top:16px}
 @media(prefers-reduced-motion:reduce){.arc-vote-cta{animation:none}}
 @media(min-width:721px){.arc-vote-cta{order:3}}
+/* Big screen sidebar: Jamie and the leaderboard keep their size; the campaign wall uses what's left */
+.arc-live aside{grid-template-rows:max-content max-content minmax(0,1fr)}
+.arc-live aside>#arc-highlights-wrap{min-height:0;overflow:hidden}
+@media(max-height:800px){.arc-live .arc-leaderboard>.arc-rank-row:nth-of-type(n+7){display:none}}
