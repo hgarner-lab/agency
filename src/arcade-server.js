@@ -113,7 +113,7 @@ export async function arcadeApi(req,env){
   if(path==='state'&&req.method==='GET'){
    const rows=(await db.prepare('SELECT id,alias,character,game,finished,joined_at FROM arcade_players WHERE room=? ORDER BY joined_at').bind(code).all()).results;
    const players=rows.map(p=>{const g=JSON.parse(p.game);return {alias:p.alias,character:p.character,game:publicArcadeGame(g),ready:!!g.practiceReady,score:g.score,completed:g.jobs.reduce((a,b)=>a+b,0),finished:!!p.finished,profile:phase==='finished'?arcadeProfile(g):undefined};});
-   const events=(await db.prepare('SELECT alias,character,type,detail,points,poster,created_at,id FROM arcade_events WHERE room=? AND type>=0 ORDER BY created_at DESC,id DESC LIMIT 40').bind(code).all()).results.map(e=>({...e,poster:e.poster?JSON.parse(e.poster):null}));
+   const events=(await db.prepare('SELECT alias,character,type,detail,points,poster,created_at,id FROM arcade_events WHERE room=? AND type>=0 ORDER BY created_at DESC,id DESC LIMIT ?').bind(code,phase==='finished'?400:40).all()).results.map(e=>({...e,poster:e.poster?JSON.parse(e.poster):null}));
    const extras=(await db.prepare('SELECT id,player,alias,type,detail,points,poster,created_at FROM arcade_events WHERE room=? AND type<0 ORDER BY created_at DESC').bind(code).all()).results;
    const bonusBy={};for(const x of extras)if(x.type!==VOTE)bonusBy[x.player]=(bonusBy[x.player]||0)+x.points;
    for(const [i,p] of players.entries()){const extra=bonusBy[rows[i].id]||0;p.score+=extra;p.bonus=extra;}
