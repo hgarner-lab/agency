@@ -8,6 +8,7 @@ import {isClean,isGameName,makeNickname} from './filter.js';
 import {qr} from './qr.js';
 import {drawRoleCard,MCCANN_LOGO_URL} from './role-card.js';
 import {music,sfx,unlockAudio} from './arcade-audio.js';
+import {AD_WEAK,adLook} from './arcade-world.js';
 import {rushAt,AD_STYLE,adStyle,ARCADE_TICK,JOBS,PICKUPS,pickupInfo,newArcadeGame,applyArcadeInput,arcadeProfile,nearbyJob,nextInstruction,jobAction,newPracticeGame,practiceInstruction,applyPracticeInput,MIN_ROLE_JOBS} from './arcade-world.js';
 import {createArcadeRenderer,createRoomRenderer,trainerSVG,COLOURWAYS,posterSVG,drawGameIcon,drawPractice} from './arcade-renderer.js';
 
@@ -69,7 +70,7 @@ function closeModal(){const was=modalType;q('#arc-modal')?.remove();modalType=nu
 function dismissModal(){if(modalType==='work'){if(phaseNow()==='active')processInput({c:1});else toast('Wait for the host to resume.');}else closeModal();}
 function workMarkup(){
  const w=game?.work,task=taskById(w?.id);if(!task)return '';
- const key=w.id+':'+w.run;if(workDraft?.key!==key)workDraft={key,picks:task.slots.map(()=>null),wrong:null,flash:null,style:{bg:Math.floor(Math.random()*AD_STYLE.bg.length),shoe:Math.floor(Math.random()*4),layout:Math.floor(Math.random()*3),sticker:Math.floor(Math.random()*AD_STYLE.sticker.length),tag:Math.floor(Math.random()*AD_STYLE.tag.length),model:Math.floor(Math.random()*AD_STYLE.model.length)}};
+ const key=w.id+':'+w.run;if(workDraft?.key!==key)workDraft={key,picks:task.slots.map(()=>null),wrong:null,flash:null,style:freshStyle()};
  const copy=TASK_COPY[task.id]||{},picks=workDraft.picks,at=picks.findIndex(v=>v===null),n=task.slots.length;
  const total=picks.reduce((t,v,i)=>t+(v===null?0:task.slots[i].options[v]?.cost||0),0),colour=JOBS[w.type].colour;
  const steps=task.slots.map((sl,i)=>`<li class="${picks[i]!==null?'done':i===at?'now':''}"></li>`).join('');
@@ -95,9 +96,15 @@ function pickWork(slotIndex,option){
 }
 function submitWork(){if(!game?.work||!workDraft?.picks.every(v=>v!==null))return;const ad=taskById(game.work.id)?.kind==='ad';processInput({b:{task:game.work.id,run:game.work.run,picks:[...workDraft.picks],...(ad?{style:{...workDraft.style}}:{})}});}
 // After the questions, creatives style their ad. Every choice changes the finished poster.
+// No repeats: skip headlines and looks already used by any ad in this room.
+function usedAds(){const ads=[...(live?.events||[]).filter(e=>e.type===1).map(e=>e.poster).filter(Boolean),...(game?.posters||[])];return {heads:new Set(ads.map(p=>p.title)),looks:new Set(ads.map(adLook))};}
+function freshHead(after){const used=usedAds().heads,n=AD_STYLE.head.length,start=after??Math.floor(Math.random()*(n-AD_WEAK.size));for(let k=after==null?0:1;k<=n;k++){const h=(start+k)%n;if(!used.has(AD_STYLE.head[h])||k===n)return h;}return start;}
+function freshLook(st){const r=n=>Math.floor(Math.random()*n),looks=usedAds().looks;let next;for(let k=0;k<40;k++){next={...st,bg:r(AD_STYLE.bg.length),shoe:r(AD_STYLE.shoe.length),layout:r(3),sticker:r(AD_STYLE.sticker.length),model:r(AD_STYLE.model.length)};if(!looks.has(adLook(adStyle(next)))&&!(next.bg===st.bg&&next.layout===st.layout))break;}return next;}
+function freshStyle(){return freshLook({bg:-1,layout:-1,tag:Math.floor(Math.random()*AD_STYLE.tag.length),head:freshHead()});}
+const myAlias=()=>solo?.alias||creds?.alias||'';
 function styleStep(task){
- const ts=task.titleSlot||0,st=workDraft.style,head=task.slots[ts].options[workDraft.picks[ts]],title=head?.headline||head?.text||'YOUR WAY',more=task.slots[ts].options.filter(o=>!o.why).length>1;
- return `<div class="arc-q arc-style"><p class="arc-q-good" role="status">✓ ${safe(workDraft.flash||'Strong headline.')}</p><h3>Make it yours.</h3><p class="arc-style-hint">This goes on the big screen. Everyone votes for the best ad at the end.</p><div class="arc-style-preview">${posterSVG({kind:'ad',title,...adStyle(st)})}</div><div class="arc-style-buttons">${more?'<button class="arc-style-opt" data-action="work-headline">↻ New headline</button>':''}<button class="arc-style-opt" data-action="work-style-next" data-key="tag">↻ New tagline</button><button class="arc-style-opt wide" data-action="work-style-shuffle">↻ New look</button></div><button class="btn full" data-action="work-submit">SEND IT →</button></div>`;
+ const st=workDraft.style,title=AD_STYLE.head[st.head];
+ return `<div class="arc-q arc-style"><p class="arc-q-good" role="status">✓ All three answers right.</p><h3>Make it yours.</h3><p class="arc-style-hint">Pick a headline and a look. It goes on the big screen, and everyone votes for the best ad.</p><div class="arc-style-preview">${posterSVG({kind:'ad',...adStyle(st),by:myAlias()})}</div>${AD_WEAK.has(title)?'<p class="arc-style-nudge">Jamie: “Hmm. Bit plain?” You can still send it.</p>':''}<div class="arc-style-buttons"><button class="arc-style-opt" data-action="work-headline">↻ New headline</button><button class="arc-style-opt" data-action="work-style-next" data-key="tag">↻ New tagline</button><button class="arc-style-opt wide" data-action="work-style-shuffle">↻ New look</button></div><button class="btn full" data-action="work-submit">SEND IT →</button></div>`;
 }
 function minRemaining(task,from){let n=0;for(let i=from+1;i<task.slots.length;i++)n+=Math.min(...task.slots[i].options.filter(o=>!o.why).map(o=>o.cost||0));return n;}
 function refreshWork(){const modal=q('#arc-modal .arc-work-modal');if(!modal)return;modal.innerHTML='<button class="close-modal" data-action="close-modal" aria-label="Back to map">×</button>'+workMarkup();modal.querySelector('.arc-q-option:not([disabled])')?.focus();}
@@ -260,8 +267,8 @@ function roleLessonBody(index){
  return `<div class="arc-lesson-body">${roleStory(lesson,index)}</div>`;
 }
 // Closing big screen: the campaign the room made, the crew, a deeper look, then scores.
-const SLIDE_DEFS={campaign:['GAME OVER','YOUR CAMPAIGN.','THE CAMPAIGN'],team:[view==='roles'?'THE FOUR AGENCY JOBS':'YOUR ROLE IS ON YOUR PHONE','MEET THE TEAM.','THE TEAM'],deeper:['WHAT THE JOBS ARE REALLY LIKE','GO DEEPER.','GO DEEPER'],scores:['GAME OVER','FINAL SCORES.','SCORES']};
-const slideKeys=()=>view==='roles'?['team','deeper']:['campaign','team','deeper','scores'];
+const SLIDE_DEFS={pitch:['VOTE ON YOUR PHONES','THE PITCH.','THE PITCH'],campaign:['GAME OVER','YOUR CAMPAIGN.','THE CAMPAIGN'],team:[view==='roles'?'THE FOUR AGENCY JOBS':'YOUR ROLE IS ON YOUR PHONE','MEET THE TEAM.','THE TEAM'],deeper:['WHAT THE JOBS ARE REALLY LIKE','GO DEEPER.','GO DEEPER'],scores:['GAME OVER','FINAL SCORES.','SCORES']};
+const slideKeys=()=>view==='roles'?['team','deeper']:[...(live?.ads?.length?['pitch']:[]),'campaign','team','deeper','scores'];
 let finaleSlide=0;
 const slideCount=()=>slideKeys().length;
 async function toggleFullscreen(){try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Press F11 (or Ctrl+Cmd+F on a Mac) for full screen.')}}
@@ -279,7 +286,19 @@ function setSlide(n,share=true){
 const pieceOf=e=>e.poster||{kind:['insight','ad','approval','live'][e.type],text:e.detail,title:'YOUR WAY'};
 const votesFor=id=>(live?.ads||[]).find(a=>a.id===id)?.votes||0;
 function pitchLine(){const ads=(live?.ads||[]).filter(a=>a.votes).sort((a,b)=>b.votes-a.votes);if(!(live?.ads||[]).length)return '';return ads.length?`<b>PITCH VOTE</b> Leading: ${safe(ads[0].alias)}’s ad · ${ads[0].votes} ${ads[0].votes===1?'vote':'votes'}. Vote for the best ad on your phone.`:'<b>PITCH VOTE</b> Vote for the best ad on your phone.';}
-const wallTile=(e,i,label=e.poster?.taskTitle)=>`<figure class="arc-wall-tile" style="--c:${JOBS[e.type].colour}">${e.type===1&&votesFor(e.id)?`<i class="arc-vote-badge">♥ ${votesFor(e.id)}</i>`:''}<button data-action="view-work" data-value="${i}" aria-label="View work by ${safe(e.alias)}">${posterSVG(pieceOf(e))}</button><figcaption>${safe(e.alias)}${label?`<small>${safe(label).replace(/_/g,'_<wbr>')}</small>`:''}</figcaption></figure>`;
+const wallTile=(e,i,label=e.poster?.taskTitle)=>`<figure class="arc-wall-tile" style="--c:${JOBS[e.type].colour}">${e.type===1&&votesFor(e.id)?`<i class="arc-vote-badge">♥ ${votesFor(e.id)}</i>`:''}<button data-action="view-work" data-value="${i}" aria-label="View work by ${safe(e.alias)}">${posterSVG({...pieceOf(e),by:e.alias})}</button><figcaption>${safe(e.alias)}${label?`<small>${safe(label).replace(/_/g,'_<wbr>')}</small>`:''}</figcaption></figure>`;
+// The pitch: every ad full size on the big screen, one at a time, while the room votes.
+let reelBase=Date.now(),reelVotes=-1;
+const AD_KIND=['poster','billboard','social post'];
+function pitchReel(){
+ const ads=live?.ads||[];if(!ads.length)return '';
+ const i=Math.floor((Date.now()-reelBase)/5000)%ads.length,a=ads[i],voted=ads.reduce((n,x)=>n+x.votes,0);
+ return `<div class="arc-reel"><figure class="arc-reel-main" data-ad="${i}">${posterSVG({...a.poster,by:a.alias})}</figure><div class="arc-reel-side"><small>AD ${i+1} OF ${ads.length}</small><h2>${safe(a.alias)}’s ${AD_KIND[(a.poster?.pattern||0)%3]}</h2><p class="arc-reel-line">“${safe(a.poster?.title||'')}”</p><p class="arc-reel-votes${a.votes?'':' none'}">♥ ${a.votes} ${a.votes===1?'vote':'votes'}</p><p class="arc-reel-cta">Vote for your favourite on your phone. You can’t vote for your own.</p><p class="arc-reel-count"><b>${voted}</b> of ${live.count} voted</p></div><div class="arc-reel-strip">${ads.map((x,j)=>`<button data-action="reel" data-value="${j}" class="${j===i?'on':''}" aria-label="Show ${safe(x.alias)}’s ad">${posterSVG({...x.poster,by:x.alias})}${x.votes?`<i>♥ ${x.votes}</i>`:''}</button>`).join('')}</div></div>`;
+}
+function updateReel(){
+ const el=q('#arc-reel');if(!el)return;setHTML(el,pitchReel());
+ const total=(live?.ads||[]).reduce((n,x)=>n+x.votes,0);if(reelVotes>=0&&total>reelVotes&&view==='host'&&hostSound)sfx('pickup');reelVotes=total;
+}
 const wallTiles=(events,n)=>events.slice(0,n).map((e,i)=>wallTile(e,i)).join('');
 // End of the game: every piece of work, grouped by project like a real agency folder.
 // Each new go at the same project is the next version, named the way real files end up.
@@ -302,7 +321,7 @@ function roomFinale(standalone=false){
  const team=roles.map((r,i)=>{const l=roleLessons[r.key];return `<article class="arc-stage-lesson" style="--lesson-color:${r.color}"><div class="arc-crew-portrait">${character(l.crew)}</div><b class="arc-crew-name">${crewName(i)}</b><h2>${safe(l.title)}</h2><small class="arc-stage-alias">${safe(r.name)}</small><p class="arc-crew-line">${safe(l.oneLiner)}</p><p class="arc-stage-role-count" id="arc-role-count-${i}"></p></article>`}).join('');
  const deeper=roles.map((r,i)=>{const l=roleLessons[r.key];return `<article class="arc-deeper" style="--lesson-color:${r.color}"><header><span class="mini-head">${character(l.crew)}</span><div><b>${safe(l.title)}</b><small>${safe(l.oneLiner)}</small></div></header>${roleStory(l,i)}</article>`}).join('');
  return `<div class="shell arc-room-shell arc-room-finale" data-slide="${key}"><div class="arc-room-heading"><div><span class="eyebrow acid" id="arc-slide-eyebrow">${eyebrow}</span><h1 id="arc-slide-title">${title}</h1></div><div class="arc-finale-right"><nav class="arc-slide-nav" aria-label="Closing slides"><button data-action="slide" data-value="prev" aria-label="Previous slide">←</button>${slideKeys().map((k,i)=>`<button class="arc-slide-tab" data-action="slide" data-value="${i}" aria-current="${i===finaleSlide?'step':'false'}">${i+1}. ${SLIDE_DEFS[k][2]}</button>`).join('')}<button data-action="slide" data-value="next" aria-label="Next slide">→</button><button class="arc-present" data-action="fullscreen" aria-label="Present full screen">${document.fullscreenElement?'EXIT ⛶':'PRESENT ⛶'}</button></nav>${standalone?'':`<div class="arc-room-clock"><span>ROOM POINTS</span><b id="arc-room-clock">${live.launch.score.toLocaleString('en-GB')}</b></div>`}</div></div>
- ${standalone?'':`<section class="arc-slide arc-slide-campaign" aria-label="Your campaign"><p class="arc-campaign-brief"><b>THE BRIEF</b>${BRIEF_LINE} <strong>Did we answer it?</strong></p><p class="arc-campaign-summary" id="arc-campaign-summary"></p><p class="arc-pitch" id="arc-pitch"></p><div class="arc-campaign-projects" id="arc-campaign-wrap" tabindex="0" aria-label="All the work, by project"></div></section>`}
+ ${standalone?'':`<section class="arc-slide arc-slide-pitch" aria-label="The pitch"><div id="arc-reel"></div></section><section class="arc-slide arc-slide-campaign" aria-label="Your campaign"><p class="arc-campaign-brief"><b>THE BRIEF</b>${BRIEF_LINE} <strong>Did we answer it?</strong></p><p class="arc-campaign-summary" id="arc-campaign-summary"></p><p class="arc-pitch" id="arc-pitch"></p><div class="arc-campaign-projects" id="arc-campaign-wrap" tabindex="0" aria-label="All the work, by project"></div></section>`}
  <section class="arc-slide arc-slide-team" aria-label="Meet the team"><div class="arc-stage-lessons">${team}</div><p class="arc-finale-question">Which one sounds most like you?</p></section>
  <section class="arc-slide arc-slide-deeper" aria-label="Go deeper"><div class="arc-deeper-grid">${deeper}</div><p class="arc-ways-in">${safe(waysIn)}</p></section>
  ${standalone?'':`<section class="arc-slide arc-slide-scores" aria-label="Final scores"><div class="arc-final-score-grid"><div id="arc-leaderboard-wrap"></div><div id="arc-highlights-wrap"></div></div></section>`}
@@ -374,7 +393,7 @@ function updateVote(){
  const ads=(live.ads||[]).filter(a=>!a.mine),cta=q('#arc-vote-cta');
  if(cta){cta.hidden=!ads.length;const pick=ads.find(a=>a.id===live.myVote);setHTML(cta,pick?`<b>✓ YOU VOTED</b><span>For ${safe(pick.alias)}’s ad. The big screen shows the winner.</span><i>CHANGE VOTE ↓</i>`:`<b>🗳 PITCH TIME</b><span>Vote for the best ad. The winner goes up on the big screen.</span><i>VOTE NOW ↓</i>`);cta.classList.toggle('done',!!pick);}
  if(!ads.length){el.hidden=true;return;}el.hidden=false;
- setHTML(el,`<h2>PITCH TIME.</h2><p>${live.myVote?'Vote counted. Change it any time.':'Vote for the best ad someone else made. The big screen shows the winner.'}</p><div class="arc-vote-grid">${ads.map(a=>`<button class="arc-vote-ad${live.myVote===a.id?' picked':''}" data-action="vote" data-value="${safe(a.id)}" aria-pressed="${live.myVote===a.id}">${posterSVG(a.poster)}<span>${safe(a.alias)}</span>${live.myVote===a.id?'<b>✓ YOUR VOTE</b>':''}</button>`).join('')}</div>`);
+ setHTML(el,`<h2>PITCH TIME.</h2><p>${live.myVote?'Vote counted. Change it any time.':'Vote for the best ad someone else made. The big screen shows the winner.'}</p><div class="arc-vote-grid">${ads.map(a=>`<button class="arc-vote-ad${live.myVote===a.id?' picked':''}" data-action="vote" data-value="${safe(a.id)}" aria-pressed="${live.myVote===a.id}">${posterSVG({...a.poster,by:a.alias})}<span>${safe(a.alias)}</span>${live.myVote===a.id?'<b>✓ YOUR VOTE</b>':''}</button>`).join('')}</div>`);
 }
 function renderResult(profile){
  document.body.className='arcade-result';sceneKey='result';const g=game||live?.game,alias=solo?.alias||creds?.alias||'PLAYER',ci=g?.character??0;
@@ -406,18 +425,19 @@ document.addEventListener('click',async e=>{
  if(action==='character'){selected=Number(button.dataset.value);document.querySelectorAll('.character-pick').forEach((el,i)=>{el.classList.toggle('selected',i===selected);el.setAttribute('aria-pressed',String(i===selected));el.querySelector('.pick-check').textContent=i===selected?'✓':'+'});}
  if(action==='shuffle-name'){setNickname(makeNickname());q('#arc-error')&&(q('#arc-error').textContent='');}
  if(action==='resume-solo'){solo=loadJSON(gameStore);if(!solo)return;game=solo.game;selected=solo.character;view='solo';clockOffset=0;history.pushState(null,'','/?view=solo');if(solo.phase==='paused'){solo.phase='active';solo.deadline=Date.now()+solo.remaining;renderPlay();}else if(solo.phase==='active'&&solo.deadline>Date.now())renderPlay();else{solo.phase='finished';renderResult(arcadeProfile(game))}}
- if(action==='view-work'){viewedWork=pieceOf(live.events[Number(button.dataset.value)]);openModal('artifact');}
+ if(action==='view-work'){const e=live.events[Number(button.dataset.value)];viewedWork={...pieceOf(e),by:e.alias};openModal('artifact');}
  if(action==='work-pick'&&game?.work)pickWork(Number(button.dataset.slot),Number(button.dataset.value));
  if(action==='work-edit'&&game?.work){workDraft.edit=Number(button.dataset.value);refreshWork();}
  if(action==='work-submit')submitWork();
- if(action==='work-headline'&&game?.work){const task=taskById(game.work.id),ts=task?.titleSlot||0,ok=task?task.slots[ts].options.map((o,i)=>o.why?-1:i).filter(i=>i>=0):[];if(ok.length>1){const at=ok.indexOf(workDraft.picks[ts]);workDraft.picks[ts]=ok[(at+1)%ok.length];const o=task.slots[ts].options[workDraft.picks[ts]];workDraft.flash=o.say||'Strong headline.';refreshWork();}}
- if(action==='work-style-shuffle'&&workDraft?.style){const r=n=>Math.floor(Math.random()*n),st=workDraft.style;let next;do{next={...st,bg:r(AD_STYLE.bg.length),shoe:r(4),layout:r(3),sticker:r(AD_STYLE.sticker.length),model:r(AD_STYLE.model.length)}}while(next.bg===st.bg&&next.layout===st.layout);workDraft.style=next;refreshWork();}
+ if(action==='work-headline'&&workDraft?.style){workDraft.style.head=freshHead(workDraft.style.head);refreshWork();}
+ if(action==='work-style-shuffle'&&workDraft?.style){workDraft.style=freshLook(workDraft.style);refreshWork();}
  if(action==='work-style-next'&&workDraft?.style){const k=button.dataset.key;workDraft.style[k]=((workDraft.style[k]||0)+1)%AD_STYLE[k].length;refreshWork();}
  if(action==='work-style'&&workDraft?.style){workDraft.style[button.dataset.key]=Number(button.dataset.value);refreshWork();}
  if(action==='use')actionQueued=true;if(action==='map')openModal('map');
  if(action==='pause-menu'){if(solo?.phase==='active'){solo.remaining=Math.max(0,solo.deadline-Date.now());solo.phase='paused';saveSolo();}openModal('pause');}
  if(action==='slide'){const v=button.dataset.value;setSlide(v==='next'?finaleSlide+1:v==='prev'?finaleSlide-1:Number(v));}
  if(action==='fullscreen')toggleFullscreen();
+ if(action==='reel'&&live?.ads?.length){reelBase=Date.now()-Number(button.dataset.value)*5000;updateReel();}
  if(action==='intro'){const v=button.dataset.value;setIntro(v==='skip'?INTRO_STEPS:introStep()+(v==='prev'?-1:1));}
  if(action==='vote'&&live){const id=button.dataset.value;live.myVote=id;updateVote();api('vote',{target:id}).then(()=>fetchState(true)).catch(e=>toast(e.message));}
  if(action==='finish-self')finishSelf();if(action==='download-role')await downloadRole();if(action==='retry')fetchState(true);if(action==='control')control(button.dataset.value);
@@ -451,6 +471,7 @@ function frame(time){
  }
  if((view==='host'||view==='stage')&&live&&live.phase!=='lobby'){
   if(live.phase!=='finished'&&renderer?.draw){renderer.draw(live.players,live.events,clock(),{paused:live.phase==='paused'});updateStageRush();}
+  if(live.phase==='finished')updateReel();
   const t=q('#arc-room-clock');if(t)t.textContent=live.phase==='finished'?live.launch.score.toLocaleString('en-GB'):prettyTime(secondsLeft());
  }
  roomSounds();
