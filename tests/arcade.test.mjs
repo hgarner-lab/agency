@@ -268,3 +268,12 @@ test('make it yours: the chosen ad style reaches the finished ad, and bad styles
  assert.equal(validArcadeInput({n:1,b:{task:'x',run:0,picks:[0,0,0],style}}),true);
  for(const bad of [{bg:9,shoe:0,layout:0,sticker:0},{bg:0,shoe:0,layout:0},{bg:0,shoe:0,layout:0,sticker:0,extra:1},{bg:0,shoe:0,layout:0,sticker:0,tag:99},'red'])assert.equal(validArcadeInput({n:1,b:{task:'x',run:0,picks:[0,0,0],style:bad}}),false);
 });
+test('ad headlines come from the bank, carry the maker handle, and bad headline picks are rejected',()=>{
+ const g=newArcadeGame(0);walk(g,22,3);walk(g,22,8);walk(g,26,4,true);act(g);
+ const style={bg:1,shoe:0,layout:2,sticker:0,head:3};now+=ARCADE_TICK;applyArcadeInput(g,{b:{task:g.work.id,run:g.work.run,picks:[0,0,0],style}},now);
+ const ad=g.posters.at(-1);assert.equal(ad.title,AD_STYLE.head[3]);
+ assert.match(posterSVG({...ad,by:'Sneaky Taco'}),/@sneaky\.taco/);
+ assert.ok(AD_STYLE.head.length>=30&&new Set(AD_STYLE.head).size===AD_STYLE.head.length,'headline bank has 30+ different lines');
+ for(const h of AD_STYLE.head)assert.ok(h.split(/\s+/).every(w=>w.length<=12),h+' must wrap onto the ad');
+ for(const head of [-1,AD_STYLE.head.length,1.5])assert.equal(validArcadeInput({n:1,b:{task:'x',run:0,picks:[0,0,0],style:{...style,head}}}),false);
+});

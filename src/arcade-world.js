@@ -246,7 +246,13 @@ export const AD_STYLE={
  layout:['Poster','Billboard','Social post'],
  sticker:['No sticker','NEW','£160','SAT 10AM'],
  model:['Just the trainer','Rem','Nova','Patch','Sol'],
+ // The headline bank. Most are strong; the last few are deliberately weak, so the vote has some laughs.
+ head:['NOBODY WEARS IT LIKE YOU','YOUR FEET. YOUR RULES.','DON’T TRUST US. TRY US.','£160. ZERO HYPE.','COPY NOBODY','PROOF, NOT HYPE','MADE LOCAL. WORN LOUD.','SATURDAY. 10AM. BE THERE.','TRY BEFORE YOU TRUST','NEW BRAND. NO EXCUSES.','WALK YOUR OWN WAY','ONE OF ONE','UNDERRATED. NOT FOR LONG.','FIRST PAIR. FIRST MOVE.','STEP OUT OF THE FEED','NOT FROM THE HIGH STREET','WEAR IT. PROVE IT.','MADE ROUND HERE','YOUR STYLE WAS NEVER BASIC','CLONES NEED NOT APPLY','LOUD SOLE. QUIET FLEX.','THE FIT CHECK STARTS HERE','EARN YOUR CREASES','NO DUPES ALLOWED','WORTH EVERY STEP','LOCAL. LOUD. YOURS.','FIT CHECK: PASSED','GO UNDERGROUND','BUILT WITH YOU','NICE SHOES','BUY TRAINERS','SHOES ON SALE SATURDAY','CHECK OUT OUR SHOES','TRAINERS. FOR FEET.'],
  tag:['MADE BY THE CREW','DESIGNED WITH LOCAL CREATORS','TRY A PAIR · SATURDAY 10AM','PROVE US WRONG. TRY A PAIR.','NO TWO PAIRS WORN THE SAME','TRAINERS FOR YOUR FEET','AVAILABLE NOW']
 };
 export function validAdStyle(st){if(!st||typeof st!=='object'||Array.isArray(st))return false;const keys=Object.keys(st);return ['bg','shoe','layout','sticker'].every(k=>keys.includes(k))&&keys.every(k=>k in AD_STYLE&&Number.isInteger(st[k])&&st[k]>=0&&st[k]<AD_STYLE[k].length);}
-export function adStyle(st){return {colour:AD_STYLE.bg[st.bg][1],shoe:st.shoe,pattern:st.layout,sticker:st.sticker?AD_STYLE.sticker[st.sticker]:null,tag:AD_STYLE.tag[st.tag||0],model:st.model||0};}
+// Weak lines get a nudge from Jamie, but you can still send them.
+export const AD_WEAK=new Set(['NICE SHOES','BUY TRAINERS','SHOES ON SALE SATURDAY','CHECK OUT OUR SHOES','TRAINERS. FOR FEET.']);
+// What makes two ads look the same: headline, plus background, layout and model together.
+export const adLook=p=>[p.colour,(p.pattern||0)%3,p.model||0].join('|');
+export function adStyle(st){return {...(Number.isInteger(st.head)?{title:AD_STYLE.head[st.head]}:{}),colour:AD_STYLE.bg[st.bg][1],shoe:st.shoe,pattern:st.layout,sticker:st.sticker?AD_STYLE.sticker[st.sticker]:null,tag:AD_STYLE.tag[st.tag||0],model:st.model||0};}

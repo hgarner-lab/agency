@@ -137,7 +137,7 @@ body.arcade-playing:before,body.arcade-room:before{display:none}
 
 /* Closing slides: crew at a glance, a deeper look, then scores. */
 .arc-slide{display:none}
-.arc-room-finale[data-slide="campaign"] .arc-slide-campaign,.arc-room-finale[data-slide="team"] .arc-slide-team,.arc-room-finale[data-slide="deeper"] .arc-slide-deeper,.arc-room-finale[data-slide="scores"] .arc-slide-scores{display:block;animation:arc-slide-in .25s ease-out}
+.arc-room-finale[data-slide="pitch"] .arc-slide-pitch,.arc-room-finale[data-slide="campaign"] .arc-slide-campaign,.arc-room-finale[data-slide="team"] .arc-slide-team,.arc-room-finale[data-slide="deeper"] .arc-slide-deeper,.arc-room-finale[data-slide="scores"] .arc-slide-scores{display:block;animation:arc-slide-in .25s ease-out}
 @keyframes arc-slide-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .arc-room-finale .arc-stage-lesson{text-align:center;align-items:center;overflow:hidden}
 .arc-crew-portrait{align-self:stretch;height:210px;margin:-16px -16px 10px;overflow:hidden;display:flex;justify-content:center;background:radial-gradient(ellipse at 50% 85%,color-mix(in srgb,var(--lesson-color) 38%,transparent),transparent 70%)}
@@ -931,3 +931,26 @@ html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
 .arc-live aside{grid-template-rows:max-content max-content minmax(0,1fr)}
 .arc-live aside>#arc-highlights-wrap{min-height:0;overflow:hidden}
 @media(max-height:800px){.arc-live .arc-leaderboard>.arc-rank-row:nth-of-type(n+7){display:none}}
+
+/* The pitch: one ad at a time, full size, while the room votes */
+.arc-reel{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:18px 40px;height:calc(100vh - 250px);min-height:340px}
+.arcade-host .arc-reel{height:calc(100vh - 262px)}
+.arc-reel-main{margin:0;height:100%;aspect-ratio:120/148;justify-self:start;animation:arc-reel-in .45s ease-out}
+.arc-reel-main svg{display:block;width:100%;height:100%;box-shadow:8px 8px 0 #0a1b23}
+@keyframes arc-reel-in{from{opacity:0;transform:translateY(16px) rotate(-2deg) scale(.96)}}
+.arc-reel-side{align-self:center;min-width:0}
+.arc-reel-side small{font:700 15px WarMono,monospace;letter-spacing:.1em;color:#a9c2a4}
+.arc-reel-side h2{font-size:clamp(36px,4.4vw,80px);line-height:.95;margin:10px 0 14px;color:#f2ecd3}
+.arc-reel-line{font-size:clamp(18px,1.8vw,30px);color:#c6ff40;margin:0 0 20px}
+.arc-reel-votes{display:inline-block;font:700 clamp(22px,2.2vw,36px) WarMono,monospace;background:#ff5b8a;color:#fff;padding:6px 16px;margin:0 0 22px}
+.arc-reel-votes.none{background:transparent;color:#a9c2a4;border:2px dashed #56705f}
+.arc-reel-cta{font-size:clamp(16px,1.4vw,24px);color:#e7ecd8;margin:0 0 8px}
+.arc-reel-count{font:clamp(14px,1.1vw,18px) WarMono,monospace;color:#a9c2a4;margin:0}
+.arc-reel-count b{color:#c6ff40;font-weight:400}
+.arc-reel-strip{grid-column:1/-1;display:flex;gap:8px;overflow:hidden;padding:8px 2px 2px}
+.arc-reel-strip button{position:relative;flex:0 1 52px;min-width:20px;padding:0;background:none;border:2px solid transparent;opacity:.55;cursor:pointer}
+.arc-reel-strip button.on{border-color:#c6ff40;opacity:1}
+.arc-reel-strip svg{display:block;width:100%;height:auto}
+.arc-reel-strip i{position:absolute;right:-6px;top:-8px;background:#ff5b8a;color:#fff;font:700 10px WarMono,monospace;font-style:normal;padding:1px 4px}
+@media(prefers-reduced-motion:reduce){.arc-reel-main{animation:none}}
+.arc-style-nudge{font-size:14px;color:#ffb26e;margin:8px 0 0;text-align:center}
