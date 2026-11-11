@@ -911,3 +911,21 @@ html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
 .arc-faves{--c:#ff5b8a;background:#ff5b8a14;border:2px solid #ff5b8a;padding:12px 14px 4px}
 .arc-faves h3{border-bottom-color:#ff5b8a66}
 .arc-campaign-grid .arc-wall-tile figcaption small{overflow-wrap:anywhere}
+
+/* Phone bottom bar: icon buttons for help and sound leave room for the role progress */
+.arc-play-footer .arc-icon-btn{width:40px;flex:none;padding:0!important;display:grid;place-items:center;font:700 17px WarMono,monospace}
+.arc-play-footer .arc-icon-btn svg{display:block}
+.arc-host-sound[aria-pressed="false"]{opacity:.7}
+
+/* Phone end screen: vote prompt straight after the role card */
+.arc-vote-cta{grid-column:1/-1;order:1;display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center;width:100%;max-width:560px;margin:0 auto;box-sizing:border-box;background:#c6ff40;color:#11221f;border:2px solid #c6ff40;padding:14px 16px;text-decoration:none;box-shadow:5px 5px 0 #0a1b23;animation:arc-rush-pulse 1.6s ease-in-out infinite;--c:#c6ff40}
+.arc-vote-cta[hidden]{display:none!important}
+.arc-vote-cta b{font:700 18px WarMono,monospace;letter-spacing:.05em}
+.arc-vote-cta span{grid-column:1;font-size:15px;line-height:1.35}
+.arc-vote-cta i{grid-column:2;grid-row:1/3;font:700 14px WarMono,monospace;font-style:normal;background:#11221f;color:#c6ff40;padding:10px 12px;white-space:nowrap}
+.arc-vote-cta.done{background:#1d3532;color:#f2ecd3;animation:none}
+.arc-vote-cta.done b{color:#c6ff40}
+.arc-vote-cta.done i{background:transparent;border:1px solid #c6ff40}
+#arc-vote{scroll-margin-top:16px}
+@media(prefers-reduced-motion:reduce){.arc-vote-cta{animation:none}}
+@media(min-width:721px){.arc-vote-cta{order:3}}
