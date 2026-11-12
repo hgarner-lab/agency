@@ -258,7 +258,24 @@ function roomControls(){
 
 function leaderboard(){return `<div class="arc-leaderboard"><div class="eyebrow">${live.phase==='finished'?'FINAL':'LIVE'} LEADERBOARD</div>${live.leaderboard.length?live.leaderboard.slice(0,live.phase==='finished'?10:8).map((p,i)=>`<div class="arc-rank-row"><span class="arc-rank-num">${String(i+1).padStart(2,'0')}</span><span class="mini-head">${character(p.character)}</span><div><b>${safe(p.alias)}</b><small>${p.completed} ${p.completed===1?'JOB':'JOBS'} DONE</small></div><strong>${p.score.toLocaleString('en-GB')}</strong></div>`).join(''):'<p class="fine">Players appear when they join.</p>'}</div>`}
 function highlights(){if(live.phase!=='finished')return `<div class="arc-wall"><div class="eyebrow">CAMPAIGN WALL <b>${live.launch.jobs}</b></div>${live.events.length?`<div class="arc-wall-grid">${wallTiles(live.events,9)}</div>`:'<p class="arc-feed-empty">Every finished job adds a piece here.</p>'}</div>`;
- return `<div class="arc-highlights"><div class="eyebrow">PLAYER HIGHLIGHTS</div>${live.events.length?live.events.slice(0,3).map(e=>`<article class="arc-highlight" style="--event-colour:${JOBS[e.type].colour}">${e.poster?`<div class="arc-highlight-poster">${posterSVG(e.poster)}</div>`:`<span class="arc-highlight-symbol">${['⌕','✳','✉','⚒'][e.type]}</span>`}<div><b>${safe(e.alias)}</b><p>${safe(e.detail)}</p><span>+${e.points} POINTS / ${JOBS[e.type].role.toUpperCase()}</span></div></article>`).join(''):'<div class="arc-highlight-empty">No jobs finished.</div>'}</div>`}
+ const cards=endHighlights();
+ return `<div class="arc-highlights"><div class="eyebrow">PLAYER HIGHLIGHTS</div>${cards.length?cards.join(''):'<div class="arc-highlight-empty">No jobs finished.</div>'}</div>`}
+// The moments worth shouting about at the end: best ad, Jamie's urgent jobs, best team-up, busiest in each role.
+function endHighlights(){
+ const card=(colour,icon,title,body,foot)=>`<article class="arc-highlight" style="--event-colour:${colour}">${icon}<div><b>${title}</b>${body}${foot?`<span>${foot}</span>`:''}</div></article>`;
+ const sym=c=>`<span class="arc-highlight-symbol">${c}</span>`,out=[],moments=live.moments||[];
+ const best=[...(live.ads||[])].filter(a=>a.votes).sort((a,b)=>b.votes-a.votes)[0];
+ if(best){const tied=(live.ads||[]).filter(a=>a.votes===best.votes).length>1;out.push(card(JOBS[1].colour,`<div class="arc-highlight-poster">${posterSVG({...best.poster,by:best.alias})}</div>`,tied?'JOINT BEST AD':'BEST AD',`<p>${safe(best.alias)}: “${safe(best.poster?.title||'')}”</p>`,`♥ ${best.votes} ${best.votes===1?'VOTE':'VOTES'}`));}
+ const rush={};for(const m of moments)if(m.type===-1)rush[m.alias]=(rush[m.alias]||0)+1;
+ const rushers=Object.entries(rush).sort((a,b)=>b[1]-a[1]);
+ if(rushers.length)out.push(card('#ff8f6b',sym('!'),'JAMIE’S URGENT JOBS',`<p>${rushers.map(([a,n])=>safe(a)+(n>1?` ×${n}`:'')).join(', ')} got there first.</p>`,'DOUBLE POINTS'));
+ const pairs={};for(const m of moments)if(m.type===-2&&m.info?.with){const k=[m.alias,m.info.with].sort().join(' + ');pairs[k]=pairs[k]||{n:0,types:m.info.types||[]};pairs[k].n++;}
+ const pair=Object.entries(pairs).sort((a,b)=>b[1].n-a[1].n)[0];
+ if(pair)out.push(card('#79d8d8',sym('+'),'BEST TEAM-UP',`<p>${safe(pair[0])}</p>`,`${pair[1].types.map(t=>JOBS[t]?.name).filter(Boolean).join(' + ')}${pair[1].n>1?` · ${pair[1].n} TIMES`:''}`));
+ const busy=JOBS.map((j,t)=>{const top=[...live.players].sort((a,b)=>(b.game?.jobs?.[t]||0)-(a.game?.jobs?.[t]||0))[0],n=top?.game?.jobs?.[t]||0;return n?`<p><small style="color:${j.colour}">${j.name}</small>${safe(top.alias)} (${n})</p>`:'';}).join('');
+ if(busy)out.push(card('#c9e896',sym('★'),'BUSIEST IN EACH ROLE',`<div class="arc-busy">${busy}</div>`,''));
+ return out;
+}
 const list=items=>`<ul>${items.map(t=>`<li>${safe(t)}</li>`).join('')}</ul>`;
 const crewName=index=>cast[roleLessons[roles[index].key].crew].name;
 function roleStory(lesson,i){return `<blockquote class="arc-role-voice">“${safe(lesson.voice)}”<cite>${crewName(i)}</cite></blockquote><p class="arc-role-love"><b>You’d love it if</b> ${safe(lesson.loveIf)}</p><p class="arc-role-skills">${lesson.skills.map(t=>`<span>${safe(t)}</span>`).join('')}</p><p class="arc-role-start"><b>Start as:</b> ${safe(lesson.startAs)}</p>`;}

@@ -954,3 +954,5 @@ html.is-presenting .arc-room-finale .arc-room-heading{padding-top:0}
 .arc-reel-strip i{position:absolute;right:-6px;top:-8px;background:#ff5b8a;color:#fff;font:700 10px WarMono,monospace;font-style:normal;padding:1px 4px}
 @media(prefers-reduced-motion:reduce){.arc-reel-main{animation:none}}
 .arc-style-nudge{font-size:14px;color:#ffb26e;margin:8px 0 0;text-align:center}
+.arc-busy{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}.arc-busy p{margin:0!important}.arc-busy small{display:block;font-family:WarMono;font-size:11px;letter-spacing:.06em;margin-bottom:2px}.arcade-stage .arc-busy small{font-size:13px}
+@media(max-height:820px){.arc-slide-scores .arc-highlight b{margin-bottom:3px}.arc-slide-scores .arc-highlight>div>span{margin-top:2px}.arc-slide-scores .arc-highlight p{margin:0;line-height:1.45}.arc-slide-scores .arc-highlight-symbol{width:36px;height:36px;font-size:22px}.arc-slide-scores .arc-highlights>.eyebrow{margin-bottom:10px}}
