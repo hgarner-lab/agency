@@ -117,7 +117,7 @@ export async function arcadeApi(req,env){
    const extras=(await db.prepare('SELECT id,player,alias,type,detail,points,poster,created_at FROM arcade_events WHERE room=? AND type<0 ORDER BY created_at DESC').bind(code).all()).results;
    const bonusBy={};for(const x of extras)if(x.type!==VOTE)bonusBy[x.player]=(bonusBy[x.player]||0)+x.points;
    for(const [i,p] of players.entries()){const extra=bonusBy[rows[i].id]||0;p.score+=extra;p.bonus=extra;}
-   const moments=extras.filter(x=>x.type!==VOTE&&!x.id.endsWith('_b')).slice(0,12).map(x=>({id:x.id,type:x.type,alias:x.alias,points:x.points,detail:x.detail,info:x.poster?JSON.parse(x.poster):null,created_at:x.created_at}));
+   const moments=extras.filter(x=>x.type!==VOTE&&!x.id.endsWith('_b')).slice(0,phase==='finished'?200:12).map(x=>({id:x.id,type:x.type,alias:x.alias,points:x.points,detail:x.detail,info:x.poster?JSON.parse(x.poster):null,created_at:x.created_at}));
    const live=rushAt(code,room.duration*1000,elapsedIn(room,now)),claim=live&&extras.find(x=>x.id===code+'_rush_'+live.index);
    const rush=phase==='active'||phase==='paused'?(live?{index:live.index,type:live.type,endsAt:now+live.left,left:live.left,claimedBy:claim?.alias||null}:null):null;
    const votes={};let myVote=null;for(const x of extras)if(x.type===VOTE){votes[x.detail]=(votes[x.detail]||0)+1;if(x.player===pid)myVote=x.detail;}

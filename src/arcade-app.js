@@ -258,7 +258,24 @@ function roomControls(){
 
 function leaderboard(){return `<div class="arc-leaderboard"><div class="eyebrow">${live.phase==='finished'?'FINAL':'LIVE'} LEADERBOARD</div>${live.leaderboard.length?live.leaderboard.slice(0,live.phase==='finished'?10:8).map((p,i)=>`<div class="arc-rank-row"><span class="arc-rank-num">${String(i+1).padStart(2,'0')}</span><span class="mini-head">${character(p.character)}</span><div><b>${safe(p.alias)}</b><small>${p.completed} ${p.completed===1?'JOB':'JOBS'} DONE</small></div><strong>${p.score.toLocaleString('en-GB')}</strong></div>`).join(''):'<p class="fine">Players appear when they join.</p>'}</div>`}
 function highlights(){if(live.phase!=='finished')return `<div class="arc-wall"><div class="eyebrow">CAMPAIGN WALL <b>${live.launch.jobs}</b></div>${live.events.length?`<div class="arc-wall-grid">${wallTiles(live.events,9)}</div>`:'<p class="arc-feed-empty">Every finished job adds a piece here.</p>'}</div>`;
- return `<div class="arc-highlights"><div class="eyebrow">PLAYER HIGHLIGHTS</div>${live.events.length?live.events.slice(0,3).map(e=>`<article class="arc-highlight" style="--event-colour:${JOBS[e.type].colour}">${e.poster?`<div class="arc-highlight-poster">${posterSVG(e.poster)}</div>`:`<span class="arc-highlight-symbol">${['⌕','✳','✉','⚒'][e.type]}</span>`}<div><b>${safe(e.alias)}</b><p>${safe(e.detail)}</p><span>+${e.points} POINTS / ${JOBS[e.type].role.toUpperCase()}</span></div></article>`).join(''):'<div class="arc-highlight-empty">No jobs finished.</div>'}</div>`}
+ const cards=endHighlights();
+ return `<div class="arc-highlights"><div class="eyebrow">PLAYER HIGHLIGHTS</div>${cards.length?cards.join(''):'<div class="arc-highlight-empty">No jobs finished.</div>'}</div>`}
+// The moments worth shouting about at the end: best ad, Jamie's urgent jobs, best team-up, busiest in each role.
+function endHighlights(){
+ const card=(colour,icon,title,body,foot)=>`<article class="arc-highlight" style="--event-colour:${colour}">${icon}<div><b>${title}</b>${body}${foot?`<span>${foot}</span>`:''}</div></article>`;
+ const sym=c=>`<span class="arc-highlight-symbol">${c}</span>`,out=[],moments=live.moments||[];
+ const best=[...(live.ads||[])].filter(a=>a.votes).sort((a,b)=>b.votes-a.votes)[0];
+ if(best){const tied=(live.ads||[]).filter(a=>a.votes===best.votes).length>1;out.push(card(JOBS[1].colour,`<div class="arc-highlight-poster">${posterSVG({...best.poster,by:best.alias})}</div>`,tied?'JOINT BEST AD':'BEST AD',`<p>${safe(best.alias)}: “${safe(best.poster?.title||'')}”</p>`,`♥ ${best.votes} ${best.votes===1?'VOTE':'VOTES'}`));}
+ const rush={};for(const m of moments)if(m.type===-1)rush[m.alias]=(rush[m.alias]||0)+1;
+ const rushers=Object.entries(rush).sort((a,b)=>b[1]-a[1]);
+ if(rushers.length)out.push(card('#ff8f6b',sym('!'),'JAMIE’S URGENT JOBS',`<p>${rushers.map(([a,n])=>safe(a)+(n>1?` ×${n}`:'')).join(', ')} got there first.</p>`,'DOUBLE POINTS'));
+ const pairs={};for(const m of moments)if(m.type===-2&&m.info?.with){const k=[m.alias,m.info.with].sort().join(' + ');pairs[k]=pairs[k]||{n:0,types:m.info.types||[]};pairs[k].n++;}
+ const pair=Object.entries(pairs).sort((a,b)=>b[1].n-a[1].n)[0];
+ if(pair)out.push(card('#79d8d8',sym('+'),'BEST TEAM-UP',`<p>${safe(pair[0])}</p>`,`${pair[1].types.map(t=>JOBS[t]?.name).filter(Boolean).join(' + ')}${pair[1].n>1?` · ${pair[1].n} TIMES`:''}`));
+ const busy=JOBS.map((j,t)=>{const top=[...live.players].sort((a,b)=>(b.game?.jobs?.[t]||0)-(a.game?.jobs?.[t]||0))[0],n=top?.game?.jobs?.[t]||0;return n?`<p><small style="color:${j.colour}">${j.name}</small>${safe(top.alias)} (${n})</p>`:'';}).join('');
+ if(busy)out.push(card('#c9e896',sym('★'),'BUSIEST IN EACH ROLE',`<div class="arc-busy">${busy}</div>`,''));
+ return out;
+}
 const list=items=>`<ul>${items.map(t=>`<li>${safe(t)}</li>`).join('')}</ul>`;
 const crewName=index=>cast[roleLessons[roles[index].key].crew].name;
 function roleStory(lesson,i){return `<blockquote class="arc-role-voice">“${safe(lesson.voice)}”<cite>${crewName(i)}</cite></blockquote><p class="arc-role-love"><b>You’d love it if</b> ${safe(lesson.loveIf)}</p><p class="arc-role-skills">${lesson.skills.map(t=>`<span>${safe(t)}</span>`).join('')}</p><p class="arc-role-start"><b>Start as:</b> ${safe(lesson.startAs)}</p>`;}
@@ -286,7 +303,7 @@ function setSlide(n,share=true){
 const pieceOf=e=>e.poster||{kind:['insight','ad','approval','live'][e.type],text:e.detail,title:'YOUR WAY'};
 const votesFor=id=>(live?.ads||[]).find(a=>a.id===id)?.votes||0;
 function pitchLine(){const ads=(live?.ads||[]).filter(a=>a.votes).sort((a,b)=>b.votes-a.votes);if(!(live?.ads||[]).length)return '';return ads.length?`<b>PITCH VOTE</b> Leading: ${safe(ads[0].alias)}’s ad · ${ads[0].votes} ${ads[0].votes===1?'vote':'votes'}. Vote for the best ad on your phone.`:'<b>PITCH VOTE</b> Vote for the best ad on your phone.';}
-const wallTile=(e,i,label=e.poster?.taskTitle)=>`<figure class="arc-wall-tile" style="--c:${JOBS[e.type].colour}">${e.type===1&&votesFor(e.id)?`<i class="arc-vote-badge">♥ ${votesFor(e.id)}</i>`:''}<button data-action="view-work" data-value="${i}" aria-label="View work by ${safe(e.alias)}">${posterSVG({...pieceOf(e),by:e.alias})}</button><figcaption>${safe(e.alias)}${label?`<small>${safe(label).replace(/_/g,'_<wbr>')}</small>`:''}</figcaption></figure>`;
+const wallTile=(e,i,label=e.poster?.taskTitle)=>`<figure class="arc-wall-tile" style="--c:${JOBS[e.type].colour}">${e.type===1&&votesFor(e.id)?`<i class="arc-vote-badge">♥ ${votesFor(e.id)}</i>`:''}<button data-action="view-work" data-value="${i}" aria-label="View work by ${safe(e.alias)}">${posterSVG({...pieceOf(e),by:e.alias})}</button><figcaption>${safe(e.alias)}${label?`<small>${safe(label)}</small>`:''}</figcaption></figure>`;
 // The pitch: every ad full size on the big screen, one at a time, while the room votes.
 let reelBase=Date.now(),reelVotes=-1;
 const AD_KIND=['poster','billboard','social post'];
@@ -301,15 +318,13 @@ function updateReel(){
 }
 const wallTiles=(events,n)=>events.slice(0,n).map((e,i)=>wallTile(e,i)).join('');
 // End of the game: every piece of work, grouped by project like a real agency folder.
-// Each new go at the same project is the next version, named the way real files end up.
-const VERSIONS=['V1','V2','V3_FINAL','V4_FINAL_final','V5_FINAL_actual_final','V6_USE_THIS_ONE','V7_FINAL_FINAL_v2','V8_ok_THIS_one'];
-const versionName=(title,n)=>title.replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'')+'_'+(VERSIONS[n]||'V'+(n+1)+'_FINAL_promise');
+// Each new go at the same project is the next version: V1, V2, V3...
 function finalWall(events){
  const all=events.map((e,i)=>({e,i})),groups=new Map();
  for(const x of [...all].reverse()){const title=x.e.poster?.taskTitle||JOBS[x.e.type].role;const key=x.e.type+'|'+title;if(!groups.has(key))groups.set(key,{title,type:x.e.type,items:[]});groups.get(key).items.push(x);}
- const names={};for(const g of groups.values())g.items.forEach((x,n)=>names[x.i]=versionName(g.title,n));
+ const names={};for(const g of groups.values())g.items.forEach((x,n)=>names[x.i]='V'+(n+1));
  const faves=all.filter(x=>x.e.type===1&&votesFor(x.e.id)).sort((a,b)=>votesFor(b.e.id)-votesFor(a.e.id)||a.i-b.i).slice(0,4);
- const top=faves.length?`<section class="arc-project arc-faves"><h3><span>♥ CROWD FAVOURITES</span>The ads you voted for</h3><div class="arc-campaign-grid">${faves.map(x=>wallTile(x.e,x.i,names[x.i])).join('')}</div></section>`:'';
+ const top=faves.length?`<section class="arc-project arc-faves"><h3><span>♥ CROWD FAVOURITES</span>The ads you voted for</h3><div class="arc-campaign-grid">${faves.map(x=>wallTile(x.e,x.i,x.e.poster?.taskTitle)).join('')}</div></section>`:'';
  const folders=[...groups.values()].sort((a,b)=>a.type-b.type).map(g=>`<section class="arc-project" style="--c:${JOBS[g.type].colour}"><h3><span>${JOBS[g.type].name}</span>${safe(g.title)}<small>${g.items.length} ${g.items.length===1?'version':'versions'}</small></h3><div class="arc-campaign-grid">${g.items.map((x,n)=>wallTile(x.e,x.i,names[x.i])).join('')}</div></section>`).join('');
  return top+folders;
 }
